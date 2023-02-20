@@ -1,0 +1,39 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: sc-diadata-data
+provisioner: k8s.io/minikube-hostpath
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-diadata-data-diadata
+  labels:
+    type: local
+spec:
+  storageClassName: sc-diadata-data
+  capacity:
+    storage: 15Gi
+  accessModes:
+    - ReadOnlyMany
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/volumes/shared/diadata
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-diadata-data-scraper-mexc
+  labels:
+    type: local
+spec:
+  storageClassName: sc-diadata-data
+  capacity:
+    storage: 15Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/volumes/scraper-mexc
