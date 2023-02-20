@@ -38,6 +38,11 @@ fi
     make build
 )
 
+(
+    cd containers/db-postgres
+    make build
+)
+
 if [ "$MINIKUBE_DRIVER" = "docker" ]; then
     __cluster_env_enable "${DIA_VM_PROFILE}"
 fi
