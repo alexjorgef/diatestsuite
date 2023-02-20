@@ -1,0 +1,6 @@
+# Development
+
+## Requirements
+
+* minikube
+* kubectl
