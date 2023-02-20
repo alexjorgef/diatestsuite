@@ -24,13 +24,19 @@ __cluster_env_disable() {
     fi
 }
 
-cd containers/db-influx
-
 if [ "$MINIKUBE_DRIVER" = "docker" ]; then
     __cluster_env_disable
 fi
 
-make build
+(
+    cd containers/db-influx
+    make build
+)
+
+(
+    cd containers/db-redis
+    make build
+)
 
 if [ "$MINIKUBE_DRIVER" = "docker" ]; then
     __cluster_env_enable "${DIA_VM_PROFILE}"

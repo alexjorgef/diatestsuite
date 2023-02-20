@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-echo "Checking for missing software ..."
 if command -v kubectl >/dev/null 2>&1; then
     echo "OK kubectl"
 else

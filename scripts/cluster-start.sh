@@ -2,3 +2,4 @@
 set -e
 
 kubectl create -f "pods/db-influx.yaml"
+kubectl create -f "pods/db-redis.yaml"
