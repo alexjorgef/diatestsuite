@@ -5,6 +5,38 @@
 * minikube
 * kubectl
 
+## Getting Started
+
+* Run the safety checks:
+
+```shell
+./scripts/checks.sh
+```
+
+* Initialize the cluster
+
+```shell
+./scripts/cluster-init.sh
+```
+
+* Build images
+
+```shell
+./scripts/cluster-build.sh
+```
+
+* Load images
+
+```shell
+./scripts/cluster-load.sh
+```
+
+* Start pods
+
+```shell
+./scripts/cluster-start.sh
+```
+
 ## Know Issues
 
 1. Mounting hostPath volumes with ```minikube start --mount-string```, can't set permissions
