@@ -5,7 +5,9 @@
 * minikube
 * kubectl
 
-## Getting Started
+## Guides
+
+### Getting Started
 
 * Run the safety checks:
 
@@ -35,6 +37,18 @@
 
 ```shell
 ./scripts/cluster-start.sh
+```
+
+### Advanced
+
+Batch scripts:
+
+```shell
+./scripts/cluster-delete.sh; ./scripts/cluster-init.sh
+```
+
+```shell
+./scripts/cluster-build.sh; ./scripts/cluster-load.sh; ./scripts/cluster-stop.sh; ./scripts/cluster-start.sh
 ```
 
 ## Know Issues

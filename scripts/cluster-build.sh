@@ -48,6 +48,19 @@ fi
     make build
 )
 
+(
+    cd containers/service-tradesblockservice
+    if [ ! -d ./$diacodebase_folder ] ; then
+        git clone https://github.com/diadata-org/diadata diadata
+    else 
+        (
+            cd diadata
+            git pull
+        )
+    fi
+    make build
+)
+
 if [ "$MINIKUBE_DRIVER" = "docker" ]; then
     __cluster_env_enable "${DIA_VM_PROFILE}"
 fi

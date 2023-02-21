@@ -11,11 +11,11 @@ data:
 apiVersion: "v1"
 kind: Pod
 metadata:
-  name: "diadata-clusterdev-postgres"
+  name: "diadata-clusterdev-db-postgres"
 spec:
   containers:
-  - name: clusterdev-postgres
-    image: diadata-clusterdev-postgres:0.1
+  - name: clusterdev-db-postgres
+    image: diadata-clusterdev-db-postgres:0.1
     env:
     - name: POSTGRES_USER
       valueFrom:
