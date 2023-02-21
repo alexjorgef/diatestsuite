@@ -53,6 +53,11 @@ fi
     make load
 )
 
+(
+    cd containers/service-filtersblockservice
+    make load
+)
+
 if [ "$MINIKUBE_DRIVER" = "docker" ]; then
     __cluster_env_enable "${DIA_VM_PROFILE}"
 fi

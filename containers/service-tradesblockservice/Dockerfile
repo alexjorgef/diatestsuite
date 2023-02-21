@@ -4,8 +4,8 @@ RUN apk add --no-cache make gcc musl-dev linux-headers git bash
 
 WORKDIR $GOPATH/src/
 
-COPY ./diadata-org--diadata/cmd/services/tradesBlockService ./
-COPY ./diadata-org--diadata/config /config/
+COPY ./diadata/cmd/services/tradesBlockService ./
+COPY ./diadata/config /config/
 
 RUN go mod tidy -go=1.16 && go mod tidy -go=1.17 && CGO_ENABLED=0 go install
 
