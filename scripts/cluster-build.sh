@@ -50,7 +50,7 @@ fi
 
 (
     cd containers/service-tradesblockservice
-    if [ ! -d ./$diacodebase_folder ] ; then
+    if [ ! -d ./diadata ] ; then
         git clone https://github.com/diadata-org/diadata diadata
     else 
         (
