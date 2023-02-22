@@ -1,0 +1,8 @@
+apiVersion: "v1"
+kind: Pod
+metadata:
+  name: "diadata-clusterdev-exchangescraper-collector-bitfinex"
+spec:
+  containers:
+  - name: clusterdev-exchangescraper-collector-bitfinex
+    image: diadata-clusterdev-exchangescraper-collector:0.1
