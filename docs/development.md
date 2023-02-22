@@ -55,6 +55,11 @@ Batch scripts:
 ./scripts/cluster-stop.sh; ./scripts/cluster-start.sh
 ```
 
+## Endpoints
+
+* Kubernetes
+  * Dashboard: http://127.0.0.1:8083/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/
+
 ## Know Issues
 
 1. Mounting hostPath volumes with ```minikube start --mount-string```, can't set permissions
@@ -66,6 +71,18 @@ Batch scripts:
 
 * https://github.com/moby/moby/blob/master/contrib/check-config.sh
 
----
+## Debug and Troubleshooting
 
-on Dockerfile use `# FROM gcr.io/distroless/base:debug` on 2nd stage
+On `containers/*/Dockerfile` use `*:debug` tag on 2nd stage image:
+
+```
+# ...
+
+# 1. comment this line
+#FROM gcr.io/distroless/base
+
+# 2. and use this line instead
+FROM gcr.io/distroless/base:debug
+
+# ...
+```

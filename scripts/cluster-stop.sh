@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -e
 
 # Databases and datastores
 kubectl delete -f "pods/db-influx.yaml"

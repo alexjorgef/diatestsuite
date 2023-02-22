@@ -31,6 +31,7 @@ CLUSTER_HW_MEMORY=4096
 CLUSTER_HW_VCPU=4
 CLUSTER_HW_DISK_SIZE="30g"
 MINIKUBE_VLVL=8
+MINIKUBE_DASHBOARD_PORT=8083
 MINIKUBE_DRIVER="docker"
 MINIKUBE_CONTAINER_RUNTIME="docker"
 MINIKUBE_KUBERNETES_VER="v1.21.6"
@@ -79,3 +80,5 @@ echo $! >.pid-mount-data-sync
 sleep 2
 minikube ssh "sudo mkdir -p /mnt/volumes/scraper"
 minikube ssh "sudo chown -R 1001:1001 /mnt/volumes/scraper"
+minikube -p $DIA_VM_PROFILE addons enable metrics-server
+minikube dashboard --url=true --port="${MINIKUBE_DASHBOARD_PORT}"
