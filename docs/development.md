@@ -48,7 +48,11 @@ Batch scripts:
 ```
 
 ```shell
-./scripts/cluster-build.sh; ./scripts/cluster-load.sh; ./scripts/cluster-stop.sh; ./scripts/cluster-start.sh
+./scripts/cluster-build.sh; ./scripts/cluster-load.sh
+```
+
+```shell
+./scripts/cluster-stop.sh; ./scripts/cluster-start.sh
 ```
 
 ## Know Issues
@@ -61,3 +65,7 @@ Batch scripts:
 ## References & Inspirations
 
 * https://github.com/moby/moby/blob/master/contrib/check-config.sh
+
+---
+
+on Dockerfile use `# FROM gcr.io/distroless/base:debug` on 2nd stage
