@@ -6,3 +6,5 @@ spec:
   containers:
   - name: clusterdev-exchangescraper-collector-bittrex
     image: diadata-clusterdev-exchangescraper-collector:0.1
+    command: ["collector"]
+    args: ["-exchange=Bittrex", "-mode=storeTrades", "-pairsfile=true"]

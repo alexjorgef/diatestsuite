@@ -1,7 +1,7 @@
 ARG exchange
-FROM golang:1.19 AS build
+FROM golang:1.19-alpine AS build
 
-# RUN apk add --no-cache make gcc musl-dev linux-headers git bash
+RUN apk add --no-cache make gcc musl-dev linux-headers git bash
 
 WORKDIR $GOPATH/src/
 
@@ -28,5 +28,4 @@ ENV INFLUXUSER=diadata_user
 ENV INFLUXPASSWORD=diadata_pw
 ENV REDISURL=clusterdev-db-redis-service.default.svc.cluster.local:6379
 
-#CMD ["collector"]
-CMD ["collector", "-exchange=Bitfinex", "-mode=storeTrades", "-pairsfile=true"]
+CMD ["collector", "-exchange=Bittrex", "-mode=storeTrades", "-pairsfile=true"]

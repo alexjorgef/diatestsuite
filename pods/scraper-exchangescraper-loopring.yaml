@@ -1,0 +1,10 @@
+apiVersion: "v1"
+kind: Pod
+metadata:
+  name: "diadata-clusterdev-exchangescraper-collector-loopring"
+spec:
+  containers:
+  - name: clusterdev-exchangescraper-collector-loopring
+    image: diadata-clusterdev-exchangescraper-collector:0.1
+    command: ["collector"]
+    args: ["-exchange=Loopring", "-mode=storeTrades", "-pairsfile=true"]
