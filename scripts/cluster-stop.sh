@@ -12,4 +12,7 @@ kubectl delete -f "pods/service-tradesblockservice.yaml"
 kubectl delete -f "pods/service-filtersblockservice.yaml"
 
 # Scrapers
+kubectl delete -f "pods/scraper-bitfinex.yaml"
+kubectl delete -f "pods/scraper-bittrex.yaml"
+kubectl delete -f "pods/scraper-coinbase.yaml"
 kubectl delete -f "pods/scraper-mexc.yaml"
