@@ -6,7 +6,7 @@
 # data:
 #   POSTGRES_USER: d2Vic2l0ZV91c2Vy
 #   POSTGRES_PASSWORD: cGFzcw==
-#   POSTGRES_DB: d2Vic2l0ZQ==
+#   POSTGRES_DB: diadata_psql_db
 # ---
 apiVersion: "v1"
 kind: Pod

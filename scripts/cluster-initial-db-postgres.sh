@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+(
+    export USE_ENV=true
+    export INFLUXURL=http://localhost:8086
+    export INFLUXUSER=diadata_user
+    export INFLUXPASSWORD=diadata_pw
+    export POSTGRES_USER=d2Vic2l0ZV91c2Vy
+    export POSTGRES_PASSWORD=cGFzcw==
+    export POSTGRES_HOST=localhost
+    export POSTGRES_DB=diadata_psql_db
+    export REDISURL=localhost:6379
+    cd containers/diacmd-services-blockchainservice/diadata/cmd/services/blockchainservice || exit
+    go mod tidy
+    # CGO_ENABLED=0 go install
+    go run main.go
+    # ls -la
+)

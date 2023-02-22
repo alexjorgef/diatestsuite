@@ -21,11 +21,12 @@ COPY ./secrets/postgres_credentials.txt /src/github.com/diadata-org/diadata/secr
 ENV USE_ENV=true
 ENV POSTGRES_USER=d2Vic2l0ZV91c2Vy
 ENV POSTGRES_PASSWORD=cGFzcw==
-ENV POSTGRES_DB=d2Vic2l0ZQ==
+ENV POSTGRES_DB=diadata_psql_db
 ENV POSTGRES_HOST=clusterdev-db-postgres-service.default.svc.cluster.local
-ENV INFLUXURL=clusterdev-db-influx-service.default.svc.cluster.local
+ENV INFLUXURL=http://clusterdev-db-influx-service.default.svc.cluster.local
 ENV INFLUXUSER=diadata_user
 ENV INFLUXPASSWORD=diadata_pw
 ENV REDISURL=clusterdev-db-redis-service.default.svc.cluster.local:6379
 
-CMD ["collector"]
+#CMD ["collector"]
+CMD ["collector", "-exchange=CoinBase"]

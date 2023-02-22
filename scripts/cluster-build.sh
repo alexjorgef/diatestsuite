@@ -75,7 +75,7 @@ fi
 )
 
 (
-    cd containers/exchangescraper-collector
+    cd containers/diacmd-exchangescraper-collector
     if [ ! -d ./diadata ] ; then
         git clone https://github.com/diadata-org/diadata diadata
     else 
