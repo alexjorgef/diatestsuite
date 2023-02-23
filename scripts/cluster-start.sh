@@ -2,32 +2,37 @@
 set -e
 
 # Databases and datastores
-#kubectl create -f "pods/db-influx.yaml"
-#kubectl create -f "pods/db-redis.yaml"
-#kubectl create -f "pods/db-postgres.yaml"
-#kubectl create -f "pods/db-kafka.yaml"
+kubectl create -f "pods/db-influx.yaml"
+kubectl create -f "pods/db-redis.yaml"
+kubectl create -f "pods/db-postgres.yaml"
+# kubectl create -f "pods/db-kafka.yaml"
+
+sleep 20
+
+# TODO: only forward when pod is ready
+(
+    echo "Starting cluster forwards..."
+    kubectl port-forward diadata-clusterdev-db-postgres 5432:5432 &
+    echo $! >.pid-forward-db-postgres
+    kubectl port-forward diadata-clusterdev-db-redis 6379:6379 &
+    echo $! >.pid-forward-db-redis
+    kubectl port-forward diadata-clusterdev-db-influx 8086:8086 &
+    echo $! >.pid-forward-db-influx
+)
+
+sleep 2
+
+(
+    echo "Initializing databases..."
+    ./scripts/cluster-initial-service-blockchainservice.sh
+)
+
+sleep 1
+
+kill -9 "$(cat .pid-forward-db-postgres)"
+kill -9 "$(cat .pid-forward-db-redis)"
+kill -9 "$(cat .pid-forward-db-influx)"
 
 # Services
 #kubectl create -f "pods/service-tradesblockservice.yaml"
 #kubectl create -f "pods/service-filtersblockservice.yaml"
-
-# Scrapers
-#kubectl create -f "pods/scraper-exchangescraper-bitfinex.yaml"
-#kubectl create -f "pods/scraper-exchangescraper-bittrex.yaml"
-#kubectl create -f "pods/scraper-exchangescraper-coinbase.yaml"
-#kubectl create -f "pods/scraper-exchangescraper-mexc.yaml"
-# kubectl create -f "pods/scraper-exchangescraper-dfyn.yaml"
-# kubectl create -f "pods/scraper-exchangescraper-bitmax.yaml"
-# kubectl create -f "pods/scraper-exchangescraper-crex24.yaml"
-# kubectl create -f "pods/scraper-exchangescraper-hitbtc.yaml"
-# kubectl create -f "pods/scraper-exchangescraper-loopring.yaml"
-# kubectl create -f "pods/scraper-exchangescraper-uniswap.yaml"
-# kubectl create -f "pods/scraper-exchangescraper-uniswapv3.yaml"
-# kubectl create -f "pods/scraper-exchangescraper-sushiswap.yaml"
-# kubectl create -f "pods/scraper-exchangescraper-kucoin.yaml"
-# kubectl create -f "pods/scraper-exchangescraper-stex.yaml"
-# kubectl create -f "pods/scraper-exchangescraper-okex.yaml"
-kubectl create -f "pods/scraper-exchangescraper-kraken.yaml"
-kubectl create -f "pods/scraper-exchangescraper-zb.yaml"
-kubectl create -f "pods/scraper-exchangescraper-quoine.yaml"
-kubectl create -f "pods/scraper-exchangescraper-bitbay.yaml"

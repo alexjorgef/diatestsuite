@@ -43,20 +43,20 @@ fi
     make load
 )
 
-# (
-#     cd containers/db-kafka
-#     make load
-# )
+(
+    cd containers/db-kafka
+    make load
+)
 
-# (
-#     cd containers/service-tradesblockservice
-#     make load
-# )
+(
+    cd containers/service-tradesblockservice
+    make load
+)
 
-# (
-#     cd containers/service-filtersblockservice
-#     make load
-# )
+(
+    cd containers/service-filtersblockservice
+    make load
+)
 
 (
     cd containers/diacmd-exchangescraper-collector
