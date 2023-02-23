@@ -2,8 +2,12 @@
 
 ## Requirements
 
-* minikube
-* kubectl
+> Note: for supportted minikube's drivers check [this document](https://minikube.sigs.k8s.io/docs/drivers/)
+
+* [minikube](https://minikube.sigs.k8s.io/docs/): minikube quickly sets up a local Kubernetes cluster
+* [kubectl](https://kubernetes.io/docs/reference/kubectl/kubectl/): kubectl controls the Kubernetes cluster manager
+* Optional
+  * [k9s](https://k9scli.io/): k9s is a terminal based UI to interact with your Kubernetes clusters
 
 ## Guides
 
@@ -60,17 +64,6 @@ Batch scripts:
 * Kubernetes
   * Dashboard: http://127.0.0.1:8083/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/
 
-## Know Issues
-
-1. Mounting hostPath volumes with ```minikube start --mount-string```, can't set permissions
-  * ```--mount-uid=1001``` don't work with ```docker``` driver (do nothing)
-  * ```--mount-gid=1001``` don't work with ```docker``` driver (do nothing)
-2. Mounting hostPath volumes with "minikube mount", can't see free space with 9p filesystem (df -h command)
-
-## References & Inspirations
-
-* https://github.com/moby/moby/blob/master/contrib/check-config.sh
-
 ## Debug and Troubleshooting
 
 On `containers/*/Dockerfile` use `*:debug` tag on 2nd stage image:
@@ -86,3 +79,48 @@ FROM gcr.io/distroless/base:debug
 
 # ...
 ```
+
+## Common Issues
+
+### Add custom host to kubernetes
+
+> ref: https://hjrocha.medium.com/add-a-custom-host-to-kubernetes-a06472cedccb
+
+run `kubectl -n kube-system edit configmap/coredns` and edit forward and hosts fields:
+
+```yaml
+data: 
+  Corefile: |
+      .:53 {
+          errors
+          health
+          ready
+          kubernetes cluster.local in-addr.arpa ip6.arpa {
+            pods insecure
+            fallthrough in-addr.arpa ip6.arpa
+          }
+          prometheus :9153
+          forward . 8.8.8.8 8.8.4.4
+          cache 30
+          loop
+          reload
+          loadbalance
+          hosts custom.hosts mycustom.host {
+            1.2.3.4 mycustom.host
+            fallthrough
+          }
+       }
+```
+
+reload core-dns by typing: `kubectl delete pod -n kube-system core-dns-#########`
+
+## Known Bugs or Issues
+
+* Mounting hostPath volumes with ```minikube start --mount-string```, can't set permissions
+  * ```--mount-uid=1001``` don't work with ```docker``` driver (do nothing)
+  * ```--mount-gid=1001``` don't work with ```docker``` driver (do nothing)
+* Mounting hostPath volumes with "minikube mount", can't see free space with 9p filesystem (df -h command)
+
+## References & Inspirations
+
+* https://github.com/moby/moby/blob/master/contrib/check-config.sh
