@@ -6,3 +6,5 @@ spec:
   containers:
   - name: clusterdev-service-tradesblockservice
     image: diadata-clusterdev-service-tradesblockservice:0.1
+    command: ["tradesBlockService"]
+    args: ["-historical=true", "-testing=true"]

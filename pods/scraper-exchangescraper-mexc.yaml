@@ -7,7 +7,7 @@ spec:
   - name: clusterdev-exchangescraper-collector-mexc
     image: diadata-clusterdev-exchangescraper-collector:0.1
     command: ["collector"]
-    args: ["-exchange=MEXC", "-pairsfile=true"]
+    args: ["-exchange=MEXC", "-mode=current", "-pairsfile=true"]
     env:
       - name: KAFKAURL
         value: clusterdev-db-kafka-service.default.svc.cluster.local:9094

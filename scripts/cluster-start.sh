@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
-set -e
+# TODO: Make sure no error is throw
+# set -e
 
 # Databases and datastores
-kubectl create -f "pods/db-influx.yaml"
-kubectl create -f "pods/db-redis.yaml"
-kubectl create -f "pods/db-postgres.yaml"
-kubectl create -f "pods/db-kafka.yaml"
-kubectl create -f "pods/db-zookeeper.yaml"
+kubectl create -f "pods/db-influx.yaml" \
+-f "pods/db-redis.yaml" \
+-f "pods/db-postgres.yaml" \
+-f "pods/db-kafka.yaml" \
+-f "pods/db-zookeeper.yaml"
 
-sleep 20
+sleep 10
 
 ./scripts/cluster-forward.sh
 
-sleep 2
+sleep 1
 
 ./scripts/cluster-initial-service-blockchainservice.sh
 
@@ -23,23 +24,37 @@ sleep 1
 sleep 1
 
 # Services
-kubectl create -f "pods/service-tradesblockservice.yaml"
-kubectl create -f "pods/service-filtersblockservice.yaml"
-
-./scripts/cluster-forward-kill.sh
+kubectl create -f "pods/service-tradesblockservice.yaml" \
+-f "pods/service-filtersblockservice.yaml"
 
 # TODO: only forward when pod is ready
 ./scripts/cluster-forward.sh
 
-sleep 2
+sleep 1
 
 # TODO: Make sure if this is all assets
-./scripts/cluster-initial-assetCollectionService.sh "Uniswap" ""
+# TODO: SushiSwap
 ./scripts/cluster-initial-assetCollectionService.sh "SushiSwap" ""
 ./scripts/cluster-initial-assetCollectionService.sh "PanCakeSwap" ""
 ./scripts/cluster-initial-assetCollectionService.sh "assetlists" "eth_assets"
 ./scripts/cluster-initial-assetCollectionService.sh "assetlists" "non_eth_assets"
 ./scripts/cluster-initial-assetCollectionService.sh "assetlists" "fiat_assets"
+# TODO: Uniswap
+# ./scripts/cluster-initial-assetCollectionService.sh "Uniswap" ""
+# panic: runtime error: invalid memory address or nil pointer dereference
+# [signal SIGSEGV: segmentation violation code=0x1 addr=0x8 pc=0xc1e227]
+# 
+# goroutine 11 [running]:
+# math/big.(*Int).Int64(...)
+# 	/usr/lib/go/src/math/big/int.go:418
+# github.com/diadata-org/diadata/pkg/dia/service/assetservice/source.(*UniswapAssetSource).getNumPairs(0xc000428ae0)
+# 	/home/alex/go/pkg/mod/github.com/diadata-org/diadata@v1.4.148/pkg/dia/service/assetservice/source/uniswap.go:177 +0xe7
+# github.com/diadata-org/diadata/pkg/dia/service/assetservice/source.(*UniswapAssetSource).fetchAssets(0xc000428ae0)
+# 	/home/alex/go/pkg/mod/github.com/diadata-org/diadata@v1.4.148/pkg/dia/service/assetservice/source/uniswap.go:182 +0x36
+# github.com/diadata-org/diadata/pkg/dia/service/assetservice/source.NewUniswapAssetSource.func1()
+# 	/home/alex/go/pkg/mod/github.com/diadata-org/diadata@v1.4.148/pkg/dia/service/assetservice/source/uniswap.go:123 +0x25
+# created by github.com/diadata-org/diadata/pkg/dia/service/assetservice/source.NewUniswapAssetSource
+# 	/home/alex/go/pkg/mod/github.com/diadata-org/diadata@v1.4.148/pkg/dia/service/assetservice/source/uniswap.go:122 +0xdcb
 
 sleep 1
 
@@ -78,16 +93,16 @@ sleep 1
 
 ./scripts/cluster-forward-kill.sh
 
-sleep 2
+sleep 1
 
-kubectl create -f "pods/scraper-exchangescraper-bitfinex.yaml"
-kubectl create -f "pods/scraper-exchangescraper-bittrex.yaml"
-kubectl create -f "pods/scraper-exchangescraper-coinbase.yaml"
-kubectl create -f "pods/scraper-exchangescraper-mexc.yaml"
-kubectl create -f "pods/scraper-exchangescraper-bitmax.yaml"
-kubectl create -f "pods/scraper-exchangescraper-kucoin.yaml"
-kubectl create -f "pods/scraper-exchangescraper-okex.yaml"
-kubectl create -f "pods/scraper-exchangescraper-kraken.yaml"
+kubectl create -f "pods/scraper-exchangescraper-bitfinex.yaml" \
+-f "pods/scraper-exchangescraper-bittrex.yaml" \
+-f "pods/scraper-exchangescraper-coinbase.yaml" \
+-f "pods/scraper-exchangescraper-mexc.yaml" \
+-f "pods/scraper-exchangescraper-bitmax.yaml" \
+-f "pods/scraper-exchangescraper-kucoin.yaml" \
+-f "pods/scraper-exchangescraper-okex.yaml" \
+-f "pods/scraper-exchangescraper-kraken.yaml"
 
 # TODO:
 # │ time="2023-02-23T14:40:05Z" level=error msg="error on GetExchangePairSymbols<nil>"                                                                                                                                                                                             │

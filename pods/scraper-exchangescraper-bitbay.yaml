@@ -7,5 +7,4 @@ spec:
   - name: clusterdev-exchangescraper-collector-bitbay
     image: diadata-clusterdev-exchangescraper-collector:0.1
     command: ["collector"]
-    # args: ["-exchange=BitBay", "-mode=storeTrades", "-pairsfile=true"]
-    args: ["-exchange=BitBay", "-pairsfile=true"]
+    args: ["-exchange=BitBay", "-mode=current", "-pairsfile=true"]

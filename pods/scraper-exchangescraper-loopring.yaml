@@ -7,4 +7,4 @@ spec:
   - name: clusterdev-exchangescraper-collector-loopring
     image: diadata-clusterdev-exchangescraper-collector:0.1
     command: ["collector"]
-    args: ["-exchange=Loopring", "-pairsfile=true"]
+    args: ["-exchange=Loopring", "-mode=current", "-pairsfile=true"]

@@ -6,3 +6,5 @@ spec:
   containers:
   - name: clusterdev-service-filtersblockservice
     image: diadata-clusterdev-service-filtersblockservice:0.1
+    command: ["filtersBlockService"]
+    args: ["-replayInflux=false", "-historical=true", "-testing=true"]
