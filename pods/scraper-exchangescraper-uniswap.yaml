@@ -7,4 +7,4 @@ spec:
   - name: clusterdev-exchangescraper-collector-uniswap
     image: diadata-clusterdev-exchangescraper-collector:0.1
     command: ["collector"]
-    args: ["-exchange=Uniswap", "-mode=storeTrades", "-pairsfile=true"]
+    args: ["-exchange=Uniswap", "-pairsfile=true"]

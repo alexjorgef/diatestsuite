@@ -28,4 +28,4 @@ ENV INFLUXUSER=diadata_user
 ENV INFLUXPASSWORD=diadata_pw
 ENV REDISURL=clusterdev-db-redis-service.default.svc.cluster.local:6379
 
-CMD ["collector", "-exchange=Bittrex", "-mode=storeTrades", "-pairsfile=true"]
+CMD ["collector"]

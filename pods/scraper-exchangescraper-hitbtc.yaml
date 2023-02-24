@@ -7,4 +7,4 @@ spec:
   - name: clusterdev-exchangescraper-collector-hitbtc
     image: diadata-clusterdev-exchangescraper-collector:0.1
     command: ["collector"]
-    args: ["-exchange=HitBTC", "-mode=storeTrades", "-pairsfile=true"]
+    args: ["-exchange=HitBTC", "-pairsfile=true"]

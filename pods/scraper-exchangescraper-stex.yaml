@@ -7,4 +7,4 @@ spec:
   - name: clusterdev-exchangescraper-collector-stex
     image: diadata-clusterdev-exchangescraper-collector:0.1
     command: ["collector"]
-    args: ["-exchange=STEX", "-mode=storeTrades", "-pairsfile=true"]
+    args: ["-exchange=STEX", "-pairsfile=true"]

@@ -7,4 +7,7 @@ spec:
   - name: clusterdev-exchangescraper-collector-bitmax
     image: diadata-clusterdev-exchangescraper-collector:0.1
     command: ["collector"]
-    args: ["-exchange=Bitmax", "-mode=storeTrades", "-pairsfile=true"]
+    args: ["-exchange=Bitmax", "-pairsfile=true"]
+    env:
+      - name: KAFKAURL
+        value: clusterdev-db-kafka-service.default.svc.cluster.local:9094

@@ -7,4 +7,4 @@ spec:
   - name: clusterdev-exchangescraper-collector-sushiswap
     image: diadata-clusterdev-exchangescraper-collector:0.1
     command: ["collector"]
-    args: ["-exchange=SushiSwap", "-mode=storeTrades", "-pairsfile=true"]
+    args: ["-exchange=SushiSwap", "-pairsfile=true"]

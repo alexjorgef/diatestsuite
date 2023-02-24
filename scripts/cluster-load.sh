@@ -49,6 +49,16 @@ fi
 )
 
 (
+    cd containers/db-zookeeper
+    make load
+)
+
+(
+    cd containers/db-zookeeper
+    make load
+)
+
+(
     cd containers/service-tradesblockservice
     make load
 )

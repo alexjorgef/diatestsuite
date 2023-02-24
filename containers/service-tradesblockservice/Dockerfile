@@ -26,5 +26,6 @@ ENV INFLUXURL=http://clusterdev-db-influx-service.default.svc.cluster.local:8086
 ENV INFLUXUSER=diadata_user
 ENV INFLUXPASSWORD=diadata_pw
 ENV REDISURL=clusterdev-db-redis-service.default.svc.cluster.local:6379
+ENV KAFKAURL=clusterdev-db-kafka-service.default.svc.cluster.local:9094
 
 CMD ["tradesBlockService"]

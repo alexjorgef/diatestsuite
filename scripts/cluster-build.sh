@@ -49,6 +49,17 @@ fi
 )
 
 (
+    cd containers/db-zookeeper
+    make build
+)
+
+
+(
+    cd containers/db-zookeeper
+    make build
+)
+
+(
     cd containers/service-tradesblockservice
     if [ ! -d ./diadata ] ; then
         git clone https://github.com/diadata-org/diadata diadata
