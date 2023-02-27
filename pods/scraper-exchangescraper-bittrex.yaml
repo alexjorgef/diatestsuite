@@ -9,5 +9,23 @@ spec:
     command: ["collector"]
     args: ["-exchange=Bittrex", "-mode=current", "-pairsfile=true"]
     env:
-      - name: KAFKAURL
-        value: clusterdev-db-kafka-service.default.svc.cluster.local:9094
+    - name: USE_ENV
+      value: true
+    - name: POSTGRES_USER
+      value: d2Vic2l0ZV91c2Vy
+    - name: POSTGRES_PASSWORD
+      value: cGFzcw==
+    - name: POSTGRES_DB
+      value: diadata_psql_db
+    - name: POSTGRES_HOST
+      value: clusterdev-db-postgres-service.default.svc.cluster.local
+    - name: INFLUXURL
+      value: http://clusterdev-db-influx-service.default.svc.cluster.local:8086
+    - name: INFLUXUSER
+      value: diadata_user
+    - name: INFLUXPASSWORD
+      value: diadata_pw
+    - name: REDISURL
+      value: d2Viclusterdev-db-redis-service.default.svc.cluster.local:6379c2l0ZV91c2Vy
+    - name: KAFKAURL
+      value: clusterdev-db-kafka-service.default.svc.cluster.local:9094

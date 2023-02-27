@@ -59,17 +59,32 @@ fi
 )
 
 (
-    cd containers/service-tradesblockservice
+    cd containers/diacmd-services-tradesblockservice
     make load
 )
 
 (
-    cd containers/service-filtersblockservice
+    cd containers/diacmd-services-filtersblockservice
     make load
 )
 
 (
     cd containers/diacmd-exchangescraper-collector
+    make load
+)
+
+(
+    cd containers/diacmd-services-blockchainservice
+    make load
+)
+
+(
+    cd containers/diacmd-services-pairDiscoveryService
+    make load
+)
+
+(
+    cd containers/diacmd-services-assetCollectionService
     make load
 )
 

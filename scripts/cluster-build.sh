@@ -60,41 +60,56 @@ fi
 )
 
 (
-    cd containers/service-tradesblockservice
-    if [ ! -d ./diadata ] ; then
-        git clone https://github.com/diadata-org/diadata diadata
-    else 
-        (
-            cd diadata
-            git pull
-        )
+    cd containers/diacmd-services-tradesblockservice
+    if [ -d ./diadata ] ; then
+        rm -rf diadata
     fi
+    git clone https://github.com/diadata-org/diadata diadata
     make build
 )
 
 (
-    cd containers/service-filtersblockservice
-    if [ ! -d ./diadata ] ; then
-        git clone https://github.com/diadata-org/diadata diadata
-    else 
-        (
-            cd diadata
-            git pull
-        )
+    cd containers/diacmd-services-filtersblockservice
+    if [ -d ./diadata ] ; then
+        rm -rf diadata
     fi
+    git clone https://github.com/diadata-org/diadata diadata
     make build
 )
 
 (
     cd containers/diacmd-exchangescraper-collector
-    if [ ! -d ./diadata ] ; then
-        git clone https://github.com/diadata-org/diadata diadata
-    else 
-        (
-            cd diadata
-            git pull
-        )
+    if [ -d ./diadata ] ; then
+        rm -rf diadata
     fi
+    git clone https://github.com/diadata-org/diadata diadata
+    make build
+)
+
+(
+    cd containers/diacmd-services-blockchainservice
+    if [ -d ./diadata ] ; then
+        rm -rf diadata
+    fi
+    git clone https://github.com/diadata-org/diadata diadata
+    make build
+)
+
+(
+    cd containers/diacmd-services-pairDiscoveryService
+    if [ -d ./diadata ] ; then
+        rm -rf diadata
+    fi
+    git clone https://github.com/diadata-org/diadata diadata
+    make build
+)
+
+(
+    cd containers/diacmd-services-assetCollectionService
+    if [ -d ./diadata ] ; then
+        rm -rf diadata
+    fi
+    git clone https://github.com/diadata-org/diadata diadata
     make build
 )
 
