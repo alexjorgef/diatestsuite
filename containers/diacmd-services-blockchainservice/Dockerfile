@@ -14,4 +14,7 @@ FROM gcr.io/distroless/base
 COPY --from=build /go/bin/blockchainservice /bin/blockchainservice
 COPY --from=build /config/ /config/
 
+# TODO: this should not be hardcoded
+COPY ./secrets/postgres_credentials.txt /src/github.com/diadata-org/diadata/secrets/postgres_credentials.txt
+
 CMD ["blockchainservice"]
