@@ -67,7 +67,7 @@ spec:
       value: "clusterdev-db-kafka-service.default.svc.cluster.local:9094"
   - name: clusterdev-service-assetcollectionservice-ethassets
     image: diadata-clusterdev-service-assetcollectionservice:0.1
-    command: ["assetcollectionservice"]
+    command: ["assetCollectionService"]
     args: ["-source=assetlists", "-secret=eth_assets", "-caching=false"]
     env:
       - name: USE_ENV
@@ -92,7 +92,7 @@ spec:
         value: "clusterdev-db-kafka-service.default.svc.cluster.local:9094"
   - name: clusterdev-service-assetcollectionservice-nonethassets
     image: diadata-clusterdev-service-assetcollectionservice:0.1
-    command: ["assetcollectionservice"]
+    command: ["assetCollectionService"]
     args: ["-source=assetlists", "-secret=non_eth_assets", "-caching=false"]
     env:
       - name: USE_ENV
@@ -117,7 +117,7 @@ spec:
         value: "clusterdev-db-kafka-service.default.svc.cluster.local:9094"
   - name: clusterdev-service-assetcollectionservice-fiatassets
     image: diadata-clusterdev-service-assetcollectionservice:0.1
-    command: ["assetcollectionservice"]
+    command: ["assetCollectionService"]
     args: ["-source=assetlists", "-secret=fiat_assets", "-caching=false"]
     env:
       - name: USE_ENV
