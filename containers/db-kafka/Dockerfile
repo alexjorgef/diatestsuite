@@ -5,7 +5,7 @@ FROM wurstmeister/kafka:latest
 EXPOSE 9094/tcp
 
 ENV HOSTNAME_COMMAND="docker info | grep ^Name: | cut -d' ' -f 2"
-ENV KAFKA_ZOOKEEPER_CONNECT=clusterdev-db-zookeeper-service.default.svc.cluster.local:2181
+ENV KAFKA_ZOOKEEPER_CONNECT=clusterdev-db-kafka-service.default.svc.cluster.local:2181
 ENV KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
 # ENV KAFKA_ADVERTISED_LISTENERS: INSIDE://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:9094
 ENV KAFKA_ADVERTISED_LISTENERS=INSIDE://:9092,OUTSIDE://clusterdev-db-kafka-service.default.svc.cluster.local:9094

@@ -5,14 +5,11 @@ echo "Creating and starting data services..."
 kubectl create -f "pods/db-influx.yaml" \
 -f "pods/db-redis.yaml" \
 -f "pods/db-postgres.yaml" \
--f "pods/db-kafka.yaml" \
--f "pods/db-zookeeper.yaml"
+-f "pods/db-kafka.yaml"
 
 echo "Creating and starting services..."
 kubectl create -f "pods/service-tradesblockservice.yaml" \
--f "pods/service-filtersblockservice.yaml" \
--f "pods/service-blockchainservice.yaml" \
--f "pods/service-assetcollectionservice.yaml"
+-f "pods/service-filtersblockservice.yaml"
 
 echo "Creating and starting scrapers:exchanges..."
 kubectl create -f "pods/scraper-exchangescraper-bitfinex.yaml" \

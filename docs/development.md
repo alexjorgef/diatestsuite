@@ -13,34 +13,28 @@
 
 ### Getting Started
 
-Firstly run the safety checks:
+Firstly, initialize the cluster:
 
 ```shell
-./scripts/checks.sh
-```
-
-Initialize the cluster:
-
-```shell
-./scripts/cluster-init.sh
+./scripts/init.sh
 ```
 
 Build images:
 
 ```shell
-./scripts/cluster-build.sh
+./scripts/build.sh
 ```
 
 Load images to cluster:
 
 ```shell
-./scripts/cluster-load.sh
+./scripts/load.sh
 ```
 
 Start cluster:
 
 ```shell
-./scripts/cluster-start.sh
+./scripts/start.sh
 ```
 
 ### Advanced
@@ -65,13 +59,13 @@ Batch scripts:
 
 ```shell
 # Killing and initialize the local cluster
-./scripts/cluster-delete.sh; ./scripts/cluster-init.sh
+./scripts/delete.sh; ./scripts/init.sh
 
 # Building and loading image containers to cluster
-./scripts/cluster-build.sh; ./scripts/cluster-load.sh
+./scripts/build.sh; ./scripts/load.sh
 
 # Re-Start all containers in cluste
-./scripts/cluster-stop.sh; ./scripts/cluster-start.sh
+./scripts/stop.sh; ./scripts/start.sh
 ```
 
 ## Endpoints
@@ -82,7 +76,7 @@ Kubernetes:
 
 ## Diagram
 
-![](diagram.png)
+![cluster_diagram](diagram.png)
 
 ## Debug and Troubleshooting
 
