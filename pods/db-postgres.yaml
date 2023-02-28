@@ -4,8 +4,8 @@
 #   name: postgres-credentials
 # type: Opaque
 # data:
-#   POSTGRES_USER: d2Vic2l0ZV91c2Vy
-#   POSTGRES_PASSWORD: cGFzcw==
+#   POSTGRES_USER: diadata_psql_user
+#   POSTGRES_PASSWORD: diadata_psql_pass
 #   POSTGRES_DB: diadata_psql_db
 # ---
 apiVersion: "v1"

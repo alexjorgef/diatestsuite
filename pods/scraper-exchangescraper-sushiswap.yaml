@@ -12,9 +12,9 @@ spec:
     - name: USE_ENV
       value: true
     - name: POSTGRES_USER
-      value: d2Vic2l0ZV91c2Vy
+      value: diadata_psql_user
     - name: POSTGRES_PASSWORD
-      value: cGFzcw==
+      value: diadata_psql_pass
     - name: POSTGRES_DB
       value: diadata_psql_db
     - name: POSTGRES_HOST
@@ -26,6 +26,6 @@ spec:
     - name: INFLUXPASSWORD
       value: diadata_pw
     - name: REDISURL
-      value: d2Viclusterdev-db-redis-service.default.svc.cluster.local:6379c2l0ZV91c2Vy
+      value: clusterdev-db-redis-service.default.svc.cluster.local:6379
     - name: KAFKAURL
       value: clusterdev-db-kafka-service.default.svc.cluster.local:9094

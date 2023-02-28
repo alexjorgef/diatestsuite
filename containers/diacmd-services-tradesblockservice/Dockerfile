@@ -18,8 +18,8 @@ COPY --from=build /config/ /config/
 COPY ./secrets/postgres_credentials.txt /src/github.com/diadata-org/diadata/secrets/postgres_credentials.txt
 
 ENV USE_ENV=true
-ENV POSTGRES_USER=d2Vic2l0ZV91c2Vy
-ENV POSTGRES_PASSWORD=cGFzcw==
+ENV POSTGRES_USER=diadata_psql_user
+ENV POSTGRES_PASSWORD=diadata_psql_pass
 ENV POSTGRES_DB=diadata_psql_db
 ENV POSTGRES_HOST=clusterdev-db-postgres-service.default.svc.cluster.local
 ENV INFLUXURL=http://clusterdev-db-influx-service.default.svc.cluster.local:8086
