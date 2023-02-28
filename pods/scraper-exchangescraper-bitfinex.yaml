@@ -10,73 +10,73 @@ spec:
     args: ["-exchange=Bitfinex", "-mode=current", "-pairsfile=true"]
     env:
     - name: USE_ENV
-      value: true
+      value: "true"
     - name: POSTGRES_USER
-      value: diadata_psql_user
+      value: "diadata_psql_user"
     - name: POSTGRES_PASSWORD
-      value: diadata_psql_pass
+      value: "diadata_psql_pass"
     - name: POSTGRES_DB
-      value: diadata_psql_db
+      value: "diadata_psql_db"
     - name: POSTGRES_HOST
-      value: clusterdev-db-postgres-service.default.svc.cluster.local
+      value: "clusterdev-db-postgres-service.default.svc.cluster.local"
     - name: INFLUXURL
-      value: http://clusterdev-db-influx-service.default.svc.cluster.local:8086
+      value: "http://clusterdev-db-influx-service.default.svc.cluster.local:8086"
     - name: INFLUXUSER
-      value: diadata_user
+      value: "diadata_user"
     - name: INFLUXPASSWORD
-      value: diadata_pw
+      value: "diadata_pw"
     - name: REDISURL
-      value: clusterdev-db-redis-service.default.svc.cluster.local:6379
+      value: "clusterdev-db-redis-service.default.svc.cluster.local:6379"
     - name: KAFKAURL
-      value: clusterdev-db-kafka-service.default.svc.cluster.local:9094
+      value: "clusterdev-db-kafka-service.default.svc.cluster.local:9094"
   initContainers:
-  - name: clusterdev-exchangescraper-collector-bitfinex-pairdiscoveryservice-remoteFetch
+  - name: clusterdev-exchangescraper-collector-bitfinex-pairdiscovery-rem
     image: diadata-clusterdev-service-pairdiscoveryservice:0.1
     command: ["pairDiscoveryService"]
     args: ["-exchange=Bitfinex", "-mode=remoteFetch"]
     env:
     - name: USE_ENV
-      value: true
+      value: "true"
     - name: POSTGRES_USER
-      value: diadata_psql_user
+      value: "diadata_psql_user"
     - name: POSTGRES_PASSWORD
-      value: diadata_psql_pass
+      value: "diadata_psql_pass"
     - name: POSTGRES_DB
-      value: diadata_psql_db
+      value: "diadata_psql_db"
     - name: POSTGRES_HOST
-      value: clusterdev-db-postgres-service.default.svc.cluster.local
+      value: "clusterdev-db-postgres-service.default.svc.cluster.local"
     - name: INFLUXURL
-      value: http://clusterdev-db-influx-service.default.svc.cluster.local:8086
+      value: "http://clusterdev-db-influx-service.default.svc.cluster.local:8086"
     - name: INFLUXUSER
-      value: diadata_user
+      value: "diadata_user"
     - name: INFLUXPASSWORD
-      value: diadata_pw
+      value: "diadata_pw"
     - name: REDISURL
-      value: clusterdev-db-redis-service.default.svc.cluster.local:6379
+      value: "clusterdev-db-redis-service.default.svc.cluster.local:6379"
     - name: KAFKAURL
-      value: clusterdev-db-kafka-service.default.svc.cluster.local:9094
-  - name: clusterdev-exchangescraper-collector-bitfinex-pairdiscoveryservice-verification
+      value: "clusterdev-db-kafka-service.default.svc.cluster.local:9094"
+  - name: clusterdev-exchangescraper-collector-bitfinex-pairdiscovery-ver
     image: diadata-clusterdev-service-pairdiscoveryservice:0.1
     command: ["pairDiscoveryService"]
     args: ["-exchange=Bitfinex", "-mode=verification"]
     env:
     - name: USE_ENV
-      value: true
+      value: "true"
     - name: POSTGRES_USER
-      value: diadata_psql_user
+      value: "diadata_psql_user"
     - name: POSTGRES_PASSWORD
-      value: diadata_psql_pass
+      value: "diadata_psql_pass"
     - name: POSTGRES_DB
-      value: diadata_psql_db
+      value: "diadata_psql_db"
     - name: POSTGRES_HOST
-      value: clusterdev-db-postgres-service.default.svc.cluster.local
+      value: "clusterdev-db-postgres-service.default.svc.cluster.local"
     - name: INFLUXURL
-      value: http://clusterdev-db-influx-service.default.svc.cluster.local:8086
+      value: "http://clusterdev-db-influx-service.default.svc.cluster.local:8086"
     - name: INFLUXUSER
-      value: diadata_user
+      value: "diadata_user"
     - name: INFLUXPASSWORD
-      value: diadata_pw
+      value: "diadata_pw"
     - name: REDISURL
-      value: clusterdev-db-redis-service.default.svc.cluster.local:6379
+      value: "clusterdev-db-redis-service.default.svc.cluster.local:6379"
     - name: KAFKAURL
-      value: clusterdev-db-kafka-service.default.svc.cluster.local:9094
+      value: "clusterdev-db-kafka-service.default.svc.cluster.local:9094"
