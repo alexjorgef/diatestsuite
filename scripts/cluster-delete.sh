@@ -23,15 +23,6 @@ __cluster_env_disable() {
 }
 
 DIADATA_VM_PROFILE="diadata-vmprofile"
-DIADATA_CONFIG_CTX="diadata_config_ctx"
-CLUSTER_HW_MEMORY=4096
-CLUSTER_HW_VCPU=4
-CLUSTER_HW_DISK_SIZE="30g"
-MINIKUBE_VLVL=8
-MINIKUBE_DRIVER="docker"
-MINIKUBE_CONTAINER_RUNTIME="docker"
-MINIKUBE_KUBERNETES_VER="v1.21.6"
-MINIKUBE_NODES=1
 echo "Switching kubectl config context to $DIADATA_VM_PROFILE ..."
 kubectl config use-context "$DIADATA_VM_PROFILE"
 # for i in "${arrayInstances[@]}"; do
@@ -47,7 +38,7 @@ minikube delete --profile="$DIADATA_VM_PROFILE"
 __cluster_env_disable
 echo "Cleaning Minikube mount proccess"
 kill -9 "$(cat .pid-mount-data-sync)"
-echo "Removing minikube config ..."
+# echo "Removing minikube volumes ..."
 # for i in "${arrayInstances[@]}"; do
 #     __info "Removing unused gameserver folders for $i game type ..."
 #     rm -rf data/data-gs/dst/diadata-gs-*

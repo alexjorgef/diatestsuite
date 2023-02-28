@@ -13,31 +13,31 @@
 
 ### Getting Started
 
-* Run the safety checks:
+Firstly run the safety checks:
 
 ```shell
 ./scripts/checks.sh
 ```
 
-* Initialize the cluster
+Initialize the cluster:
 
 ```shell
 ./scripts/cluster-init.sh
 ```
 
-* Build images
+Build images:
 
 ```shell
 ./scripts/cluster-build.sh
 ```
 
-* Load images
+Load images to cluster:
 
 ```shell
 ./scripts/cluster-load.sh
 ```
 
-* Start pods
+Start cluster:
 
 ```shell
 ./scripts/cluster-start.sh
@@ -45,24 +45,40 @@
 
 ### Advanced
 
+> Check Minikube [handbook](https://minikube.sigs.k8s.io/docs/handbook/)
+
+Start Kubernetes Dashboard UI:
+
+```shell
+minikube dashboard --url=true --port=8083
+```
+
+Forward ports to your local machine:
+
+```shell
+kubectl port-forward diadata-clusterdev-db-postgres 5432:5432
+kubectl port-forward diadata-clusterdev-db-redis 6379:6379
+kubectl port-forward diadata-clusterdev-db-influx 8086:8086
+```
+
 Batch scripts:
 
 ```shell
+# Killing and initialize the local cluster
 ./scripts/cluster-delete.sh; ./scripts/cluster-init.sh
-```
 
-```shell
+# Building and loading image containers to cluster
 ./scripts/cluster-build.sh; ./scripts/cluster-load.sh
-```
 
-```shell
+# Re-Start all containers in cluste
 ./scripts/cluster-stop.sh; ./scripts/cluster-start.sh
 ```
 
 ## Endpoints
 
-* Kubernetes
-  * Dashboard: http://127.0.0.1:8083/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/
+Kubernetes:
+
+* Dashboard UI: http://127.0.0.1:8083/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/
 
 ## Debug and Troubleshooting
 

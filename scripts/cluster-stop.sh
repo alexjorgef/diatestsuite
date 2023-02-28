@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
+
+echo "Cleaning and stopping data services..."
 kubectl delete -f "pods/db-influx.yaml" \
 -f "pods/db-redis.yaml" \
 -f "pods/db-postgres.yaml" \
 -f "pods/db-kafka.yaml" \
 -f "pods/db-zookeeper.yaml"
+
+echo "Cleaning and stopping services..."
 kubectl delete -f "pods/service-tradesblockservice.yaml" \
--f "pods/service-filtersblockservice.yaml"
+-f "pods/service-filtersblockservice.yaml" \
+-f "pods/service-blockchainservice.yaml" \
+-f "pods/service-assetcollectionservice.yaml"
+
+echo "Cleaning and stopping scrapers:exchanges..."
 kubectl delete -f "pods/scraper-exchangescraper-bitfinex.yaml" \
 -f "pods/scraper-exchangescraper-bittrex.yaml" \
 -f "pods/scraper-exchangescraper-coinbase.yaml" \

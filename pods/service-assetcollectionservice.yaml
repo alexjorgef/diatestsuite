@@ -1,13 +1,13 @@
 apiVersion: "v1"
 kind: Pod
 metadata:
-  name: "diadata-clusterdev-exchangescraper-collector-bitfinex"
+  name: "diadata-clusterdev-service-assetcollectionservice"
 spec:
   containers:
-  - name: clusterdev-exchangescraper-collector-bitfinex
-    image: diadata-clusterdev-exchangescraper-collector:0.1
-    command: ["collector"]
-    args: ["-exchange=Bitfinex", "-mode=current", "-pairsfile=true"]
+  - name: clusterdev-service-assetcollectionservice
+    image: diadata-clusterdev-service-assetcollectionservice:0.1
+    command: ["assetcollectionservice"]
+    args: ["-source=assetlists", "-secret=eth_assets", "-caching=false"]
     env:
     - name: USE_ENV
       value: true
@@ -29,11 +29,10 @@ spec:
       value: d2Viclusterdev-db-redis-service.default.svc.cluster.local:6379c2l0ZV91c2Vy
     - name: KAFKAURL
       value: clusterdev-db-kafka-service.default.svc.cluster.local:9094
-  initContainers:
-  - name: clusterdev-exchangescraper-collector-bitfinex-pairdiscoveryservice-remoteFetch
-    image: diadata-clusterdev-service-pairdiscoveryservice:0.1
-    command: ["pairDiscoveryService"]
-    args: ["-exchange=Bitfinex", "-mode=remoteFetch"]
+  - name: clusterdev-service-assetcollectionservice
+    image: diadata-clusterdev-service-assetcollectionservice:0.1
+    command: ["assetcollectionservice"]
+    args: ["-source=assetlists", "-secret=non_eth_assets", "-caching=false"]
     env:
     - name: USE_ENV
       value: true
@@ -55,10 +54,10 @@ spec:
       value: d2Viclusterdev-db-redis-service.default.svc.cluster.local:6379c2l0ZV91c2Vy
     - name: KAFKAURL
       value: clusterdev-db-kafka-service.default.svc.cluster.local:9094
-  - name: clusterdev-exchangescraper-collector-bitfinex-pairdiscoveryservice-verification
-    image: diadata-clusterdev-service-pairdiscoveryservice:0.1
-    command: ["pairDiscoveryService"]
-    args: ["-exchange=Bitfinex", "-mode=verification"]
+  - name: clusterdev-service-assetcollectionservice
+    image: diadata-clusterdev-service-assetcollectionservice:0.1
+    command: ["assetcollectionservice"]
+    args: ["-source=assetlists", "-secret=fiat_assets", "-caching=false"]
     env:
     - name: USE_ENV
       value: true
