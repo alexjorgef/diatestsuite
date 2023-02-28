@@ -80,6 +80,10 @@ Kubernetes:
 
 * Dashboard UI: http://127.0.0.1:8083/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/
 
+## Diagram
+
+![](diagram.png)
+
 ## Debug and Troubleshooting
 
 On `containers/*/Dockerfile` use `*:debug` tag on 2nd stage image:
