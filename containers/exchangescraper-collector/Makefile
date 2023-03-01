@@ -1,7 +1,7 @@
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 project_path := $(dir $(mkfile_path))
 image_version = 0.1
-image_name = diadata-clusterdev-service-pairdiscoveryservice
+image_name = dia-exchangescraper-collector
 image_tag = $(image_name):$(image_version)
 MINIKUBE ?= minikube
 MINIKUBE_DOCKER_ENV ?= eval $$($(MINIKUBE) docker-env)

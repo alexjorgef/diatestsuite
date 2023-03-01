@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
   - name: clusterdev-exchangescraper-collector-bitbay
-    image: diadata-clusterdev-exchangescraper-collector:0.1
+    image: dia-exchangescraper-collector:0.1
     command: ["collector"]
     args: ["-exchange=BitBay", "-mode=current", "-pairsfile=true"]
     env:

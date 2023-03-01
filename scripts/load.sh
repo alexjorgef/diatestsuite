@@ -29,37 +29,37 @@ if [ "$MINIKUBE_DRIVER" = "docker" ]; then
 fi
 
 (
-    cd containers/diacmd-services-tradesblockservice
+    cd containers/services-tradesblockservice
     make load
 )
 
 (
-    cd containers/diacmd-services-filtersblockservice
+    cd containers/services-filtersblockservice
     make load
 )
 
 (
-    cd containers/diacmd-exchangescraper-collector
+    cd containers/exchangescraper-collector
     make load
 )
 
 (
-    cd containers/diacmd-services-blockchainservice
+    cd containers/services-blockchainservice
     make load
 )
 
 (
-    cd containers/diacmd-services-pairDiscoveryService
+    cd containers/services-pairDiscoveryService
     make load
 )
 
 (
-    cd containers/diacmd-services-assetCollectionService
+    cd containers/services-assetCollectionService
     make load
 )
 
 (
-    cd containers/diacmd-http-restServer
+    cd containers/http-restServer
     make load
 )
 

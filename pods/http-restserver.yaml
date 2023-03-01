@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
   - name: clusterdev-http-restserver
-    image: diadata-clusterdev-http-restserver:0.1
+    image: dia-http-restserver:0.1
     command: ["restServer"]
     args: ["-replayInflux=false", "-historical=true", "-testing=true"]
     env:

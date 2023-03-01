@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
   - name: clusterdev-exchangescraper-collector-bitmax
-    image: diadata-clusterdev-exchangescraper-collector:0.1
+    image: dia-exchangescraper-collector:0.1
     command: ["collector"]
     args: ["-exchange=Bitmax", "-mode=current", "-pairsfile=true"]
     env:
@@ -57,7 +57,7 @@ spec:
       value: "diadata_pw"
     command: ["sh", "-c", "until influx -host $INFLUXDB_URL -username $INFLUXDB_USERNAME -password $INFLUXDB_PASSWORD -execute 'SHOW DATABASES'; do sleep 1; done"]
   - name: clusterdev-exchangescraper-collector-bitmax-pairdiscovery-rem
-    image: diadata-clusterdev-service-pairdiscoveryservice:0.1
+    image: dia-service-pairdiscoveryservice:0.1
     command: ["pairDiscoveryService"]
     args: ["-exchange=Bitmax", "-mode=remoteFetch"]
     env:
@@ -82,7 +82,7 @@ spec:
     - name: KAFKAURL
       value: "clusterdev-db-kafka-service.default.svc.cluster.local:9094"
   - name: clusterdev-exchangescraper-collector-bitmax-pairdiscovery-ver
-    image: diadata-clusterdev-service-pairdiscoveryservice:0.1
+    image: dia-service-pairdiscoveryservice:0.1
     command: ["pairDiscoveryService"]
     args: ["-exchange=Bitmax", "-mode=verification"]
     env:

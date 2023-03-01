@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
   - name: clusterdev-exchangescraper-collector-zb
-    image: diadata-clusterdev-exchangescraper-collector:0.1
+    image: dia-exchangescraper-collector:0.1
     command: ["collector"]
     args: ["-exchange=ZB", "-mode=storeTrades", "-mode=current", "-pairsfile=true"]
     env:

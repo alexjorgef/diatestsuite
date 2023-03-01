@@ -29,7 +29,7 @@ if [ "$MINIKUBE_DRIVER" = "docker" ]; then
 fi
 
 (
-    cd containers/diacmd-services-tradesblockservice
+    cd containers/services-tradesblockservice
     if [ -d ./diadata ] ; then
         rm -rf diadata
     fi
@@ -38,7 +38,7 @@ fi
 )
 
 (
-    cd containers/diacmd-services-filtersblockservice
+    cd containers/services-filtersblockservice
     if [ -d ./diadata ] ; then
         rm -rf diadata
     fi
@@ -47,7 +47,12 @@ fi
 )
 
 (
-    cd containers/diacmd-exchangescraper-collector
+    cd containers/exchangescraper-collector
+    make build
+)
+
+(
+    cd containers/services-blockchainservice
     if [ -d ./diadata ] ; then
         rm -rf diadata
     fi
@@ -56,7 +61,7 @@ fi
 )
 
 (
-    cd containers/diacmd-services-blockchainservice
+    cd containers/services-pairDiscoveryService
     if [ -d ./diadata ] ; then
         rm -rf diadata
     fi
@@ -65,7 +70,7 @@ fi
 )
 
 (
-    cd containers/diacmd-services-pairDiscoveryService
+    cd containers/services-assetCollectionService
     if [ -d ./diadata ] ; then
         rm -rf diadata
     fi
@@ -74,16 +79,7 @@ fi
 )
 
 (
-    cd containers/diacmd-services-assetCollectionService
-    if [ -d ./diadata ] ; then
-        rm -rf diadata
-    fi
-    git clone https://github.com/diadata-org/diadata
-    make build
-)
-
-(
-    cd containers/diacmd-http-restServer
+    cd containers/http-restServer
     if [ -d ./diadata ] ; then
         rm -rf diadata
     fi

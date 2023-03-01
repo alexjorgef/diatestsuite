@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
   - name: clusterdev-service-tradesblockservice
-    image: diadata-clusterdev-service-tradesblockservice:0.1
+    image: dia-service-tradesblockservice:0.1
     command: ["tradesBlockService"]
     args: ["-historical=true", "-testing=true"]
     env:
@@ -41,7 +41,7 @@ spec:
       value: "diadata_psql_pass"
     command: ["sh", "-c", "until pg_isready -h $PGHOST -U $PGUSER; do sleep 1; done"]
   - name: clusterdev-service-blockchainservice
-    image: diadata-clusterdev-service-blockchainservice:0.1
+    image: dia-service-blockchainservice:0.1
     command: ["blockchainservice"]
     args: []
     env:
@@ -66,7 +66,7 @@ spec:
     - name: KAFKAURL
       value: "clusterdev-db-kafka-service.default.svc.cluster.local:9094"
   - name: clusterdev-service-assetcollectionservice-ethassets
-    image: diadata-clusterdev-service-assetcollectionservice:0.1
+    image: dia-service-assetcollectionservice:0.1
     command: ["assetCollectionService"]
     args: ["-source=assetlists", "-secret=eth_assets", "-caching=false"]
     env:
@@ -91,7 +91,7 @@ spec:
       - name: KAFKAURL
         value: "clusterdev-db-kafka-service.default.svc.cluster.local:9094"
   - name: clusterdev-service-assetcollectionservice-nonethassets
-    image: diadata-clusterdev-service-assetcollectionservice:0.1
+    image: dia-service-assetcollectionservice:0.1
     command: ["assetCollectionService"]
     args: ["-source=assetlists", "-secret=non_eth_assets", "-caching=false"]
     env:
@@ -116,7 +116,7 @@ spec:
       - name: KAFKAURL
         value: "clusterdev-db-kafka-service.default.svc.cluster.local:9094"
   - name: clusterdev-service-assetcollectionservice-fiatassets
-    image: diadata-clusterdev-service-assetcollectionservice:0.1
+    image: dia-service-assetcollectionservice:0.1
     command: ["assetCollectionService"]
     args: ["-source=assetlists", "-secret=fiat_assets", "-caching=false"]
     env:
