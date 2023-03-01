@@ -36,3 +36,4 @@ kubectl delete -f "pods/db-influx.yaml" \
 
 kubectl delete configmap postgres-configmap
 kubectl delete configmap pginit-configmap
+kubectl delete configmap redis-configmap

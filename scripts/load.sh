@@ -34,11 +34,6 @@ fi
 )
 
 (
-    cd containers/db-redis
-    make load
-)
-
-(
     cd containers/diacmd-services-tradesblockservice
     make load
 )

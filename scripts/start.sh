@@ -4,6 +4,7 @@ set -e
 # TODO: isolate this first stage of init containers in a helm chart
 
 echo "Creating config maps..."
+kubectl create configmap redis-configmap --from-file=pods/redis.conf
 kubectl create configmap postgres-configmap --from-file=pods/postgresql.conf
 kubectl create configmap pginit-configmap --from-file=pods/pginit.sql
 

@@ -7,7 +7,20 @@ metadata:
 spec:
   containers:
   - name: clusterdev-db-redis
-    image: diadata-clusterdev-db-redis:0.1
+    image: redis:7
+    imagePullPolicy: IfNotPresent
+    ports:
+      - containerPort: 6379
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumeMounts:
+    - name: redis-config
+      mountPath: /usr/local/etc/redis/redis.conf
+      subPath: redis.conf
+      readOnly: true
+  volumes:
+  - name: redis-config
+    configMap:
+      name: redis-configmap
 ---
 apiVersion: v1
 kind: Service
