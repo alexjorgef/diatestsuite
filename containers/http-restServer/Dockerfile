@@ -4,8 +4,12 @@ RUN apk add --no-cache make gcc musl-dev linux-headers git bash
 
 WORKDIR $GOPATH/src/
 
-COPY ./diadata/cmd/http/restServer ./
-COPY ./diadata/config /config/
+# TODO: use parameters to change the branch and the protocol to clone
+RUN git clone https://github.com/diadata-org/diadata
+
+RUN cp -r diadata/cmd/http/restServer/* ./
+RUN mkdir /config/
+RUN cp -r diadata/config/* /config/
 
 RUN go mod tidy && CGO_ENABLED=0 go install
 
