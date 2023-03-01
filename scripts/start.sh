@@ -5,6 +5,7 @@ set -e
 
 echo "Creating config maps..."
 kubectl create configmap redis-configmap --from-file=pods/redis.conf
+kubectl create configmap influx-configmap --from-file=pods/influxdb.conf
 kubectl create configmap postgres-configmap --from-file=pods/postgresql.conf
 kubectl create configmap pginit-configmap --from-file=pods/pginit.sql
 

@@ -7,7 +7,43 @@ metadata:
 spec:
   containers:
   - name: clusterdev-db-influx
-    image: diadata-clusterdev-db-influx:0.1
+    image: influxdb:1.8
+    # image: influxdb:2.6
+    imagePullPolicy: IfNotPresent
+    ports:
+      - containerPort: 8086
+      - containerPort: 8088
+    command: ["influxd", "-config", "/etc/influxdb/influxdb.conf"]
+    # TODO: influx 2
+    # command: ["influxd"]
+    env:
+      - name: INFLUXDB_HTTP_MAX_BODY_SIZE
+        value: "0"
+      - name: INFLUXDB_DATA_CACHE_MAX_MEMORY_SIZE
+        value: "4g"
+      - name: INFLUXDB_DATA_MAX_INDEX_LOG_FILE_SIZE
+        value: "8m"
+      - name: DOCKER_INFLUXDB_INIT_MODE
+        value: "setup"
+      - name: DOCKER_INFLUXDB_INIT_USERNAME
+        value: "diadata_user"
+      - name: DOCKER_INFLUXDB_INIT_PASSWORD
+        value: "diadata_pw"
+      - name: DOCKER_INFLUXDB_INIT_ORG
+        value: "diadata"
+      - name: DOCKER_INFLUXDB_INIT_BUCKET
+        value: "diadata_b"
+      - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
+        value: "diadata_token"
+    volumeMounts:
+    - name: influx-config
+      mountPath: /etc/influxdb/influxdb.conf
+      subPath: influxdb.conf
+      readOnly: true
+  volumes:
+  - name: influx-config
+    configMap:
+      name: influx-configmap
 ---
 apiVersion: v1
 kind: Service

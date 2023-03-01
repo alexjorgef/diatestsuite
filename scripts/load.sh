@@ -29,11 +29,6 @@ if [ "$MINIKUBE_DRIVER" = "docker" ]; then
 fi
 
 (
-    cd containers/db-influx
-    make load
-)
-
-(
     cd containers/diacmd-services-tradesblockservice
     make load
 )

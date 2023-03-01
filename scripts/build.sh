@@ -29,11 +29,6 @@ if [ "$MINIKUBE_DRIVER" = "docker" ]; then
 fi
 
 (
-    cd containers/db-influx
-    make build
-)
-
-(
     cd containers/diacmd-services-tradesblockservice
     if [ -d ./diadata ] ; then
         rm -rf diadata
