@@ -1,14 +1,7 @@
 #!/usr/bin/env bash
 
-echo "Cleaning and stopping data services..."
-kubectl delete -f "pods/db-influx.yaml" \
--f "pods/db-redis.yaml" \
--f "pods/db-postgres.yaml" \
--f "pods/db-kafka.yaml"
-
-echo "Cleaning and stopping services..."
-kubectl delete -f "pods/service-tradesblockservice.yaml" \
--f "pods/service-filtersblockservice.yaml"
+echo "Cleaning and stopping rest server..."
+kubectl delete -f "pods/http-restserver.yaml"
 
 echo "Cleaning and stopping scrapers:exchanges..."
 kubectl delete -f "pods/scraper-exchangescraper-bitfinex.yaml" \
@@ -31,5 +24,15 @@ kubectl delete -f "pods/scraper-exchangescraper-bitfinex.yaml" \
 -f "pods/scraper-exchangescraper-quoine.yaml" \
 -f "pods/scraper-exchangescraper-bitbay.yaml"
 
-echo "Cleaning and stopping rest server..."
-kubectl delete -f "pods/http-restserver.yaml"
+echo "Cleaning and stopping services..."
+kubectl delete -f "pods/service-tradesblockservice.yaml" \
+-f "pods/service-filtersblockservice.yaml"
+
+echo "Cleaning and stopping data services..."
+kubectl delete -f "pods/db-influx.yaml" \
+-f "pods/db-redis.yaml" \
+-f "pods/db-postgres.yaml" \
+-f "pods/db-kafka.yaml"
+
+kubectl delete configmap postgres-configmap
+kubectl delete configmap pginit-configmap

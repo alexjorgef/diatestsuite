@@ -3,6 +3,10 @@ set -e
 
 # TODO: isolate this first stage of init containers in a helm chart
 
+echo "Creating config maps..."
+kubectl create configmap postgres-configmap --from-file=pods/postgresql.conf
+kubectl create configmap pginit-configmap --from-file=pods/pginit.sql
+
 echo "Creating and starting data services..."
 kubectl create -f "pods/db-influx.yaml" \
 -f "pods/db-redis.yaml" \

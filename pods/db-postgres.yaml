@@ -17,23 +17,46 @@ metadata:
 spec:
   containers:
   - name: clusterdev-db-postgres
-    image: diadata-clusterdev-db-postgres:0.1
-    # env:
-    # - name: POSTGRES_USER
+    image: postgres:15-alpine
+    imagePullPolicy: IfNotPresent
+    ports:
+      - containerPort: 5432
+    command: ["docker-entrypoint.sh", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    env:
+      - name: POSTGRES_USER
+        value: diadata_psql_user
     #   valueFrom:
     #     secretKeyRef:
     #       name: postgres-credentials
     #       key: POSTGRES_USER
-    # - name: POSTGRES_DB
+      - name: POSTGRES_DB
+        value: diadata_psql_db
     #   valueFrom:
     #     secretKeyRef:
     #       name: postgres-credentials
     #       key: POSTGRES_DB
-    # - name: POSTGRES_PASSWORD
+      - name: POSTGRES_PASSWORD
+        value: diadata_psql_pass
     #   valueFrom:
     #     secretKeyRef:
     #       name: postgres-credentials
     #       key: POSTGRES_PASSWORD
+    volumeMounts:
+    - name: postgres-config
+      mountPath: /etc/postgresql/postgresql.conf
+      subPath: postgresql.conf
+      readOnly: true
+    - name: pginit-config
+      mountPath: /docker-entrypoint-initdb.d/pginit.sql
+      subPath: pginit.sql
+      readOnly: true
+  volumes:
+  - name: postgres-config
+    configMap:
+      name: postgres-configmap
+  - name: pginit-config
+    configMap:
+      name: pginit-configmap
 ---
 apiVersion: v1
 kind: Service
