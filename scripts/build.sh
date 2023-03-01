@@ -39,10 +39,6 @@ fi
 
 (
     cd containers/services-filtersblockservice
-    if [ -d ./diadata ] ; then
-        rm -rf diadata
-    fi
-    git clone https://github.com/diadata-org/diadata
     make build
 )
 
