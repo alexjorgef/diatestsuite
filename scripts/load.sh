@@ -39,11 +39,6 @@ fi
 )
 
 (
-    cd containers/db-postgres
-    make load
-)
-
-(
     cd containers/diacmd-services-tradesblockservice
     make load
 )

@@ -39,11 +39,6 @@ fi
 )
 
 (
-    cd containers/db-postgres
-    make build
-)
-
-(
     cd containers/diacmd-services-tradesblockservice
     if [ -d ./diadata ] ; then
         rm -rf diadata
