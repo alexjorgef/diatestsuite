@@ -40,3 +40,69 @@ spec:
     - name: PGPASSWORD
       value: "diadata_psql_pass"
     command: ["sh", "-c", "until pg_isready -h $PGHOST -U $PGUSER; do sleep 1; done"]
+  - name: check-redis-connection
+    image: redis:latest
+    env:
+    - name: REDISCLI_URL
+      value: "redis://clusterdev-db-redis-service.default.svc.cluster.local:6379/0"
+    command: ["sh", "-c", "until redis-cli -u $REDISCLI_URL ping; do sleep 1; done"]
+  - name: check-influxdb-connection
+    image: influxdb:1.8
+    env:
+    - name: INFLUXDB_URL
+      value: "clusterdev-db-influx-service.default.svc.cluster.local"
+    - name: INFLUXDB_USERNAME
+      value: "diadata_user"
+    - name: INFLUXDB_PASSWORD
+      value: "diadata_pw"
+    command: ["sh", "-c", "until influx -host $INFLUXDB_URL -username $INFLUXDB_USERNAME -password $INFLUXDB_PASSWORD -execute 'SHOW DATABASES'; do sleep 1; done"]
+  - name: clusterdev-exchangescraper-collector-coinbase-pairdiscovery-rem
+    image: diadata-clusterdev-service-pairdiscoveryservice:0.1
+    command: ["pairDiscoveryService"]
+    args: ["-exchange=CoinBase", "-mode=remoteFetch"]
+    env:
+    - name: USE_ENV
+      value: "true"
+    - name: POSTGRES_USER
+      value: "diadata_psql_user"
+    - name: POSTGRES_PASSWORD
+      value: "diadata_psql_pass"
+    - name: POSTGRES_DB
+      value: "diadata_psql_db"
+    - name: POSTGRES_HOST
+      value: "clusterdev-db-postgres-service.default.svc.cluster.local"
+    - name: INFLUXURL
+      value: "http://clusterdev-db-influx-service.default.svc.cluster.local:8086"
+    - name: INFLUXUSER
+      value: "diadata_user"
+    - name: INFLUXPASSWORD
+      value: "diadata_pw"
+    - name: REDISURL
+      value: "clusterdev-db-redis-service.default.svc.cluster.local:6379"
+    - name: KAFKAURL
+      value: "clusterdev-db-kafka-service.default.svc.cluster.local:9094"
+  - name: clusterdev-exchangescraper-collector-coinbase-pairdiscovery-ver
+    image: diadata-clusterdev-service-pairdiscoveryservice:0.1
+    command: ["pairDiscoveryService"]
+    args: ["-exchange=CoinBase", "-mode=verification"]
+    env:
+    - name: USE_ENV
+      value: "true"
+    - name: POSTGRES_USER
+      value: "diadata_psql_user"
+    - name: POSTGRES_PASSWORD
+      value: "diadata_psql_pass"
+    - name: POSTGRES_DB
+      value: "diadata_psql_db"
+    - name: POSTGRES_HOST
+      value: "clusterdev-db-postgres-service.default.svc.cluster.local"
+    - name: INFLUXURL
+      value: "http://clusterdev-db-influx-service.default.svc.cluster.local:8086"
+    - name: INFLUXUSER
+      value: "diadata_user"
+    - name: INFLUXPASSWORD
+      value: "diadata_pw"
+    - name: REDISURL
+      value: "clusterdev-db-redis-service.default.svc.cluster.local:6379"
+    - name: KAFKAURL
+      value: "clusterdev-db-kafka-service.default.svc.cluster.local:9094"
