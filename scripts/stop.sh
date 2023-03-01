@@ -30,3 +30,6 @@ kubectl delete -f "pods/scraper-exchangescraper-bitfinex.yaml" \
 -f "pods/scraper-exchangescraper-zb.yaml" \
 -f "pods/scraper-exchangescraper-quoine.yaml" \
 -f "pods/scraper-exchangescraper-bitbay.yaml"
+
+echo "Cleaning and stopping rest server..."
+kubectl delete -f "pods/http-restserver.yaml"

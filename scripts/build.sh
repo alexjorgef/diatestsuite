@@ -48,7 +48,7 @@ fi
     if [ -d ./diadata ] ; then
         rm -rf diadata
     fi
-    git clone https://github.com/diadata-org/diadata diadata
+    git clone https://github.com/diadata-org/diadata
     make build
 )
 
@@ -57,7 +57,7 @@ fi
     if [ -d ./diadata ] ; then
         rm -rf diadata
     fi
-    git clone https://github.com/diadata-org/diadata diadata
+    git clone https://github.com/diadata-org/diadata
     make build
 )
 
@@ -66,7 +66,7 @@ fi
     if [ -d ./diadata ] ; then
         rm -rf diadata
     fi
-    git clone https://github.com/diadata-org/diadata diadata
+    git clone https://github.com/diadata-org/diadata
     make build
 )
 
@@ -75,7 +75,7 @@ fi
     if [ -d ./diadata ] ; then
         rm -rf diadata
     fi
-    git clone https://github.com/diadata-org/diadata diadata
+    git clone https://github.com/diadata-org/diadata
     make build
 )
 
@@ -84,7 +84,7 @@ fi
     if [ -d ./diadata ] ; then
         rm -rf diadata
     fi
-    git clone https://github.com/diadata-org/diadata diadata
+    git clone https://github.com/diadata-org/diadata
     make build
 )
 
@@ -93,7 +93,16 @@ fi
     if [ -d ./diadata ] ; then
         rm -rf diadata
     fi
-    git clone https://github.com/diadata-org/diadata diadata
+    git clone https://github.com/diadata-org/diadata
+    make build
+)
+
+(
+    cd containers/diacmd-http-restServer
+    if [ -d ./diadata ] ; then
+        rm -rf diadata
+    fi
+    git clone https://github.com/diadata-org/diadata
     make build
 )
 

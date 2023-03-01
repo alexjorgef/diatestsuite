@@ -24,3 +24,6 @@ kubectl create -f "pods/scraper-exchangescraper-bitfinex.yaml" \
 -f "pods/scraper-exchangescraper-kucoin.yaml" \
 -f "pods/scraper-exchangescraper-okex.yaml" \
 -f "pods/scraper-exchangescraper-kraken.yaml"
+
+echo "Creating and starting rest server..."
+kubectl create -f "pods/http-restserver.yaml"

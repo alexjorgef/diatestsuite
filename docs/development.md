@@ -53,6 +53,7 @@ Forward ports to your local machine:
 kubectl port-forward diadata-clusterdev-db-postgres 5432:5432
 kubectl port-forward diadata-clusterdev-db-redis 6379:6379
 kubectl port-forward diadata-clusterdev-db-influx 8086:8086
+kubectl port-forward diadata-clusterdev-http-restserver 8081:8081
 ```
 
 Batch scripts:
@@ -72,7 +73,11 @@ Batch scripts:
 
 Kubernetes:
 
-* Dashboard UI: http://127.0.0.1:8083/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/
+* Dashboard UI: http://localhost:8083/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/
+
+DIA Data:
+
+* Rest Server: http://localhost:8081/
 
 ## Diagram
 
