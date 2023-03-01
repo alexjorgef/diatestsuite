@@ -29,38 +29,14 @@ if [ "$MINIKUBE_DRIVER" = "docker" ]; then
 fi
 
 (
-    cd containers/services-tradesblockservice
-    make load
-)
-
-(
-    cd containers/services-filtersblockservice
-    make load
-)
-
-(
-    cd containers/exchangescraper-collector
-    make load
-)
-
-(
-    cd containers/services-blockchainservice
-    make load
-)
-
-(
-    cd containers/services-pairDiscoveryService
-    make load
-)
-
-(
-    cd containers/services-assetCollectionService
-    make load
-)
-
-(
-    cd containers/http-restServer
-    make load
+    cd containers
+    docker save dia-exchangescraper-collector:0.1 | (eval $(minikube docker-env) && docker load)
+    docker save dia-http-restserver:0.1 | (eval $(minikube docker-env) && docker load)
+    docker save dia-service-assetcollectionservice:0.1 | (eval $(minikube docker-env) && docker load)
+    docker save dia-service-blockchainservice:0.1 | (eval $(minikube docker-env) && docker load)
+    docker save dia-service-filtersblockservice:0.1 | (eval $(minikube docker-env) && docker load)
+    docker save dia-service-pairdiscoveryservice:0.1 | (eval $(minikube docker-env) && docker load)
+    docker save dia-service-tradesblockservice:0.1 | (eval $(minikube docker-env) && docker load)
 )
 
 if [ "$MINIKUBE_DRIVER" = "docker" ]; then

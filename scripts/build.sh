@@ -29,38 +29,14 @@ if [ "$MINIKUBE_DRIVER" = "docker" ]; then
 fi
 
 (
-    cd containers/services-tradesblockservice
-    make build
-)
-
-(
-    cd containers/services-filtersblockservice
-    make build
-)
-
-(
-    cd containers/exchangescraper-collector
-    make build
-)
-
-(
-    cd containers/services-blockchainservice
-    make build
-)
-
-(
-    cd containers/services-pairDiscoveryService
-    make build
-)
-
-(
-    cd containers/services-assetCollectionService
-    make build
-)
-
-(
-    cd containers/http-restServer
-    make build
+    cd containers
+    docker build -f Dockerfile-genericCollector --tag=dia-exchangescraper-collector:0.1 .
+    docker build -f Dockerfile-restServer --tag=dia-http-restserver:0.1 .
+    docker build -f Dockerfile-assetCollectionService --tag=dia-service-assetcollectionservice:0.1 .
+    docker build -f Dockerfile-blockchainservice --tag=dia-service-blockchainservice:0.1 .
+    docker build -f Dockerfile-filtersBlockService --tag=dia-service-filtersblockservice:0.1 .
+    docker build -f Dockerfile-pairDiscoveryService --tag=dia-service-pairdiscoveryservice:0.1 .
+    docker build -f Dockerfile-tradesBlockService --tag=dia-service-tradesblockservice:0.1 .
 )
 
 if [ "$MINIKUBE_DRIVER" = "docker" ]; then
