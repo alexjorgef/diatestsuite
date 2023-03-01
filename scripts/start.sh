@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+# TODO: isolate this first stage of init containers in a helm chart
+
 echo "Creating and starting data services..."
 kubectl create -f "pods/db-influx.yaml" \
 -f "pods/db-redis.yaml" \
@@ -10,6 +12,8 @@ kubectl create -f "pods/db-influx.yaml" \
 echo "Creating and starting services..."
 kubectl create -f "pods/service-tradesblockservice.yaml" \
 -f "pods/service-filtersblockservice.yaml"
+
+sleep 5
 
 echo "Creating and starting scrapers:exchanges..."
 kubectl create -f "pods/scraper-exchangescraper-bitfinex.yaml" \
