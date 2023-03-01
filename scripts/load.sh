@@ -44,21 +44,6 @@ fi
 )
 
 (
-    cd containers/db-kafka
-    make load
-)
-
-(
-    cd containers/db-zookeeper
-    make load
-)
-
-(
-    cd containers/db-zookeeper
-    make load
-)
-
-(
     cd containers/diacmd-services-tradesblockservice
     make load
 )

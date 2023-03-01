@@ -44,22 +44,6 @@ fi
 )
 
 (
-    cd containers/db-kafka
-    make build
-)
-
-(
-    cd containers/db-zookeeper
-    make build
-)
-
-
-(
-    cd containers/db-zookeeper
-    make build
-)
-
-(
     cd containers/diacmd-services-tradesblockservice
     if [ -d ./diadata ] ; then
         rm -rf diadata
