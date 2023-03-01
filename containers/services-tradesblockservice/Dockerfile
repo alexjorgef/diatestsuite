@@ -4,8 +4,12 @@ RUN apk add --no-cache make gcc musl-dev linux-headers git bash
 
 WORKDIR $GOPATH/src/
 
-COPY ./diadata/cmd/services/tradesBlockService ./
-COPY ./diadata/config /config/
+# TODO: use parameters to change the branch and the protocol to clone
+RUN git clone https://github.com/diadata-org/diadata
+
+RUN cp -r diadata/cmd/services/tradesBlockService/* ./
+RUN mkdir /config/
+RUN cp -r diadata/config/* /config/
 
 RUN go mod tidy -go=1.16 && go mod tidy -go=1.17 && CGO_ENABLED=0 go install
 
