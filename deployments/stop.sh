@@ -34,6 +34,7 @@ kubectl delete -f "deployments/k8s-yaml/influx.yaml" \
 -f "deployments/k8s-yaml/postgres.yaml" \
 -f "deployments/k8s-yaml/kafka.yaml"
 
+echo "Deleting config maps..."
 kubectl delete configmap postgres-configmap
 kubectl delete configmap pginit-configmap
 kubectl delete configmap redis-configmap

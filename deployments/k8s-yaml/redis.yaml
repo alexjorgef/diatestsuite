@@ -17,6 +17,13 @@ spec:
       mountPath: /usr/local/etc/redis/redis.conf
       subPath: redis.conf
       readOnly: true
+    # resources:
+    #   limits:
+    #     memory: 600Mi
+    #     cpu: 1
+    #   requests:
+    #     memory: 300Mi
+    #     cpu: 500m
   volumes:
   - name: redis-config
     configMap:

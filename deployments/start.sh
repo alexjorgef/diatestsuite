@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-# TODO: isolate this first stage of init containers in a helm chart
-
 echo "Creating config maps..."
 kubectl create configmap redis-configmap --from-file=deployments/config/redis.conf
 kubectl create configmap influx-configmap --from-file=deployments/config/influxdb.conf
@@ -18,8 +16,6 @@ kubectl create -f "deployments/k8s-yaml/influx.yaml" \
 echo "Creating and starting services..."
 kubectl create -f "deployments/k8s-yaml/tradesblockservice.yaml" \
 -f "deployments/k8s-yaml/filtersblockservice.yaml"
-
-sleep 5
 
 echo "Creating and starting scrapers:exchanges..."
 kubectl create -f "deployments/k8s-yaml/exchangescraper-bitfinex.yaml" \

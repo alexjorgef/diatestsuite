@@ -6,35 +6,31 @@
 
 * [minikube](https://minikube.sigs.k8s.io/docs/): minikube quickly sets up a local Kubernetes cluster
 * [kubectl](https://kubernetes.io/docs/reference/kubectl/kubectl/): kubectl controls the Kubernetes cluster manager
-* Optional
-  * [k9s](https://k9scli.io/): k9s is a terminal based UI to interact with your Kubernetes clusters
+
+Optional:
+
+* [k9s](https://k9scli.io/): k9s is a terminal based UI to interact with your Kubernetes clusters
 
 ## Guides
 
 ### Getting Started
 
-Firstly, initialize the cluster:
+Initialize the cluster:
 
 ```shell
-./scripts/init.sh
+./deployments/init.sh
 ```
 
-Build images:
+Start the cluster's containers:
 
 ```shell
-./scripts/build.sh
+./deployments/start.sh
 ```
 
-Load images to cluster:
+You can stop the cluster's containers with:
 
 ```shell
-./scripts/load.sh
-```
-
-Start cluster:
-
-```shell
-./scripts/start.sh
+./deployments/stop.sh
 ```
 
 ### Advanced
@@ -56,19 +52,6 @@ kubectl port-forward diadata-clusterdev-db-influx 8086:8086
 kubectl port-forward diadata-clusterdev-http-restserver 8081:8081
 ```
 
-Batch scripts:
-
-```shell
-# Killing and initialize the local cluster
-./scripts/delete.sh; ./scripts/init.sh
-
-# Building and loading image containers to cluster
-./scripts/build.sh; ./scripts/load.sh
-
-# Re-Start all containers in cluste
-./scripts/stop.sh; ./scripts/start.sh
-```
-
 ## Endpoints
 
 Kubernetes:
@@ -82,22 +65,6 @@ DIA Data:
 ## Diagram
 
 ![cluster_diagram](diagram.png)
-
-## Debug and Troubleshooting
-
-On `containers/*/Dockerfile` use `*:debug` tag on 2nd stage image:
-
-```
-# ...
-
-# 1. comment this line
-#FROM gcr.io/distroless/base
-
-# 2. and use this line instead
-FROM gcr.io/distroless/base:debug
-
-# ...
-```
 
 ## Common Issues
 
@@ -131,15 +98,12 @@ data:
        }
 ```
 
-reload core-dns by typing: `kubectl delete pod -n kube-system core-dns-#########`
+Now we just nee to reload the core-dns service by typing: `kubectl delete pod -n kube-system core-dns-#########`
 
-## Known Bugs or Issues
+### Fix minikube user permissions
 
-* Mounting hostPath volumes with ```minikube start --mount-string```, can't set permissions
-  * ```--mount-uid=1001``` don't work with ```docker``` driver (do nothing)
-  * ```--mount-gid=1001``` don't work with ```docker``` driver (do nothing)
-* Mounting hostPath volumes with "minikube mount", can't see free space with 9p filesystem (df -h command)
+> `❌  Exiting due to HOST_HOME_PERMISSION: unlinkat /home/USER/.minikube/ ...`
 
-## References & Inspirations
-
-* https://github.com/moby/moby/blob/master/contrib/check-config.sh
+```shell
+sudo chown -R $USER $HOME/.minikube; chmod -R u+wrx $HOME/.minikube
+```

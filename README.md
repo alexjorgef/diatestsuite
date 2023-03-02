@@ -1,3 +1,3 @@
-# DIAData Dev Environment
+# DIA Development Toolkit
 
-[Documentation](docs/development.md)
+[Documentation](documentation/development-toolkit.md)
