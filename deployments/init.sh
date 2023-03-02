@@ -4,56 +4,56 @@ set -e
 EXITCODE=0
 
 _color() {
-	codes=
-	if [ "$1" = 'bold' ]; then
-		codes='1'
-		shift
-	fi
-	if [ "$#" -gt 0 ]; then
-		code=
-		case "$1" in
-			# see https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
-			black) code=30 ;;
-			red) code=31 ;;
-			green) code=32 ;;
-			yellow) code=33 ;;
-			blue) code=34 ;;
-			magenta) code=35 ;;
-			cyan) code=36 ;;
-			white) code=37 ;;
-		esac
-		if [ "$code" ]; then
-			codes="${codes:+$codes;}$code"
-		fi
-	fi
-	printf '\033[%sm' "$codes"
+    codes=
+    if [ "$1" = 'bold' ]; then
+        codes='1'
+        shift
+    fi
+    if [ "$#" -gt 0 ]; then
+        code=
+        case "$1" in
+        # see https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+        black) code=30 ;;
+        red) code=31 ;;
+        green) code=32 ;;
+        yellow) code=33 ;;
+        blue) code=34 ;;
+        magenta) code=35 ;;
+        cyan) code=36 ;;
+        white) code=37 ;;
+        esac
+        if [ "$code" ]; then
+            codes="${codes:+$codes;}$code"
+        fi
+    fi
+    printf '\033[%sm' "$codes"
 }
 
 _wrap_color() {
-	text="$1"
-	shift
-	_color "$@"
-	printf '%s' "$text"
-	_color reset
-	echo
+    text="$1"
+    shift
+    _color "$@"
+    printf '%s' "$text"
+    _color reset
+    echo
 }
 
 _wrap_good() {
-	echo "$(_wrap_color "$1" white): $(_wrap_color "$2" green)"
+    echo "$(_wrap_color "$1" white): $(_wrap_color "$2" green)"
 }
 
 _wrap_bad() {
-	echo "$(_wrap_color "$1" bold): $(_wrap_color "$2" bold red)"
+    echo "$(_wrap_color "$1" bold): $(_wrap_color "$2" bold red)"
 }
 
 # https://github.com/moby/moby/blob/master/contrib/check-config.sh
 check_command() {
-	if command -v "$1" > /dev/null 2>&1; then
-		_wrap_good "$1 command" 'available'
-	else
-		_wrap_bad "$1 command" 'missing'
-		EXITCODE=1
-	fi
+    if command -v "$1" >/dev/null 2>&1; then
+        _wrap_good "$1 command" 'available'
+    else
+        _wrap_bad "$1 command" 'missing'
+        EXITCODE=1
+    fi
 }
 
 check_command kubectl
@@ -72,7 +72,7 @@ CLUSTER_HW_DISK_SIZE="30g"
 MINIKUBE_VLVL=8
 MINIKUBE_DRIVER="docker"
 MINIKUBE_CONTAINER_RUNTIME="docker"
-MINIKUBE_KUBERNETES_VER="v1.26.1"
+MINIKUBE_KUBERNETES_VER="v1.23.8"
 MINIKUBE_NODES=1
 
 if [ "$MINIKUBE_DRIVER" = "docker" ]; then
@@ -85,10 +85,10 @@ if [ "$MINIKUBE_DRIVER" = "docker" ]; then
         echo "ERROR user '$USER' does not belong to 'docker' group"
         return 1
     fi
-    unset DOCKER_TLS_VERIFY;
-    unset DOCKER_HOST;
-    unset DOCKER_CERT_PATH;
-    unset MINIKUBE_ACTIVE_DOCKERD;
+    unset DOCKER_TLS_VERIFY
+    unset DOCKER_HOST
+    unset DOCKER_CERT_PATH
+    unset MINIKUBE_ACTIVE_DOCKERD
     docker build -f "build/Dockerfile-genericCollector" --tag=dia-exchangescraper-collector:0.1 .
     docker build -f "build/Dockerfile-restServer" --tag=dia-http-restserver:0.1 .
     docker build -f "build/Dockerfile-assetCollectionService" --tag=dia-service-assetcollectionservice:0.1 .
@@ -126,21 +126,21 @@ if kubectl config get-contexts | grep -q "^$DIA_VM_PROFILE"; then
     kubectl config use-context "$DIA_VM_PROFILE"
 fi
 
-# Check if the selected profile exists in Minikube
-if minikube profile list | grep -q "^$DIA_VM_PROFILE"; then
-    echo "Stopping minikube cluster ..."
-    minikube stop
-fi
+# TODO: Check if the selected profile exists in Minikube
+# if minikube profile list | grep -q "^$DIA_VM_PROFILE"; then
+# fi
+echo "Pruning docker systems ..."
+minikube -p "$DIA_VM_PROFILE" ssh -- docker system prune --force
+echo "Stopping minikube cluster ..."
+minikube -p "$DIA_VM_PROFILE" stop
 
 echo "Deleting minikube ..."
 minikube delete --profile="$DIA_VM_PROFILE"
 cluster_env_disable
 echo "Cleaning Minikube mount proccess"
-if [ -f .minikube-pid-mount-data-sync ]
-then
+if [ -f .minikube-pid-mount-data-sync ]; then
     pid=$(cat .minikube-pid-mount-data-sync)
-    if ps -p $pid > /dev/null
-    then
+    if ps -p $pid >/dev/null; then
         echo "Process with ID $pid is running. Killing with -9 option..."
         kill -9 $pid
     else
@@ -153,6 +153,7 @@ fi
 echo "Removing minikube cache and configs ..."
 rm -rf ~/.kube/cache
 rm ~/.kube/config
+rm minikube.log
 
 cluster_env_disable
 echo "Setting a new kubectl config context ..."
@@ -171,13 +172,17 @@ minikube start \
     --memory="${CLUSTER_HW_MEMORY}" \
     --disk-size="${CLUSTER_HW_DISK_SIZE}" \
     --alsologtostderr=false \
+    --cni=bridge \
     --container-runtime="${MINIKUBE_CONTAINER_RUNTIME}" \
     --nodes="${MINIKUBE_NODES}" \
     --mount-string="$(pwd)/data/volumes:/mnt/volumes:rw" \
     --mount=true \
     --extra-config=apiserver.enable-swagger-ui=true \
-    --feature-gates="LocalStorageCapacityIsolation=false"
+    --force-systemd
+echo "Changing profile to ${DIA_VM_PROFILE} ..."
 minikube profile "${DIA_VM_PROFILE}"
+echo "Enabling addons ..."
+minikube -p $DIA_VM_PROFILE addons enable metrics-server
 # kubectl get namespaces --output=name | grep "$DIA_NAMESPACE" >/dev/null
 # if [ $? -eq 0 ]; then
 #     echo "DIA resources are installed"
@@ -204,6 +209,6 @@ nohup minikube mount "$(pwd)/data/shared:/mnt/shared:ro" --uid 1001 --gid 1001 -
 echo $! >.minikube-pid-mount-data-sync
 minikube ssh "sudo mkdir -p /mnt/volumes/scraper"
 minikube ssh "sudo chown -R 1001:1001 /mnt/volumes/scraper"
-minikube -p $DIA_VM_PROFILE addons enable metrics-server
+# minikube -p $DIA_VM_PROFILE addons enable metrics-server
 
 exit $EXITCODE
