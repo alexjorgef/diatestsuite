@@ -19,8 +19,4 @@ FROM gcr.io/distroless/base
 COPY --from=build /go/bin/collector /bin/collector
 COPY --from=build /config/ /config/
 
-# TODO: this should not be hardcoded
-# change diadata-org--diadata/pkg/dia/helpers/db/postgres.go:L90 to use another folder to work with distroless images? or maybe remove this image...
-COPY ./secrets/postgres_credentials.txt /src/github.com/diadata-org/diadata/secrets/postgres_credentials.txt
-
 CMD ["collector"]
