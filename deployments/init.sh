@@ -48,7 +48,7 @@ DIA_NAMESPACE="diadata-namespace"
 CLUSTER_HW_MEMORY=4096
 CLUSTER_HW_VCPU=4
 CLUSTER_HW_DISK_SIZE="30g"
-MINIKUBE_VLVL=8
+MINIKUBE_VLVL=1
 MINIKUBE_DRIVER="docker"
 MINIKUBE_CONTAINER_RUNTIME="docker"
 MINIKUBE_KUBERNETES_VER="v1.23.8"
@@ -96,7 +96,6 @@ cluster_env_disable
 echo "Removing minikube cache and configs ..."
 rm -rf ~/.kube/cache
 rm ~/.kube/config
-rm minikube.log
 
 echo "Setting and switching to a new config context ..."
 kubectl config set-context "$DIA_CONFIG_CTX"
@@ -107,7 +106,6 @@ echo "Starting minikube cluster ..."
 minikube start \
     --profile="${DIA_VM_PROFILE}" \
     --v="${MINIKUBE_VLVL}" \
-    --log_file="$(pwd)/minikube.log" \
     --driver="${MINIKUBE_DRIVER}" \
     --kubernetes-version="${MINIKUBE_KUBERNETES_VER}" \
     --cpus="${CLUSTER_HW_VCPU}" \
