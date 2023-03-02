@@ -1,16 +1,3 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: diadata-clusterdev-db-zookeeper-config
-data:
-  zookeeper.properties: |
-    dataDir=/var/lib/zookeeper/data
-    clientPort=2181
-    maxClientCnxns=0
-    tickTime=2000
-    initLimit=10
-    syncLimit=5
----
 apiVersion: "v1"
 kind: Pod
 metadata:
@@ -26,9 +13,13 @@ spec:
       value: "2181"
     - name: ZOOKEEPER_TICK_TIME
       value: "2000"
-    # volumeMounts:
-    #   - name: diadata-clusterdev-db-zookeeper-volume-config
-    #     mountPath: /etc/kafka/
+    resources:
+      limits:
+        memory: 512Mi
+        cpu: 2
+      requests:
+        memory: 100Mi
+        cpu: 100m
   - name: clusterdev-db-kafka
     image: wurstmeister/kafka:latest
     env:
@@ -50,10 +41,6 @@ spec:
       value: "true"
     - name: KAFKA_MESSAGE_MAX_BYTES
       value: "50000000"
-  volumes:
-    - name: diadata-clusterdev-db-zookeeper-volume-config
-      configMap:
-        name: diadata-clusterdev-db-zookeeper-config
 ---
 apiVersion: v1
 kind: Service
