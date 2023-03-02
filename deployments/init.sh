@@ -115,7 +115,7 @@ else
 fi
 echo "Mounting shared data to minikube ..."
 nohup minikube mount "$(pwd)/data/shared:/mnt/shared:ro" --uid 1001 --gid 1001 --9p-version=9p2000.L >/dev/null 2>&1 &
-echo $! >.pid-mount-data-sync
+echo $! >.minikube-pid-mount-data-sync
 # sleep 5
 # echo "Starting static persistent volumes ..."
 # kubectl create -f "data.yaml"

@@ -37,7 +37,7 @@ echo "Deleting minikube ..."
 minikube delete --profile="$DIADATA_VM_PROFILE"
 __cluster_env_disable
 echo "Cleaning Minikube mount proccess"
-kill -9 "$(cat .pid-mount-data-sync)"
+kill -9 "$(cat .minikube-pid-mount-data-sync)"
 # echo "Removing minikube volumes ..."
 # for i in "${arrayInstances[@]}"; do
 #     __info "Removing unused gameserver folders for $i game type ..."
