@@ -1,5 +1,7 @@
 # DIA Development Toolkit
 
+A toolkit for testing the DIA ecossystem locally.
+
 ## Requirements
 
 > Note: for supportted minikube's drivers check [this document](https://minikube.sigs.k8s.io/docs/drivers/)
@@ -106,4 +108,38 @@ Now we just nee to reload the core-dns service by typing: `kubectl delete pod -n
 
 ```shell
 sudo chown -R $USER $HOME/.minikube; chmod -R u+wrx $HOME/.minikube
+```
+
+## Folder Structure
+
+```
+.
+├── build
+│   ├── Dockerfile-assetCollectionService
+│   ├── Dockerfile-blockchainservice
+│   ├── Dockerfile-filtersBlockService
+│   ├── Dockerfile-genericCollector
+│   ├── Dockerfile-pairDiscoveryService
+│   ├── Dockerfile-restServer
+│   └── Dockerfile-tradesBlockService
+├── deployments
+│   ├── config
+│   │   ├── influxdb2.conf
+│   │   ├── influxdb.conf
+│   │   ├── pginit.sql
+│   │   ├── postgresql.conf
+│   │   └── redis.conf
+│   ├── k8s-yaml
+│   │   ├── exchangescraper-*.yaml
+│   │   ├── filtersblockservice.yaml
+│   │   ├── influx.yaml
+│   │   ├── kafka.yaml
+│   │   ├── postgres.yaml
+│   │   ├── redis.yaml
+│   │   ├── restserver.yaml
+│   │   └── tradesblockservice.yaml
+│   ├── init.sh
+│   ├── start.sh
+│   └── stop.sh
+└── minikube.log
 ```
