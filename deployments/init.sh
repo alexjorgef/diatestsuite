@@ -13,6 +13,28 @@ check_command() {
     fi
 }
 
+cluster_env_enable() {
+    echo "Enabling cluster environment ..."
+    eval "$(minikube -p "${1}" docker-env)"
+    if [ $? -eq 0 ]; then
+        echo "Cluster environment is now enabled"
+    else
+        echo "Cluster environment enabling failed"
+        exit 1
+    fi
+}
+
+cluster_env_disable() {
+    echo "Disabling cluster environment ..."
+    eval "$(minikube docker-env -u)"
+    if [ $? -eq 0 ]; then
+        echo "Cluster environment is now disabled"
+    else
+        echo "Cluster environment disabling failed"
+        exit 1
+    fi
+}
+
 check_command kubectl
 [ "$EXITCODE" = 0 ] && echo "OK kubectl"
 check_command minikube
@@ -55,69 +77,32 @@ if [ "$MINIKUBE_DRIVER" = "docker" ]; then
     docker build -f "build/Dockerfile-tradesBlockService" --tag=dia-service-tradesblockservice:0.1 .
 fi
 
-cluster_env_enable() {
-    echo "Enabling cluster environment ..."
-    eval "$(minikube -p "${1}" docker-env)"
-    if [ $? -eq 0 ]; then
-        echo "Cluster environment is now enabled"
-    else
-        echo "Cluster environment enabling failed"
-        exit 1
-    fi
-}
+echo "Switching kubectl config context to $DIA_VM_PROFILE ..."
+kubectl config use-context "$DIA_VM_PROFILE"
 
-cluster_env_disable() {
-    echo "Disabling cluster environment ..."
-    eval "$(minikube docker-env -u)"
-    if [ $? -eq 0 ]; then
-        echo "Cluster environment is now disabled"
-    else
-        echo "Cluster environment disabling failed"
-        exit 1
-    fi
-}
-
-# Check if the context exists in the Kubernetes cluster
-if kubectl config get-contexts | grep -q "^$DIA_VM_PROFILE"; then
-    echo "Switching kubectl config context to $DIA_VM_PROFILE ..."
-    kubectl config use-context "$DIA_VM_PROFILE"
-fi
-
-# TODO: Check if the selected profile exists in Minikube
-# if minikube profile list | grep -q "^$DIA_VM_PROFILE"; then
-# fi
+# TODO: make sure we dont delete any other important user files
 echo "Pruning docker systems ..."
 minikube -p "$DIA_VM_PROFILE" ssh -- docker system prune --force
+
 echo "Stopping minikube cluster ..."
 minikube -p "$DIA_VM_PROFILE" stop
 
 echo "Deleting minikube ..."
 minikube delete --profile="$DIA_VM_PROFILE"
-cluster_env_disable
-echo "Cleaning Minikube mount proccess"
-if [ -f .minikube-pid-mount-data-sync ]; then
-    pid=$(cat .minikube-pid-mount-data-sync)
-    if ps -p $pid >/dev/null; then
-        echo "Process with ID $pid is running. Killing with -9 option..."
-        kill -9 $pid
-    else
-        echo "Process with ID $pid is not running."
-    fi
-else
-    echo "File .minikube-pid-mount-data-sync does not exist."
-fi
 
+cluster_env_disable
+
+# TODO: make sure we dont delete any other important user files
 echo "Removing minikube cache and configs ..."
 rm -rf ~/.kube/cache
 rm ~/.kube/config
 rm minikube.log
 
-cluster_env_disable
-echo "Setting a new kubectl config context ..."
+echo "Setting and switching to a new config context ..."
 kubectl config set-context "$DIA_CONFIG_CTX"
-echo "Switching to DIA config context ..."
 kubectl config use-context "$DIA_CONFIG_CTX"
 minikube config set memory $CLUSTER_HW_MEMORY
+
 echo "Starting minikube cluster ..."
 minikube start \
     --profile="${DIA_VM_PROFILE}" \
@@ -132,14 +117,15 @@ minikube start \
     --cni=bridge \
     --container-runtime="${MINIKUBE_CONTAINER_RUNTIME}" \
     --nodes="${MINIKUBE_NODES}" \
-    --mount-string="$(pwd)/data/volumes:/mnt/volumes:rw" \
-    --mount=true \
     --extra-config=apiserver.enable-swagger-ui=true \
     --force-systemd
+
 echo "Changing profile to ${DIA_VM_PROFILE} ..."
 minikube profile "${DIA_VM_PROFILE}"
+
 echo "Enabling addons ..."
 minikube -p $DIA_VM_PROFILE addons enable metrics-server
+
 # kubectl get namespaces --output=name | grep "$DIA_NAMESPACE" >/dev/null
 # if [ $? -eq 0 ]; then
 #     echo "DIA resources are installed"
@@ -160,12 +146,5 @@ if [ "$MINIKUBE_DRIVER" = "docker" ]; then
 fi
 
 cluster_env_enable "${DIA_VM_PROFILE}"
-
-echo "Mounting shared data to minikube ..."
-nohup minikube mount "$(pwd)/data/shared:/mnt/shared:ro" --uid 1001 --gid 1001 --9p-version=9p2000.L >/dev/null 2>&1 &
-echo $! >.minikube-pid-mount-data-sync
-minikube ssh "sudo mkdir -p /mnt/volumes/scraper"
-minikube ssh "sudo chown -R 1001:1001 /mnt/volumes/scraper"
-# minikube -p $DIA_VM_PROFILE addons enable metrics-server
 
 exit $EXITCODE
