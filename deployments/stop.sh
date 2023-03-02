@@ -1,4 +1,6 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
+# TODO: uncomment below line when work is done here
+#set -e
 
 echo "Cleaning and stopping rest server..."
 kubectl delete -f "deployments/k8s-yaml/restserver.yaml"
