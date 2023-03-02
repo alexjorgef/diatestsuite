@@ -64,57 +64,11 @@ DIA Data:
 
 * Rest Server: http://localhost:8081/
 
-## Diagram
-
-![cluster_diagram](diagram.png)
-
-## Common Issues
-
-### Add custom host to kubernetes
-
-> ref: https://hjrocha.medium.com/add-a-custom-host-to-kubernetes-a06472cedccb
-
-run `kubectl -n kube-system edit configmap/coredns` and edit forward and hosts fields:
-
-```yaml
-data: 
-  Corefile: |
-      .:53 {
-          errors
-          health
-          ready
-          kubernetes cluster.local in-addr.arpa ip6.arpa {
-            pods insecure
-            fallthrough in-addr.arpa ip6.arpa
-          }
-          prometheus :9153
-          forward . 8.8.8.8 8.8.4.4
-          cache 30
-          loop
-          reload
-          loadbalance
-          hosts custom.hosts mycustom.host {
-            1.2.3.4 mycustom.host
-            fallthrough
-          }
-       }
-```
-
-Now we just nee to reload the core-dns service by typing: `kubectl delete pod -n kube-system core-dns-#########`
-
-### Fix minikube user permissions
-
-> `❌  Exiting due to HOST_HOME_PERMISSION: unlinkat /home/USER/.minikube/ ...`
-
-```shell
-sudo chown -R $USER $HOME/.minikube; chmod -R u+wrx $HOME/.minikube
-```
-
-## Folder Structure
+## Structure
 
 ```
 .
-├── build
+├── build                                    Folder that holds all custom container definitions
 │   ├── Dockerfile-assetCollectionService
 │   ├── Dockerfile-blockchainservice
 │   ├── Dockerfile-filtersBlockService
@@ -123,13 +77,13 @@ sudo chown -R $USER $HOME/.minikube; chmod -R u+wrx $HOME/.minikube
 │   ├── Dockerfile-restServer
 │   └── Dockerfile-tradesBlockService
 ├── deployments
-│   ├── config
+│   ├── config                               Config files needed for initialize cluster containers
 │   │   ├── influxdb2.conf
 │   │   ├── influxdb.conf
 │   │   ├── pginit.sql
 │   │   ├── postgresql.conf
 │   │   └── redis.conf
-│   ├── k8s-yaml
+│   ├── k8s-yaml                             Deployment configs
 │   │   ├── exchangescraper-*.yaml
 │   │   ├── filtersblockservice.yaml
 │   │   ├── influx.yaml
@@ -138,8 +92,10 @@ sudo chown -R $USER $HOME/.minikube; chmod -R u+wrx $HOME/.minikube
 │   │   ├── redis.yaml
 │   │   ├── restserver.yaml
 │   │   └── tradesblockservice.yaml
-│   ├── init.sh
-│   ├── start.sh
-│   └── stop.sh
-└── minikube.log
+│   ├── init.sh                              Script for initialize local cluster
+│   ├── start.sh                             Script for start containers
+│   └── stop.sh                              Script for stop containers
+└── minikube.log                             Cluster log
 ```
+
+![cluster_diagram](diagram.png)

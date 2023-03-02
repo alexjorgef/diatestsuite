@@ -3,55 +3,12 @@ set -e
 
 EXITCODE=0
 
-_color() {
-    codes=
-    if [ "$1" = 'bold' ]; then
-        codes='1'
-        shift
-    fi
-    if [ "$#" -gt 0 ]; then
-        code=
-        case "$1" in
-        # see https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
-        black) code=30 ;;
-        red) code=31 ;;
-        green) code=32 ;;
-        yellow) code=33 ;;
-        blue) code=34 ;;
-        magenta) code=35 ;;
-        cyan) code=36 ;;
-        white) code=37 ;;
-        esac
-        if [ "$code" ]; then
-            codes="${codes:+$codes;}$code"
-        fi
-    fi
-    printf '\033[%sm' "$codes"
-}
-
-_wrap_color() {
-    text="$1"
-    shift
-    _color "$@"
-    printf '%s' "$text"
-    _color reset
-    echo
-}
-
-_wrap_good() {
-    echo "$(_wrap_color "$1" white): $(_wrap_color "$2" green)"
-}
-
-_wrap_bad() {
-    echo "$(_wrap_color "$1" bold): $(_wrap_color "$2" bold red)"
-}
-
 # https://github.com/moby/moby/blob/master/contrib/check-config.sh
 check_command() {
     if command -v "$1" >/dev/null 2>&1; then
-        _wrap_good "$1 command" 'available'
+        echo "$1 command available"
     else
-        _wrap_bad "$1 command" 'missing'
+        echo "$1 command missing"
         EXITCODE=1
     fi
 }
