@@ -4,7 +4,7 @@ A toolkit for testing the DIA ecossystem locally.
 
 ## Requirements
 
-> Note: for supportted minikube's drivers check [this document](https://minikube.sigs.k8s.io/docs/drivers/)
+> Note: For supported minikube's drivers check [this document](https://minikube.sigs.k8s.io/docs/drivers/). The [docker](https://docs.docker.com/get-docker/) driver is the recommended and default option, therefore should be seen as requirement.
 
 * [minikube](https://minikube.sigs.k8s.io/docs/): minikube quickly sets up a local Kubernetes cluster
 * [kubectl](https://kubernetes.io/docs/reference/kubectl/kubectl/): kubectl controls the Kubernetes cluster manager
@@ -37,7 +37,7 @@ You can stop the cluster's containers with:
 
 ### Advanced
 
-> Check Minikube [handbook](https://minikube.sigs.k8s.io/docs/handbook/)
+> Check minikube handbook [here](https://minikube.sigs.k8s.io/docs/handbook/) for more information about CLI commands.
 
 Start Kubernetes Dashboard UI:
 
@@ -45,7 +45,7 @@ Start Kubernetes Dashboard UI:
 minikube dashboard --url=true --port=8083
 ```
 
-Forward ports to your local machine:
+Forward service's ports to your local host machine:
 
 ```shell
 kubectl port-forward diadata-clusterdev-db-postgres 5432:5432
@@ -56,13 +56,13 @@ kubectl port-forward diadata-clusterdev-http-restserver 8081:8081
 
 ## Endpoints
 
+DIA:
+
+* REST Server: http://localhost:8081/
+
 Kubernetes:
 
 * Dashboard UI: http://localhost:8083/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/
-
-DIA Data:
-
-* Rest Server: http://localhost:8081/
 
 ## Structure
 
