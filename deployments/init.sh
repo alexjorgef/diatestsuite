@@ -40,11 +40,13 @@ check_command kubectl
 check_command minikube
 [ "$EXITCODE" = 0 ] && echo "OK minikube"
 
-DIA_VM_PROFILE="diadata-vmprofile"
-DIA_CONFIG_CTX="diadata_config_ctx"
-DIA_NAMESPACE="diadata"
-DIA_CHART="diadata-release"
-DIA_NAMESPACE="diadata-namespace"
+DIA_VM_PROFILE="dia-vmprofile"
+DIA_NAMESPACE="dia-system"
+DIA_NAMESPACE_NODE="dia-system-node"
+DIA_CHART_NAME="diadata-release"
+# TODO: after deploy
+# DIA_CHART="dia/dia-system"
+DIA_CHART="./deployments/helm/dia-system"
 CLUSTER_HW_MEMORY=4096
 CLUSTER_HW_VCPU=4
 CLUSTER_HW_DISK_SIZE="30g"
@@ -68,41 +70,28 @@ if [ "$MINIKUBE_DRIVER" = "docker" ]; then
     unset DOCKER_HOST
     unset DOCKER_CERT_PATH
     unset MINIKUBE_ACTIVE_DOCKERD
-    docker build -f "build/Dockerfile-genericCollector" --tag=dia-exchangescraper-collector:0.1 .
-    docker build -f "build/Dockerfile-restServer" --tag=dia-http-restserver:0.1 .
-    docker build -f "build/Dockerfile-assetCollectionService" --tag=dia-service-assetcollectionservice:0.1 .
-    docker build -f "build/Dockerfile-blockchainservice" --tag=dia-service-blockchainservice:0.1 .
-    docker build -f "build/Dockerfile-filtersBlockService" --tag=dia-service-filtersblockservice:0.1 .
-    docker build -f "build/Dockerfile-pairDiscoveryService" --tag=dia-service-pairdiscoveryservice:0.1 .
-    docker build -f "build/Dockerfile-tradesBlockService" --tag=dia-service-tradesblockservice:0.1 .
 fi
 
-echo "Switching kubectl config context to $DIA_VM_PROFILE ..."
-kubectl config use-context "$DIA_VM_PROFILE"
+echo "- Building images ..."
+docker build -f "build/Dockerfile-genericCollector" --tag=dia-exchangescraper-collector:0.1 .
+docker build -f "build/Dockerfile-restServer" --tag=dia-http-restserver:0.1 .
+docker build -f "build/Dockerfile-assetCollectionService" --tag=dia-service-assetcollectionservice:0.1 .
+docker build -f "build/Dockerfile-blockchainservice" --tag=dia-service-blockchainservice:0.1 .
+docker build -f "build/Dockerfile-filtersBlockService" --tag=dia-service-filtersblockservice:0.1 .
+docker build -f "build/Dockerfile-pairDiscoveryService" --tag=dia-service-pairdiscoveryservice:0.1 .
+docker build -f "build/Dockerfile-tradesBlockService" --tag=dia-service-tradesblockservice:0.1 .
 
-# TODO: make sure we dont delete any other important user files
-echo "Pruning docker systems ..."
-minikube -p "$DIA_VM_PROFILE" ssh -- docker system prune --force
-
-echo "Stopping minikube cluster ..."
-minikube -p "$DIA_VM_PROFILE" stop
-
-echo "Deleting minikube ..."
+echo "- Deleting minikube ..."
 minikube delete --profile="$DIA_VM_PROFILE"
 
 cluster_env_disable
 
 # TODO: make sure we dont delete any other important user files
-echo "Removing minikube cache and configs ..."
+echo "- Removing minikube cache and configs ..."
 rm -rf ~/.kube/cache
 rm ~/.kube/config
 
-echo "Setting and switching to a new config context ..."
-kubectl config set-context "$DIA_CONFIG_CTX"
-kubectl config use-context "$DIA_CONFIG_CTX"
-minikube config set memory $CLUSTER_HW_MEMORY
-
-echo "Starting minikube cluster ..."
+echo "- Starting minikube cluster ..."
 minikube start \
     --profile="${DIA_VM_PROFILE}" \
     --v="${MINIKUBE_VLVL}" \
@@ -118,21 +107,17 @@ minikube start \
     --extra-config=apiserver.enable-swagger-ui=true \
     --force-systemd
 
-echo "Changing profile to ${DIA_VM_PROFILE} ..."
+echo "- Changing profile to ${DIA_VM_PROFILE} ..."
 minikube profile "${DIA_VM_PROFILE}"
 
-echo "Enabling addons ..."
+echo "- Enabling addons ..."
 minikube -p $DIA_VM_PROFILE addons enable metrics-server
 
-# kubectl get namespaces --output=name | grep "$DIA_NAMESPACE" >/dev/null
-# if [ $? -eq 0 ]; then
-#     echo "DIA resources are installed"
-# else
-#     echo "DIA resources are not present, installing ..."
-#     helm repo update
-#     kubectl create namespace "${DIA_NAMESPACE}"
-# fi
+echo "- Installing dia-system chart ..."
+helm repo update
+helm upgrade "$DIA_CHART_NAME" --namespace "$DIA_NAMESPACE" --create-namespace --install --set "exchangescrapers.namespaces={default,${DIA_NAMESPACE_NODE}}" "$DIA_CHART"
 
+echo "- Loading images into cluster ..."
 if [ "$MINIKUBE_DRIVER" = "docker" ]; then
     docker save dia-exchangescraper-collector:0.1 | (eval $(minikube docker-env) && docker load)
     docker save dia-http-restserver:0.1 | (eval $(minikube docker-env) && docker load)

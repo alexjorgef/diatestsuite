@@ -1,0 +1,20 @@
+apiVersion: v2
+appVersion: "1.16.0"
+version: 0.1.0
+name: dia
+description: a library for hosting, running and scaling DIA nodes on Kubernetes.
+keywords:
+  - go
+  - golang
+  - blockchain
+  - blockchain-technology
+  - oracle
+  - blockchain-explorer
+  - defi
+  - web3
+  - bitcoin
+  - ethereum
+type: application
+home: https://diadata.org
+sources:
+  - https://github.com/diadata-org/diadata
