@@ -43,10 +43,10 @@ check_command minikube
 DIA_VM_PROFILE="dia-vmprofile"
 DIA_NAMESPACE="dia-system"
 DIA_NAMESPACE_NODE="dia-system-node"
-DIA_CHART_NAME="diadata-release"
+DIA_CHART_NAME="dia-release"
 # TODO: after deploy
-# DIA_CHART="dia/dia-system"
-DIA_CHART="./deployments/helm/dia-system"
+# DIA_CHART="dia/dia"
+DIA_CHART="./deployments/helm/dia"
 CLUSTER_HW_MEMORY=4096
 CLUSTER_HW_VCPU=4
 CLUSTER_HW_DISK_SIZE="30g"
@@ -114,6 +114,7 @@ echo "- Enabling addons ..."
 minikube -p $DIA_VM_PROFILE addons enable metrics-server
 
 echo "- Installing dia-system chart ..."
+kubectl create namespace "$DIA_NAMESPACE_NODE"
 helm repo update
 helm upgrade "$DIA_CHART_NAME" --namespace "$DIA_NAMESPACE" --create-namespace --install --set "exchangescrapers.namespaces={default,${DIA_NAMESPACE_NODE}}" "$DIA_CHART"
 
