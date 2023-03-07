@@ -53,7 +53,7 @@ CLUSTER_HW_DISK_SIZE="30g"
 MINIKUBE_VLVL=1
 MINIKUBE_DRIVER="docker"
 MINIKUBE_CONTAINER_RUNTIME="docker"
-MINIKUBE_KUBERNETES_VER="v1.23.8"
+MINIKUBE_KUBERNETES_VER="v1.26.2"
 MINIKUBE_NODES=1
 
 if [ "$MINIKUBE_DRIVER" = "docker" ]; then
@@ -89,7 +89,7 @@ cluster_env_disable
 # TODO: make sure we dont delete any other important user files
 echo "- Removing minikube cache and configs ..."
 rm -rf ~/.kube/cache
-rm ~/.kube/config
+rm -f ~/.kube/config
 
 echo "- Starting minikube cluster ..."
 minikube start \
@@ -104,7 +104,6 @@ minikube start \
     --cni=bridge \
     --container-runtime="${MINIKUBE_CONTAINER_RUNTIME}" \
     --nodes="${MINIKUBE_NODES}" \
-    --extra-config=apiserver.enable-swagger-ui=true \
     --force-systemd
 
 echo "- Changing profile to ${DIA_VM_PROFILE} ..."
@@ -112,11 +111,14 @@ minikube profile "${DIA_VM_PROFILE}"
 
 echo "- Enabling addons ..."
 minikube -p $DIA_VM_PROFILE addons enable metrics-server
+kubectl wait apiservice/v1beta1.metrics.k8s.io --for=condition=available
 
 echo "- Installing dia-system chart ..."
 kubectl create namespace "$DIA_NAMESPACE_NODE"
 helm repo update
 helm upgrade "$DIA_CHART_NAME" --namespace "$DIA_NAMESPACE" --create-namespace --install --set "exchangescrapers.namespaces={default,${DIA_NAMESPACE_NODE}}" "$DIA_CHART"
+
+# kubectl rollout status deployment netshoot
 
 echo "- Loading images into cluster ..."
 if [ "$MINIKUBE_DRIVER" = "docker" ]; then
