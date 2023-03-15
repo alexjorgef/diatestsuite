@@ -15,13 +15,13 @@ datasources:
     type: postgres
     url: clusterdev-db-postgres-service.default.svc.cluster.local:5432
     user: diadata_psql_user
+    database: diadata_psql_db
     secureJsonData:
       password: 'diadata_psql_pass'
     jsonData:
-      database: diadata_psql_db
       sslmode: 'disable'
       maxOpenConns: 0
       maxIdleConns: 2
       connMaxLifetime: 14400
-      postgresVersion: 1500 # 903=9.3, 904=9.4, 905=9.5, 906=9.6, 1000=10
+      postgresVersion: 1000
       timescaledb: false
