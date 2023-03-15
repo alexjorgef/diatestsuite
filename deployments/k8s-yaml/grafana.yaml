@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "diadata-clusterdev-grafana"
+  labels:
+    app: diadata-clusterdev-grafana
+spec:
+  containers:
+  - name: grafana
+    image: grafana/grafana:8.2.2
+    ports:
+    - containerPort: 3000
+    volumeMounts:
+    - name: grafana-storage
+      mountPath: /var/lib/grafana
+    - name: grafana-datasources-config
+      mountPath: /etc/grafana/provisioning/datasources
+      readOnly: true
+  volumes:
+  - name: grafana-storage
+    emptyDir: {}
+  - name: grafana-datasources-config
+    configMap:
+      name: grafana-datasources-configmap
+  initContainers:
+  - name: check-postgres-connection
+    image: postgres:latest
+    env:
+    - name: PGHOST
+      value: "clusterdev-db-postgres-service.default.svc.cluster.local"
+    - name: PGUSER
+      value: "diadata_psql_user"
+    - name: PGPASSWORD
+      value: "diadata_psql_pass"
+    command: ["sh", "-c", "until pg_isready -h $PGHOST -U $PGUSER; do sleep 1; done"]
+  - name: check-influxdb-connection
+    image: influxdb:1.8
+    env:
+    - name: INFLUXDB_URL
+      value: "clusterdev-db-influx-service.default.svc.cluster.local"
+    - name: INFLUXDB_USERNAME
+      value: "diadata_user"
+    - name: INFLUXDB_PASSWORD
+      value: "diadata_pw"
+    command: ["sh", "-c", "until influx -host $INFLUXDB_URL -username $INFLUXDB_USERNAME -password $INFLUXDB_PASSWORD -execute 'SHOW DATABASES'; do sleep 1; done"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: clusterdev-grafana-service
+spec:
+  selector:
+    app: diadata-clusterdev-grafana
+  ports:
+    - name: grafana
+      protocol: TCP
+      port: 3000
+      targetPort: 3000

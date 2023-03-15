@@ -29,6 +29,10 @@ spec:
       value: "clusterdev-db-redis-service.default.svc.cluster.local:6379"
     - name: KAFKAURL
       value: "clusterdev-db-kafka-service.default.svc.cluster.local:9094"
+    - name: HTTP_BASIC_AUTH_USER
+      value: user
+    - name: HTTP_BASIC_AUTH_PASSWD
+      value: password
   initContainers:
   - name: check-postgres-connection
     image: postgres:latest
