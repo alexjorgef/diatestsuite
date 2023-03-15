@@ -5,9 +5,23 @@ datasources:
     type: influxdb
     access: proxy
     database: dia
-    user: grafana
+    user: diadata_user
     url: http://clusterdev-db-influx-service.default.svc.cluster.local:8086
     jsonData:
       httpMode: GET
     secureJsonData:
-      password: grafana
+      password: diadata_pw
+  - name: Postgres
+    type: postgres
+    url: clusterdev-db-postgres-service.default.svc.cluster.local:5432
+    user: diadata_psql_user
+    secureJsonData:
+      password: 'diadata_psql_pass'
+    jsonData:
+      database: diadata_psql_db
+      sslmode: 'disable'
+      maxOpenConns: 0
+      maxIdleConns: 2
+      connMaxLifetime: 14400
+      postgresVersion: 1500 # 903=9.3, 904=9.4, 905=9.5, 906=9.6, 1000=10
+      timescaledb: false
