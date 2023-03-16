@@ -72,15 +72,6 @@ if [ "$MINIKUBE_DRIVER" = "docker" ]; then
     unset MINIKUBE_ACTIVE_DOCKERD
 fi
 
-echo "- Building images ..."
-docker build -f "build/Dockerfile-genericCollector" --tag=dia-exchangescraper-collector:0.1 .
-docker build -f "build/Dockerfile-restServer" --tag=dia-http-restserver:0.1 .
-docker build -f "build/Dockerfile-assetCollectionService" --tag=dia-service-assetcollectionservice:0.1 .
-docker build -f "build/Dockerfile-blockchainservice" --tag=dia-service-blockchainservice:0.1 .
-docker build -f "build/Dockerfile-filtersBlockService" --tag=dia-service-filtersblockservice:0.1 .
-docker build -f "build/Dockerfile-pairDiscoveryService" --tag=dia-service-pairdiscoveryservice:0.1 .
-docker build -f "build/Dockerfile-tradesBlockService" --tag=dia-service-tradesblockservice:0.1 .
-
 echo "- Deleting minikube ..."
 minikube delete --profile="$DIA_VM_PROFILE"
 
@@ -119,17 +110,6 @@ helm repo update
 helm upgrade "$DIA_CHART_NAME" --namespace "$DIA_NAMESPACE" --create-namespace --install --set "exchangescrapers.namespaces={default,${DIA_NAMESPACE_NODE}}" "$DIA_CHART"
 
 # kubectl rollout status deployment netshoot
-
-echo "- Loading images into cluster ..."
-if [ "$MINIKUBE_DRIVER" = "docker" ]; then
-    docker save dia-exchangescraper-collector:0.1 | (eval $(minikube docker-env) && docker load)
-    docker save dia-http-restserver:0.1 | (eval $(minikube docker-env) && docker load)
-    docker save dia-service-assetcollectionservice:0.1 | (eval $(minikube docker-env) && docker load)
-    docker save dia-service-blockchainservice:0.1 | (eval $(minikube docker-env) && docker load)
-    docker save dia-service-filtersblockservice:0.1 | (eval $(minikube docker-env) && docker load)
-    docker save dia-service-pairdiscoveryservice:0.1 | (eval $(minikube docker-env) && docker load)
-    docker save dia-service-tradesblockservice:0.1 | (eval $(minikube docker-env) && docker load)
-fi
 
 cluster_env_enable "${DIA_VM_PROFILE}"
 

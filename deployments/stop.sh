@@ -2,8 +2,9 @@
 # TODO: uncomment below line when work is done here
 #set -e
 
-echo "- Cleaning and stopping rest server..."
-kubectl delete -f "deployments/k8s-yaml/restserver.yaml"
+echo "- Cleaning and stopping delivery services..."
+kubectl delete -f "deployments/k8s-yaml/restserver.yaml" \
+-f "deployments/k8s-yaml/graphqlserver.yaml"
 
 echo "- Cleaning and stopping services..."
 kubectl delete -f "deployments/k8s-yaml/tradesblockservice.yaml" \

@@ -1,6 +1,26 @@
 #!/usr/bin/env sh
 set -e
 
+echo "- Building images ..."
+docker build -f "build/Dockerfile-genericCollector" --tag=dia-exchangescraper-collector:0.1 .
+docker build -f "build/Dockerfile-restServer" --tag=dia-http-restserver:0.1 .
+docker build -f "build/Dockerfile-graphqlServer" --tag=dia-http-graphqlserver:0.1 .
+docker build -f "build/Dockerfile-assetCollectionService" --tag=dia-service-assetcollectionservice:0.1 .
+docker build -f "build/Dockerfile-blockchainservice" --tag=dia-service-blockchainservice:0.1 .
+docker build -f "build/Dockerfile-filtersBlockService" --tag=dia-service-filtersblockservice:0.1 .
+docker build -f "build/Dockerfile-pairDiscoveryService" --tag=dia-service-pairdiscoveryservice:0.1 .
+docker build -f "build/Dockerfile-tradesBlockService" --tag=dia-service-tradesblockservice:0.1 .
+
+echo "- Loading images into cluster ..."
+docker save dia-exchangescraper-collector:0.1 | (eval $(minikube docker-env) && docker load)
+docker save dia-http-restserver:0.1 | (eval $(minikube docker-env) && docker load)
+docker save dia-http-graphqlserver:0.1 | (eval $(minikube docker-env) && docker load)
+docker save dia-service-assetcollectionservice:0.1 | (eval $(minikube docker-env) && docker load)
+docker save dia-service-blockchainservice:0.1 | (eval $(minikube docker-env) && docker load)
+docker save dia-service-filtersblockservice:0.1 | (eval $(minikube docker-env) && docker load)
+docker save dia-service-pairdiscoveryservice:0.1 | (eval $(minikube docker-env) && docker load)
+docker save dia-service-tradesblockservice:0.1 | (eval $(minikube docker-env) && docker load)
+
 echo "- Creating config maps..."
 kubectl create configmap redis-configmap --from-file=deployments/config/redis.conf
 kubectl create configmap influx-configmap --from-file=deployments/config/influxdb.conf
@@ -21,5 +41,6 @@ echo "- Creating and starting services..."
 kubectl create -f "deployments/k8s-yaml/tradesblockservice.yaml" \
 -f "deployments/k8s-yaml/filtersblockservice.yaml"
 
-echo "- Creating and starting rest server..."
-kubectl create -f "deployments/k8s-yaml/restserver.yaml"
+echo "- Creating and starting delivery services..."
+kubectl create -f "deployments/k8s-yaml/restserver.yaml" \
+-f "deployments/k8s-yaml/graphqlserver.yaml"
