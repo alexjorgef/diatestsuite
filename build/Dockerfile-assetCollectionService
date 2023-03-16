@@ -4,7 +4,6 @@ RUN apk add --no-cache make gcc musl-dev linux-headers git bash
 
 WORKDIR $GOPATH/src/
 
-# TODO: use parameters to change the branch and the protocol to clone
 RUN git clone https://github.com/diadata-org/diadata
 
 RUN cp -r diadata/cmd/assetCollectionService/* ./

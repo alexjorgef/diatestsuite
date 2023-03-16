@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -e
 
-echo "- Cleaning and stopping scrapers:exchanges..."
+echo "- Cleaning and stopping scrapers..."
 kubectl delete -f "deployments/k8s-yaml/exchangescraper-bitfinex.yaml" \
 -f "deployments/k8s-yaml/exchangescraper-bittrex.yaml" \
 -f "deployments/k8s-yaml/exchangescraper-coinbase.yaml" \
@@ -20,4 +20,5 @@ kubectl delete -f "deployments/k8s-yaml/exchangescraper-bitfinex.yaml" \
 -f "deployments/k8s-yaml/exchangescraper-kraken.yaml" \
 -f "deployments/k8s-yaml/exchangescraper-zb.yaml" \
 -f "deployments/k8s-yaml/exchangescraper-quoine.yaml" \
--f "deployments/k8s-yaml/exchangescraper-bitbay.yaml"
+-f "deployments/k8s-yaml/exchangescraper-bitbay.yaml" \
+-f "deployments/k8s-yaml/exchangescraper-ecb.yaml"
