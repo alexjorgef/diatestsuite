@@ -47,10 +47,11 @@ DIA_CHART_NAME="dia-release"
 # TODO: after deploy
 # DIA_CHART="dia/dia"
 DIA_CHART="./deployments/helm/dia"
-CLUSTER_HW_MEMORY=4096
+CLUSTER_HW_MEMORY="6g"
 CLUSTER_HW_VCPU=4
 CLUSTER_HW_DISK_SIZE="30g"
 MINIKUBE_VLVL=1
+MINIKUBE_BOOSTRAPPER="kubeadm"
 MINIKUBE_DRIVER="docker"
 MINIKUBE_CONTAINER_RUNTIME="docker"
 MINIKUBE_KUBERNETES_VER="v1.26.2"
@@ -90,19 +91,26 @@ minikube start \
     --kubernetes-version="${MINIKUBE_KUBERNETES_VER}" \
     --cpus="${CLUSTER_HW_VCPU}" \
     --memory="${CLUSTER_HW_MEMORY}" \
+    --bootstrapper="${MINIKUBE_BOOSTRAPPER}" \
     --disk-size="${CLUSTER_HW_DISK_SIZE}" \
     --alsologtostderr=false \
     --cni=bridge \
     --container-runtime="${MINIKUBE_CONTAINER_RUNTIME}" \
     --nodes="${MINIKUBE_NODES}" \
-    --force-systemd
+    --force-systemd \
+    --extra-config=kubelet.authentication-token-webhook=true \
+    --extra-config=kubelet.authorization-mode=Webhook \
+    --extra-config=scheduler.bind-address=0.0.0.0 \
+    --extra-config=controller-manager.bind-address=0.0.0.0
 
 echo "- Changing profile to ${DIA_VM_PROFILE} ..."
 minikube profile "${DIA_VM_PROFILE}"
 
-echo "- Enabling addons ..."
-minikube -p $DIA_VM_PROFILE addons enable metrics-server
-kubectl wait apiservice/v1beta1.metrics.k8s.io --for=condition=available
+echo "- Setting addons ..."
+minikube addons disable metrics-server
+minikube -p $DIA_VM_PROFILE addons disable metrics-server
+# minikube -p $DIA_VM_PROFILE addons enable metrics-server
+# kubectl wait apiservice/v1beta1.metrics.k8s.io --for=condition=available
 
 echo "- Installing dia-system chart ..."
 kubectl create namespace "$DIA_NAMESPACE_NODE"
@@ -112,5 +120,18 @@ helm upgrade "$DIA_CHART_NAME" --namespace "$DIA_NAMESPACE" --create-namespace -
 # kubectl rollout status deployment netshoot
 
 cluster_env_enable "${DIA_VM_PROFILE}"
+
+(
+    cd kube-prometheus
+    # Create the namespace and CRDs, and then wait for them to be available before creating the remaining resources
+    # Note that due to some CRD size we are using kubectl server-side apply feature which is generally available since kubernetes 1.22.
+    # If you are using previous kubernetes versions this feature may not be available and you would need to use kubectl create instead.
+    kubectl apply --server-side -f manifests/setup
+    kubectl wait \
+        --for condition=Established \
+        --all CustomResourceDefinition \
+        --namespace=monitoring
+    kubectl apply -f manifests/
+)
 
 exit $EXITCODE

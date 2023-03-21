@@ -41,6 +41,19 @@ spec:
       value: "true"
     - name: KAFKA_MESSAGE_MAX_BYTES
       value: "50000000"
+  - name: clusterdev-db-kafka-ui
+    image: tchiotludo/akhq:latest
+    ports:
+    - containerPort: 8080
+    volumeMounts:
+    - name: akhq-config
+      mountPath: /app/application.yml
+      subPath: akhq.yaml
+      readOnly: true
+  volumes:
+  - name: akhq-config
+    configMap:
+      name: akhq-configmap
 ---
 apiVersion: v1
 kind: Service

@@ -1,0 +1,8 @@
+akhq:
+  connections:
+    docker-kafka-server-local:
+      properties:
+        bootstrap.servers: "localhost:9092"
+      connect:
+      - name: "Kafka Service"
+        url: "http://clusterdev-db-kafka-service.default.svc.cluster.local:9094"

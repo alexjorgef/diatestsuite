@@ -7,7 +7,8 @@ kubectl delete -f "deployments/k8s-yaml/restserver.yaml" \
 -f "deployments/k8s-yaml/graphqlserver.yaml"
 
 echo "- Cleaning and stopping services..."
-kubectl delete -f "deployments/k8s-yaml/tradesblockservice.yaml" \
+kubectl delete -f "deployments/k8s-yaml/supplyservice.yaml" \
+-f "deployments/k8s-yaml/tradesblockservice.yaml" \
 -f "deployments/k8s-yaml/filtersblockservice.yaml"
 
 echo "- Cleaning and stopping monitoring services..."
@@ -25,3 +26,4 @@ kubectl delete configmap pginit-configmap
 kubectl delete configmap redis-configmap
 kubectl delete configmap influx-configmap
 kubectl delete configmap grafana-datasources-configmap
+kubectl delete configmap akhq-configmap
