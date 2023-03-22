@@ -3,7 +3,6 @@ set -e
 
 EXITCODE=0
 
-# https://github.com/moby/moby/blob/master/contrib/check-config.sh
 check_command() {
     if command -v "$1" >/dev/null 2>&1; then
         echo "$1 command available"
@@ -40,12 +39,14 @@ check_command kubectl
 check_command minikube
 [ "$EXITCODE" = 0 ] && echo "OK minikube"
 
+PROMETHEUS_OPERATOR_REPOSRC="https://github.com/prometheus-operator/kube-prometheus"
+PROMETHEUS_OPERATOR_LOCALREPO="kube-prometheus"
+# We do it this way so that we can abstract if from just git later on
+LOCALREPO_VC_DIR=$PROMETHEUS_OPERATOR_LOCALREPO/.git
 DIA_VM_PROFILE="dia-vmprofile"
 DIA_NAMESPACE="dia-system"
 DIA_NAMESPACE_NODE="dia-system-node"
 DIA_CHART_NAME="dia-release"
-# TODO: after deploy
-# DIA_CHART="dia/dia"
 DIA_CHART="./deployments/helm/dia"
 CLUSTER_HW_MEMORY="6g"
 CLUSTER_HW_VCPU=4
@@ -109,29 +110,25 @@ minikube profile "${DIA_VM_PROFILE}"
 echo "- Setting addons ..."
 minikube addons disable metrics-server
 minikube -p $DIA_VM_PROFILE addons disable metrics-server
-# minikube -p $DIA_VM_PROFILE addons enable metrics-server
-# kubectl wait apiservice/v1beta1.metrics.k8s.io --for=condition=available
 
 echo "- Installing dia-system chart ..."
 kubectl create namespace "$DIA_NAMESPACE_NODE"
 helm repo update
 helm upgrade "$DIA_CHART_NAME" --namespace "$DIA_NAMESPACE" --create-namespace --install --set "exchangescrapers.namespaces={default,${DIA_NAMESPACE_NODE}}" "$DIA_CHART"
 
-# kubectl rollout status deployment netshoot
-
 cluster_env_enable "${DIA_VM_PROFILE}"
 
-(
-    cd kube-prometheus
-    # Create the namespace and CRDs, and then wait for them to be available before creating the remaining resources
-    # Note that due to some CRD size we are using kubectl server-side apply feature which is generally available since kubernetes 1.22.
-    # If you are using previous kubernetes versions this feature may not be available and you would need to use kubectl create instead.
+if [ ! -d $LOCALREPO_VC_DIR ]
+then
+    git clone $PROMETHEUS_OPERATOR_REPOSRC $PROMETHEUS_OPERATOR_LOCALREPO
+else
+    cd $PROMETHEUS_OPERATOR_LOCALREPO
     kubectl apply --server-side -f manifests/setup
     kubectl wait \
         --for condition=Established \
         --all CustomResourceDefinition \
         --namespace=monitoring
     kubectl apply -f manifests/
-)
+fi
 
 exit $EXITCODE
