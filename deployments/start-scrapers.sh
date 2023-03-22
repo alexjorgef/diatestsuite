@@ -2,8 +2,8 @@
 set -e
 
 echo "- Building and loading images ..."
-docker build -f "build/Dockerfile-genericCollector" --tag=dia-exchangescraper-collector:0.1 .
-docker build -f "build/Dockerfile-ecb" --tag=dia-exchangescraper-ecb:0.1 .
+docker build -f "build/Dockerfile-genericCollector" --tag=dia-exchangescraper-collector:0.1 --quiet .
+docker build -f "build/Dockerfile-ecb" --tag=dia-exchangescraper-ecb:0.1 --quiet .
 docker save dia-exchangescraper-collector:0.1 | (eval $(minikube docker-env) && docker load)
 docker save dia-exchangescraper-ecb:0.1 | (eval $(minikube docker-env) && docker load)
 
