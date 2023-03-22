@@ -22,6 +22,7 @@ docker save dia-service-tradesblockservice:0.1 | (eval $(minikube docker-env) &&
 echo "- Creating config maps..."
 kubectl create configmap redis-configmap --from-file=deployments/config/redis.conf
 kubectl create configmap influx-configmap --from-file=deployments/config/influxdb.conf
+kubectl create configmap influx-migration2-configmap --from-file=deployments/config/influxdb.conf
 kubectl create configmap postgres-configmap --from-file=deployments/config/postgresql.conf
 kubectl create configmap pginit-configmap --from-file=deployments/config/pginit.sql
 kubectl create configmap grafana-datasources-configmap --from-file=deployments/config/grafana-datasources.yaml
@@ -29,6 +30,7 @@ kubectl create configmap akhq-configmap --from-file=deployments/config/akhq.yaml
 
 echo "- Creating and starting data services..."
 kubectl create -f "deployments/k8s-yaml/influx.yaml" \
+-f "deployments/k8s-yaml/influx-migration2.yaml" \
 -f "deployments/k8s-yaml/redis.yaml" \
 -f "deployments/k8s-yaml/postgres.yaml" \
 -f "deployments/k8s-yaml/kafka.yaml"

@@ -1,18 +1,18 @@
 apiVersion: "v1"
 kind: Pod
 metadata:
-  name: "diadata-clusterdev-db-influx"
+  name: "diadata-clusterdev-db-influx-migration2"
   labels:
-    app: diadata-clusterdev-db-influx
+    app: diadata-clusterdev-db-influx-migration2
 spec:
   containers:
-  - name: clusterdev-db-influx
-    image: influxdb:1.8
+  - name: clusterdev-db-influx-migration2
+    image: influxdb:2.6
     imagePullPolicy: IfNotPresent
     ports:
       - containerPort: 8086
       - containerPort: 8088
-    command: ["influxd", "-config", "/etc/influxdb/influxdb.conf"]
+    command: ["influxd"]
     env:
       - name: INFLUXDB_HTTP_MAX_BODY_SIZE
         value: "0"
@@ -33,24 +33,24 @@ spec:
       - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
         value: "diadata_token"
     volumeMounts:
-    - name: influx-config
+    - name: influx-migration2-config
       mountPath: /etc/influxdb/influxdb.conf
-      subPath: influxdb.conf
+      subPath: influxdb2.conf
       readOnly: true
   volumes:
-  - name: influx-config
+  - name: influx-migration2-config
     configMap:
-      name: influx-configmap
+      name: influx-migration2-configmap
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: clusterdev-db-influx-service
+  name: clusterdev-db-influx-migration2-service
 spec:
   selector:
-    app: diadata-clusterdev-db-influx
+    app: diadata-clusterdev-db-influx-migration2
   ports:
-    - name: influx
+    - name: influx-migration2
       protocol: TCP
       port: 8086
       targetPort: 8086
