@@ -1,0 +1,3 @@
+query-concurrency: 20
+query-queue-size: 15
+bolt-path: /var/lib/influxdb2/influxd.bolt

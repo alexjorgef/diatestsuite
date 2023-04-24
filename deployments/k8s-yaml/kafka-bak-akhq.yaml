@@ -1,12 +1,12 @@
 apiVersion: "v1"
 kind: Pod
 metadata:
-  name: "diadata-clusterdev-db-kafka"
+  name: "diadata-kafka"
   labels:
     app: diadata-clusterdev-db-kafka
 spec:
   containers:
-  - name: clusterdev-db-zookeeper
+  - name: zookeeper
     image: wurstmeister/zookeeper:latest
     env:
     - name: ZOOKEEPER_CLIENT_PORT
@@ -17,10 +17,7 @@ spec:
       limits:
         memory: 512Mi
         cpu: 2
-      requests:
-        memory: 100Mi
-        cpu: 100m
-  - name: clusterdev-db-kafka
+  - name: kafka
     image: wurstmeister/kafka:latest
     env:
     - name: HOSTNAME_COMMAND
@@ -41,19 +38,19 @@ spec:
       value: "true"
     - name: KAFKA_MESSAGE_MAX_BYTES
       value: "50000000"
-  - name: clusterdev-db-kafka-ui
-    image: tchiotludo/akhq:latest
-    ports:
-    - containerPort: 8080
-    volumeMounts:
-    - name: akhq-config
-      mountPath: /app/application.yml
-      subPath: akhq.yaml
-      readOnly: true
-  volumes:
-  - name: akhq-config
-    configMap:
-      name: akhq-configmap
+  # - name: clusterdev-db-kafka-ui
+  #   image: tchiotludo/akhq:latest
+  #   ports:
+  #   - containerPort: 8080
+  #   volumeMounts:
+  #   - name: akhq-config
+  #     mountPath: /app/application.yml
+  #     subPath: akhq.yaml
+  #     readOnly: true
+  # volumes:
+  # - name: akhq-config
+  #   configMap:
+  #     name: akhq-configmap
 ---
 apiVersion: v1
 kind: Service

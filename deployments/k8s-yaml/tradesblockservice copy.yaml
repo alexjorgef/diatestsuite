@@ -93,7 +93,7 @@ spec:
               "-c",
               "until kafkacat -b $KAFKA_BROKER_URL -L; do sleep 1; done",
             ]
-        - name: blockchainservice
+        - name: diadata-blockchainservice
           image: diadata.blockchainservice:latest
           imagePullPolicy: IfNotPresent
           command: ["blockchainservice"]
@@ -101,60 +101,100 @@ spec:
           env:
             - name: USE_ENV
               value: "true"
-            - name: POSTGRES_HOST
-              value: "postgres.default.svc.cluster.local"
             - name: POSTGRES_USER
               value: "postgres"
             - name: POSTGRES_PASSWORD
               value: "password"
             - name: POSTGRES_DB
               value: "postgres"
-        - name: assetcollectionservice-ethassets
+            - name: POSTGRES_HOST
+              value: "postgres.default.svc.cluster.local"
+            - name: INFLUXURL
+              value: "http://influx.default.svc.cluster.local:8086"
+            - name: INFLUXUSER
+              value: "test"
+            - name: INFLUXPASSWORD
+              value: "testtest"
+            - name: REDISURL
+              value: "redis.default.svc.cluster.local:6379"
+            - name: KAFKAURL
+              value: "kafka.default.svc.cluster.local:9094"
+        - name: diadata-assetcollectionservice-ethassets
           image: diadata.assetcollectionservice:latest
           imagePullPolicy: Never
           command: ["assetCollectionService"]
-          args: ["-source=assetlists", "-secret=eth_assets", "-caching=true"]
+          args: ["-source=assetlists", "-secret=eth_assets", "-caching=false"]
           env:
             - name: USE_ENV
               value: "true"
-            - name: POSTGRES_HOST
-              value: "postgres.default.svc.cluster.local"
             - name: POSTGRES_USER
               value: "postgres"
             - name: POSTGRES_PASSWORD
               value: "password"
             - name: POSTGRES_DB
               value: "postgres"
-        - name: assetcollectionservice-nonethassets
+            - name: POSTGRES_HOST
+              value: "postgres.default.svc.cluster.local"
+            - name: INFLUXURL
+              value: "http://influx.default.svc.cluster.local:8086"
+            - name: INFLUXUSER
+              value: "test"
+            - name: INFLUXPASSWORD
+              value: "testtest"
+            - name: REDISURL
+              value: "redis.default.svc.cluster.local:6379"
+            - name: KAFKAURL
+              value: "kafka.default.svc.cluster.local:9094"
+        - name: diadata-assetcollectionservice-nonethassets
           image: diadata.assetcollectionservice:latest
           imagePullPolicy: Never
           command: ["assetCollectionService"]
           args:
-            ["-source=assetlists", "-secret=non_eth_assets", "-caching=true"]
+            ["-source=assetlists", "-secret=non_eth_assets", "-caching=false"]
           env:
             - name: USE_ENV
               value: "true"
-            - name: POSTGRES_HOST
-              value: "postgres.default.svc.cluster.local"
             - name: POSTGRES_USER
               value: "postgres"
             - name: POSTGRES_PASSWORD
               value: "password"
             - name: POSTGRES_DB
               value: "postgres"
-        - name: assetcollectionservice-fiatassets
+            - name: POSTGRES_HOST
+              value: "postgres.default.svc.cluster.local"
+            - name: INFLUXURL
+              value: "http://influx.default.svc.cluster.local:8086"
+            - name: INFLUXUSER
+              value: "test"
+            - name: INFLUXPASSWORD
+              value: "testtest"
+            - name: REDISURL
+              value: "redis.default.svc.cluster.local:6379"
+            - name: KAFKAURL
+              value: "kafka.default.svc.cluster.local:9094"
+        - name: diadata-assetcollectionservice-fiatassets
           image: diadata.assetcollectionservice:latest
           imagePullPolicy: Never
           command: ["assetCollectionService"]
-          args: ["-source=assetlists", "-secret=fiat_assets", "-caching=true"]
+          args: ["-source=assetlists", "-secret=fiat_assets", "-caching=false"]
           env:
             - name: USE_ENV
               value: "true"
-            - name: POSTGRES_HOST
-              value: "postgres.default.svc.cluster.local"
             - name: POSTGRES_USER
               value: "postgres"
             - name: POSTGRES_PASSWORD
               value: "password"
             - name: POSTGRES_DB
               value: "postgres"
+            - name: POSTGRES_HOST
+              value: "postgres.default.svc.cluster.local"
+            - name: INFLUXURL
+              value: "http://influx.default.svc.cluster.local:8086"
+            - name: INFLUXUSER
+              value: "test"
+            - name: INFLUXPASSWORD
+              value: "testtest"
+            - name: REDISURL
+              value: "redis.default.svc.cluster.local:6379"
+            - name: KAFKAURL
+              value: "kafka.default.svc.cluster.local:9094"

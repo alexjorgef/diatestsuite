@@ -29,9 +29,13 @@ spec:
     - name: KAFKAURL
       value: "clusterdev-db-kafka-service.default.svc.cluster.local:9094"
     - name: HTTP_BASIC_AUTH_USER
-      value: user
+      value: "user"
     - name: HTTP_BASIC_AUTH_PASSWD
-      value: password
+      value: "password"
+    - name: DIADATA_API_KEY
+      value: ""
+    - name: DIADATA_SECRET_KEY
+      value: ""
   initContainers:
   - name: check-postgres-connection
     image: postgres:latest
