@@ -5,6 +5,16 @@ Requirements:
 * bash
 * docker
 
+Prepare:
+
+```shell
+rm -rf diadata/
+git clone git@github.com:diadata-org/diadata.git diadata
+# Copy test files to cloned repo
+cp -Rf test-v1/* diadata/
+cd diadata/
+```
+
 Develop:
 
 1. Run the install script: `./scripts/minikubeStart.sh`
