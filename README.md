@@ -25,3 +25,22 @@ Clean and reset the env:
 1. Remove the files: `rm -rf diadata/`
 2. Delete the cluster: `minikube delete --profile="diadata"`
 3. Prune all unused docker resources: `docker system prune -af`
+
+## WIP
+
+Testing snapshots:
+
+1. Dump DB data to a .sql file by:
+
+```shell
+kubectl exec -it deployment/postgres -- pg_dump --host localhost --port 5432 --username postgres --format plain --column-inserts --data-only --schema public --dbname postgres > pginitdata.sql > ./test-current/deployments/config/pginitdata.sql
+```
+
+2. Change to diadata/ folder and run:
+
+```shell
+docker build -f "build/Dockerfile-postgres" -t "diadata.postgres:latest" .
+docker container rm postgres-container-test
+docker run -d --name postgres-container-test -p 5433:5432 diadata.postgres:latest
+docker logs postgres-container-test -f
+```
