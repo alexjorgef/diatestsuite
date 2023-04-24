@@ -10,7 +10,7 @@
 Prepare files:
 
 1. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git`
-2. Copy modified files: `cp -Rf test-v1/* diadata/`
+2. Copy modified files: `cp -Rf test-current/* diadata/`
 
 Develop:
 
