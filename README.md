@@ -1,23 +1,27 @@
-## Development
+# diatestsuite
 
-Requirements:
+## Requirements
 
 * bash
 * docker
 
-Prepare:
+## Development
 
-```shell
-rm -rf diadata/
-git clone git@github.com:diadata-org/diadata.git diadata
-# Copy test files to cloned repo
-cp -Rf test-v1/* diadata/
-cd diadata/
-```
+Prepare files:
+
+1. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git`
+2. Copy modified files: `cp -Rf test-v1/* diadata/`
 
 Develop:
 
-1. Run the install script: `./scripts/minikubeStart.sh`
-2. Build the platform into cluster: `./scripts/minikubeBuild.sh`
-3. Install the builded code: `./scripts/minikubeInstall.sh`
-4. Run the scrapers: `./scripts/minikubeStartScrapers.sh`
+1. Change folder to DIA temp repo: `cd diadata/`
+2. Run the install script: `./scripts/minikubeStart.sh`
+3. Build the platform into cluster: `./scripts/minikubeBuild.sh`
+4. Install the builded code: `./scripts/minikubeInstall.sh`
+5. Run the scrapers: `./scripts/minikubeStartScrapers.sh`
+
+Clean and reset the env:
+
+1. Remove the files: `rm -rf diadata/`
+2. Delete the cluster: `minikube delete --profile="diadata"`
+3. Prune all unused docker resources: `docker system prune -af`
