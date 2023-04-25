@@ -26,9 +26,7 @@ Clean and reset the env:
 2. Delete the cluster: `minikube delete --profile="diadata"`
 3. Prune all unused docker resources: `docker system prune -af`
 
-## WIP
-
-Testing snapshots:
+## Testing Database Snapshots (WIP)
 
 1. Dump DB data to a .sql file by:
 
@@ -44,3 +42,9 @@ docker container rm postgres-container-test
 docker run -d --name postgres-container-test -p 5433:5432 diadata.postgres:latest
 docker logs postgres-container-test -f
 ```
+
+## WIP
+
+> ref: https://devtron.ai/blog/creating-a-kubernetes-cron-job-to-backup-postgres-db/
+
+or could restore by: `cat ./test-current/deployments/config/pginitdata.sql | kubectl exec -i deployment/postgres -- psql --username postgres --dbname postgres`
