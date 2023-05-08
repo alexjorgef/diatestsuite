@@ -30,6 +30,10 @@ spec:
               value: password
           volumeMounts:
           - name: postgres-config
+            mountPath: /etc/postgresql/postgresql.conf
+            subPath: postgresql.conf
+            readOnly: true
+          - name: postgres-config
             mountPath: /docker-entrypoint-initdb.d/pginit.sql
             subPath: pginit.sql
             readOnly: true

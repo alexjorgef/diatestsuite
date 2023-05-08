@@ -19,7 +19,6 @@ Start and install:
 1. Start the local cluster: `./scripts/minikubeStart.sh`
 2. Build the containers into cluster: `./scripts/minikubeBuild.sh`
 3. Install the platform by running the script: `./scripts/minikubeInstall.sh`
-~~5. Run the scrapers: `./scripts/minikubeStartScrapers.sh`~~
 
 Stop and uninstall:
 
@@ -34,7 +33,8 @@ Clean and reset the env:
 
 1. Remove the files: `rm -rf diadata/`
 2. Delete the cluster: `minikube delete --profile="diadata"`
-3. Prune all unused docker resources: `docker system prune -af`
+3. Prune all unused cluster resources: `minikube ssh --profile diadata -- docker system prune -af`
+4. Prune all local docker resources: `docker system prune -af`
 
 ## Testing Database Snapshots (WIP)
 

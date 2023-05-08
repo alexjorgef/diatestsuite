@@ -1,0 +1,15 @@
+# FROM postgres:15-alpine
+FROM postgres:latest
+
+# COPY ./deployments/config/postgresql.conf /etc/postgresql/postgresql.conf
+COPY ./deployments/config/pginit.sql /docker-entrypoint-initdb.d/01-pginit.sql
+# COPY ./deployments/config/pginitdata.sql /docker-entrypoint-initdb.d/02-pginit.sql
+COPY ./deployments/config/pginitdata.[sql] /docker-entrypoint-initdb.d/02-pginit.sql
+
+ENV POSTGRES_USER postgres
+ENV POSTGRES_PASSWORD password
+ENV POSTGRES_DB postgres
+
+# EXPOSE 5432
+
+# CMD ["postgres"]

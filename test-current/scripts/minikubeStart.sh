@@ -7,5 +7,3 @@ minikube_driver="docker"
 minikube start --kubernetes-version="${minikube_kubernetes_ver}" \
     --profile="${minikube_profile}" \
     --driver="${minikube_driver}"
-    # --mount-string="$HOME/go/src/github.com/nginx:/data" \
-    # --mount

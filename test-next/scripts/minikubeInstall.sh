@@ -2,7 +2,8 @@
 
 kubectl create configmap redis-configmap --from-file=deployments/config/redis.conf
 kubectl create configmap influx-configmap --from-file=deployments/config/influxdb.conf
-kubectl create configmap postgres-configmap --from-file=deployments/config/pginit.sql
+kubectl create configmap postgres-configmap --from-file=deployments/config/postgresql.conf --from-file=deployments/config/pginit.sql
+kubectl create configmap postgres-cron-dockerfile --from-file=build/Dockerfile-postgres
 
 kubectl create -f "deployments/k8s-yaml/influx.yaml" \
 -f "deployments/k8s-yaml/redis.yaml" \
