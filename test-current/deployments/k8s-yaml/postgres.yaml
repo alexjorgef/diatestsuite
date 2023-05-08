@@ -15,8 +15,9 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:15-alpine
-          imagePullPolicy: IfNotPresent
+          # image: postgres:15-alpine
+          image: diadata.postgres:latest
+          imagePullPolicy: Never
           ports:
             - name: postgres-server
               containerPort: 5432
@@ -28,15 +29,15 @@ spec:
               value: postgres
             - name: POSTGRES_PASSWORD
               value: password
-          volumeMounts:
-          - name: postgres-config
-            mountPath: /etc/postgresql/postgresql.conf
-            subPath: postgresql.conf
-            readOnly: true
-          - name: postgres-config
-            mountPath: /docker-entrypoint-initdb.d/pginit.sql
-            subPath: pginit.sql
-            readOnly: true
+          # volumeMounts:
+          # - name: postgres-config
+          #   mountPath: /etc/postgresql/postgresql.conf
+          #   subPath: postgresql.conf
+          #   readOnly: true
+          # - name: postgres-config
+          #   mountPath: /docker-entrypoint-initdb.d/pginit.sql
+          #   subPath: pginit.sql
+          #   readOnly: true
       volumes:
       - name: postgres-config
         configMap:

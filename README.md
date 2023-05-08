@@ -12,15 +12,25 @@ Prepare files:
 1. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git`
 2. Copy modified files: `cp -Rf test-current/* diadata/`
 
-Develop:
+Start and install:
 
-1. Change folder to DIA temp repo: `cd diadata/`
-2. Run the install script: `./scripts/minikubeStart.sh`
-3. Build the platform into cluster: `./scripts/minikubeBuild.sh`
-4. Install the builded code: `./scripts/minikubeInstall.sh`
-5. Run the scrapers: `./scripts/minikubeStartScrapers.sh`
+> Make sure you are in the injected `diadata/` directory
+
+1. Start the local cluster: `./scripts/minikubeStart.sh`
+2. Build the containers into cluster: `./scripts/minikubeBuild.sh`
+3. Install the platform by running the script: `./scripts/minikubeInstall.sh`
+~~5. Run the scrapers: `./scripts/minikubeStartScrapers.sh`~~
+
+Stop and uninstall:
+
+> Make sure you are in the injected `diadata/` directory
+
+1. Uninstall the platform: `./scripts/minikubeUninstall.sh`
+2. Now you can safely stop the cluster: `./scripts/minikubeStop.sh`
 
 Clean and reset the env:
+
+> Before cleaning the files, make sure all services are stopped
 
 1. Remove the files: `rm -rf diadata/`
 2. Delete the cluster: `minikube delete --profile="diadata"`
@@ -31,7 +41,7 @@ Clean and reset the env:
 1. Dump DB data to a .sql file by:
 
 ```shell
-kubectl exec -it deployment/postgres -- pg_dump --host localhost --port 5432 --username postgres --format plain --column-inserts --data-only --schema public --dbname postgres > pginitdata.sql > ./test-current/deployments/config/pginitdata.sql
+kubectl exec -it deployment/postgres -- pg_dump --host localhost --port 5432 --username postgres --format plain --column-inserts --data-only --schema public --dbname postgres > ./test-current/deployments/config/pginitdata.sql
 ```
 
 2. Change to diadata/ folder and run:
