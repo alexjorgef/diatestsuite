@@ -36,23 +36,25 @@ Clean and reset the env:
 3. Prune all unused cluster resources: `minikube ssh --profile diadata -- docker system prune -af`
 4. Prune all local docker resources: `docker system prune -af`
 
-## Update data
+## Testing Database Snapshots (WIP)
 
-1. Create a script that will dump the data and update the postgres image: `sudo nano /usr/local/sbin/diadata-postgres-cron.sh`
-2. Give the correct permission for script: `sudo chmod +x /usr/local/sbin/diadata-postgres-cron.sh`
+1. Dump DB data to a .sql file by:
 
-```
-#!/bin/bash
-
-# ...
+```shell
+kubectl exec -it deployment/postgres -- pg_dump --host localhost --port 5432 --username postgres --format plain --column-inserts --data-only --schema public --dbname postgres > ./test-current/deployments/config/pginitdata.sql
 ```
 
-3. Create the log directory: `sudo mkdir -p /var/log/diadata/`
-4. Create a cronjob for everyday: `sudo nano /etc/cron.d/diadata-postgres`
+2. Change to diadata/ folder and run:
 
-```
-0 0 * * * root /usr/local/sbin/diadata-postgres-cron.sh >> /var/log/diadata/postgres-cron.log 2>&1
+```shell
+docker build -f "build/Dockerfile-postgres" -t "diadata.postgres:latest" .
+docker container rm postgres-container-test
+docker run -d --name postgres-container-test -p 5433:5432 diadata.postgres:latest
+docker logs postgres-container-test -f
 ```
 
-5. Restart cronjob service: `sudo systemctl restart cronie`
-6. Wait and see the output of cronjob: `tail -f /var/log/diadata/postgres-cron.log`
+## WIP
+
+> ref: https://devtron.ai/blog/creating-a-kubernetes-cron-job-to-backup-postgres-db/
+
+or could restore by: `cat ./test-current/deployments/config/pginitdata.sql | kubectl exec -i deployment/postgres -- psql --username postgres --dbname postgres`
