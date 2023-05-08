@@ -58,3 +58,11 @@ docker logs postgres-container-test -f
 > ref: https://devtron.ai/blog/creating-a-kubernetes-cron-job-to-backup-postgres-db/
 
 or could restore by: `cat ./test-current/deployments/config/pginitdata.sql | kubectl exec -i deployment/postgres -- psql --username postgres --dbname postgres`
+
+
+kubectl cp filter_data.sql postgres-74d779c47f-s7l8h:/filter_data.sql
+
+
+pg_dump -h $DB_HOST -p $DB_PORT -U $DB_USER -F c -b -v -f - $DB_NAME -t $TABLE_NAME --file filter_data.sql >> $OUTPUT_FILE
+
+pg_dump -h localhost -p 5432 -U postgres -F c -b -v -f - postgres -t exchangepair --file filter_data.sql

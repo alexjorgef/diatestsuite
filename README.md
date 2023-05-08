@@ -38,6 +38,8 @@ Clean and reset the env:
 
 ## Update data
 
+> Make sure you have a cronjob service on your local system, in this case we use [cronie](https://github.com/cronie-crond/cronie/)
+
 1. Create a script that will dump the data and update the postgres image: `sudo nano /usr/local/sbin/diadata-postgres-cron.sh`
 2. Give the correct permission for script: `sudo chmod +x /usr/local/sbin/diadata-postgres-cron.sh`
 
