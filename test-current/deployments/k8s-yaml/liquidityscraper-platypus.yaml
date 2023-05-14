@@ -3,6 +3,7 @@ kind: Pod
 metadata:
   name: "liquidityscraper-platypus"
 spec:
+  restartPolicy: Never
   containers:
   - name: liquidityscraper-platypus
     image: diadata.liquidityscraper:latest

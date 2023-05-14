@@ -10,6 +10,7 @@ spec:
     spec:
       template:
         spec:
+          restartPolicy: Never
           containers:
             - name: postgres-cron
               image: gcr.io/kaniko-project/executor
@@ -25,4 +26,3 @@ spec:
           - name: postgres-cron-dockerfile
             configMap:
               name: postgres-cron-dockerfile
-          restartPolicy: Never

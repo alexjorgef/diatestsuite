@@ -6,17 +6,17 @@ spec:
   restartPolicy: Never
   containers:
     - name: kaniko
-      image: gcr.io/kaniko-project/executor:latest
+      image: gcr.io/kaniko-project/executor:v1.6.0
       imagePullPolicy: IfNotPresent
       args:
         - "--dockerfile=build/Dockerfile-postgres"
-        - "--context=dir:///postgres-context"
+        - "--context=dir:///kaniko-context"
         - "--destination=registry.hub.docker.com/alex1a/diadata.postgres:latest"
       volumeMounts:
         - name: docker-config
           mountPath: /kaniko/.docker
         - name: kaniko-context
-          mountPath: /postgres-context
+          mountPath: /kaniko-context
   volumes:
     - name: docker-config
       projected:
@@ -28,4 +28,4 @@ spec:
                 path: config.json
     - name: kaniko-context
       hostPath:
-        path: /home/alex/ProgrammingFiles/gh/alexjorgef--diatestsuite/diadata
+        path: /mnt/diadata
