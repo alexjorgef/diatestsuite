@@ -12,9 +12,10 @@ kubectl create -f "deployments/k8s-yaml/influx.yaml" \
 -f "deployments/k8s-yaml/tradesblockservice.yaml" \
 -f "deployments/k8s-yaml/filtersblockservice.yaml"
 
-kubectl create -f "deployments/k8s-yaml/exchangescraper-bitfinex.yaml"
-kubectl create -f "deployments/k8s-yaml/exchangescraper-bittrex.yaml"
-kubectl create -f "deployments/k8s-yaml/exchangescraper-coinbase.yaml"
-kubectl create -f "deployments/k8s-yaml/exchangescraper-mexc.yaml"
+kubectl create -f "deployments/k8s-yaml/exchangescraper-bitfinex.yaml" \
+-f "deployments/k8s-yaml/exchangescraper-bittrex.yaml" \
+-f "deployments/k8s-yaml/exchangescraper-coinbase.yaml" \
+-f "deployments/k8s-yaml/exchangescraper-mexc.yaml" \
+-f "deployments/k8s-yaml/liquidityscraper-orca.yaml"
 
 kubectl create -f "deployments/k8s-yaml/posgres-cron.yaml"

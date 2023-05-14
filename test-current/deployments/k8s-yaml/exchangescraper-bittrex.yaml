@@ -56,7 +56,6 @@ spec:
       value: "test"
     - name: INFLUXDB_PASSWORD
       value: "testtest"
-    # command: ["sh", "-c", "until influx -host $INFLUXDB_URL -username $INFLUXDB_USERNAME -password $INFLUXDB_PASSWORD ping; do sleep 1; done"]
     command: ["sh", "-c", "until influx -host $INFLUXDB_URL -username $INFLUXDB_USERNAME -password $INFLUXDB_PASSWORD -execute 'SHOW DATABASES'; do sleep 1; done"]
   - name: check-kafka-connection
     image: confluentinc/cp-kafkacat:6.2.1
@@ -64,57 +63,6 @@ spec:
     - name: KAFKA_BROKER_URL
       value: "kafka.default.svc.cluster.local:9094"
     command: ["sh", "-c", "until kafkacat -b $KAFKA_BROKER_URL -L; do sleep 1; done"]
-  # - name: clusterdev-exchangescraper-collector-bittrex-assetcollectionser
-  #   image: diadata.assetcollectionservice:latest
-  #   command: ["assetCollectionService"]
-  #   args: ["-source=Bittrex", "-caching=false"]
-  #   env:
-  #     - name: USE_ENV
-  #       value: "true"
-  #     - name: POSTGRES_USER
-  #       value: "postgres"
-  #     - name: POSTGRES_PASSWORD
-  #       value: "password"
-  #     - name: POSTGRES_DB
-  #       value: "postgres"
-  #     - name: POSTGRES_HOST
-  #       value: "postgres.default.svc.cluster.local"
-  #     - name: INFLUXURL
-  #       value: "http://influx.default.svc.cluster.local:8086"
-  #     - name: INFLUXUSER
-  #       value: "test"
-  #     - name: INFLUXPASSWORD
-  #       value: "testtest"
-  #     - name: REDISURL
-  #       value: "redis.default.svc.cluster.local:6379"
-  #     - name: KAFKAURL
-  #       value: "kafka.default.svc.cluster.local:9094"
-  - name: diadata-exchangescrapercollector-bittrex-pairdiscovery-rem
-    image: diadata.pairdiscoveryservice:latest
-    imagePullPolicy: Never
-    command: ["pairDiscoveryService"]
-    args: ["-exchange=Bittrex", "-mode=remoteFetch"]
-    env:
-    - name: USE_ENV
-      value: "true"
-    - name: POSTGRES_USER
-      value: "postgres"
-    - name: POSTGRES_PASSWORD
-      value: "password"
-    - name: POSTGRES_DB
-      value: "postgres"
-    - name: POSTGRES_HOST
-      value: "postgres.default.svc.cluster.local"
-    - name: INFLUXURL
-      value: "http://influx.default.svc.cluster.local:8086"
-    - name: INFLUXUSER
-      value: "test"
-    - name: INFLUXPASSWORD
-      value: "testtest"
-    - name: REDISURL
-      value: "redis.default.svc.cluster.local:6379"
-    - name: KAFKAURL
-      value: "kafka.default.svc.cluster.local:9094"
   - name: diadata-exchangescrapercollector-bittrex-pairdiscovery-ver
     image: diadata.pairdiscoveryservice:latest
     imagePullPolicy: Never
