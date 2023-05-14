@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kaniko
+spec:
+  restartPolicy: Never
+  containers:
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:latest
+      imagePullPolicy: IfNotPresent
+      args:
+        - "--dockerfile=build/Dockerfile-postgres"
+        - "--context=dir:///postgres-context"
+        - "--destination=registry.hub.docker.com/alex1a/diadata.postgres:latest"
+      volumeMounts:
+        - name: docker-config
+          mountPath: /kaniko/.docker
+        - name: kaniko-context
+          mountPath: /postgres-context
+  volumes:
+    - name: docker-config
+      projected:
+        sources:
+        - secret:
+            name: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+    - name: kaniko-context
+      hostPath:
+        path: /home/alex/ProgrammingFiles/gh/alexjorgef--diatestsuite/diadata

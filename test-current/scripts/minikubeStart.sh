@@ -6,4 +6,6 @@ minikube_driver="docker"
 
 minikube start --kubernetes-version="${minikube_kubernetes_ver}" \
     --profile="${minikube_profile}" \
-    --driver="${minikube_driver}"
+    --driver="${minikube_driver}" \
+    --mount-string="$(pwd):/mnt/diadata:rw" \
+    --mount=true

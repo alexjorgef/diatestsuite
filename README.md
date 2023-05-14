@@ -38,6 +38,10 @@ Clean and reset the env:
 
 ## Update data
 
+docker pull registry.hub.docker.com/alex1a/diadata.postgres
+
+https://hub.docker.com/r/alex1a/diadata.postgres
+
 > Make sure you have a cronjob service on your local system, in this case we use [cronie](https://github.com/cronie-crond/cronie/)
 
 1. Create a script that will dump the data and update the postgres image: `sudo nano /usr/local/sbin/diadata-postgres-cron.sh`
