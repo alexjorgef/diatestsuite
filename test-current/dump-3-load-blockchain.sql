@@ -1,0 +1,1 @@
+\COPY blockchain FROM '/postgres-dump/dump-3-blockchain.csv' WITH (FORMAT csv, DELIMITER ';');

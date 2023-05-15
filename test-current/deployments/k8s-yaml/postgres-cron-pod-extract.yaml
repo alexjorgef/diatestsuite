@@ -1,0 +1,153 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: psql-extract
+  labels:
+    app: psql-extract
+spec:
+  restartPolicy: Never
+  containers:
+    - name: psql-extract
+      image: diadata.postgres:latest
+      imagePullPolicy: Never
+      ports:
+        - name: psql-extract
+          containerPort: 5432
+      env:
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_DB
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          value: password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-load-service
+  labels:
+    app: psql-extract
+spec:
+  ports:
+    - port: 5432
+      targetPort: psql-extract
+  selector:
+    app: psql-extract
+  type: NodePort
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: psql-load
+spec:
+  restartPolicy: Never
+  containers:
+    - name: postgres-extract-0
+      image: postgres:latest
+      command: ["bash", "-c", "pg_dump --host ${PGHOST} --port 5432 --username ${PGUSER} --format plain --column-inserts --data-only --schema public --dbname ${PGDB} > /postgres-dump/dump-0.sql"]
+      env:
+        - name: PGHOST
+          value: "postgres.default.svc.cluster.local"
+        - name: PGUSER
+          value: "postgres"
+        - name: PGDB
+          value: "postgres"
+        - name: PGPASSWORD
+          value: "password"
+      volumeMounts:
+        - name: docker-config
+          mountPath: /kaniko/.docker
+        - name: postgres-dump
+          mountPath: /postgres-dump
+  initContainers:
+  - name: check-postgres-connection
+    image: postgres:15-alpine
+    env:
+    - name: PGHOST
+      value: "postgres.default.svc.cluster.local"
+    - name: PGUSER
+      value: "postgres"
+    - name: PGDB
+      value: "postgres"
+    - name: PGPASSWORD
+      value: "password"
+    command: ["sh", "-c", "until pg_isready -h $PGHOST -U $PGUSER; do sleep 1; done"]
+  - name: postgres-extract-1
+    image: postgres:latest
+    env:
+    - name: PGHOST
+      value: "postgres.default.svc.cluster.local"
+    - name: PGUSER
+      value: "postgres"
+    - name: PGDB
+      value: "postgres"
+    - name: PGPASSWORD
+      value: "password"
+    command: ["bash", "-c", "pg_dump --host ${PGHOST} --port 5432 --username ${PGUSER} --format plain --column-inserts --data-only --schema public --dbname ${PGDB} > /postgres-dump/dump-1.sql"]
+    volumeMounts:
+      - name: postgres-dump
+        mountPath: /postgres-dump
+  - name: postgres-extract-2
+    image: postgres:latest
+    env:
+    - name: PGHOST
+      value: "postgres.default.svc.cluster.local"
+    - name: PGUSER
+      value: "postgres"
+    - name: PGDB
+      value: "postgres"
+    - name: PGPASSWORD
+      value: "password"
+    command: ["bash", "-c", "psql --host ${PGHOST} --port 5432 --username ${PGUSER} --dbname ${PGDB} --file /postgres-dump/dump-2-query.sql --output /postgres-dump/dump-2.csv"]
+    volumeMounts:
+      - name: postgres-dump
+        mountPath: /postgres-dump
+  - name: postgres-extract-3
+    image: postgres:latest
+    env:
+    - name: PGHOST
+      value: "postgres.default.svc.cluster.local"
+    - name: PGUSER
+      value: "postgres"
+    - name: PGDB
+      value: "postgres"
+    - name: PGPASSWORD
+      value: "password"
+    command: ["bash", "-c", "/postgres-dump/dump-3.sh"]
+    volumeMounts:
+      - name: postgres-dump
+        mountPath: /postgres-dump
+  - name: postgres-extract-3-load
+    image: diadata.postgres:latest
+    imagePullPolicy: Never
+    ports:
+      - name: postgres-server
+        containerPort: 5432
+    env:
+    - name: PGHOST
+      value: "postgres-load-service.default.svc.cluster.local"
+    - name: PGUSER
+      value: "postgres"
+    - name: PGDB
+      value: "postgres"
+    - name: PGPASSWORD
+      value: "password"
+    command: ["bash", "-c", "/postgres-dump/load-3.sh"]
+    volumeMounts:
+      - name: postgres-dump
+        mountPath: /postgres-dump
+  volumes:
+    - name: docker-config
+      projected:
+        sources:
+        - secret:
+            name: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+    - name: postgres-dump
+      hostPath:
+        path: /mnt/diadata
+    - name: kaniko-context
+      hostPath:
+        path: /mnt/diadata

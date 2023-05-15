@@ -1,0 +1,1 @@
+COPY (SELECT * FROM exchange) TO STDOUT WITH (format csv, delimiter ';');
