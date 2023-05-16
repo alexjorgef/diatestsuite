@@ -1,1 +1,0 @@
-\COPY poolasset FROM '/postgres-dump/dump-3-poolasset.csv' WITH (FORMAT csv, DELIMITER ';');

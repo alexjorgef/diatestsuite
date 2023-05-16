@@ -10,7 +10,7 @@
 Prepare files:
 
 1. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git --depth 1`
-2. Copy modified files: `cp -Rf test-current/* diadata/`
+2. Copy modified files: `cp -Rf test/* diadata/`
 
 Start and install:
 

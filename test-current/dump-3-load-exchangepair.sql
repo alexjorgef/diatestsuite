@@ -1,1 +1,0 @@
-\COPY exchangepair FROM '/postgres-dump/dump-3-exchangepair.csv' WITH (FORMAT csv, DELIMITER ';');

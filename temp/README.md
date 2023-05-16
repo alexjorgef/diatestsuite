@@ -10,7 +10,7 @@
 Prepare files:
 
 1. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git`
-2. Copy modified files: `cp -Rf test-current/* diadata/`
+2. Copy modified files: `cp -Rf test/* diadata/`
 
 Start and install:
 
@@ -41,7 +41,7 @@ Clean and reset the env:
 1. Dump DB data to a .sql file by:
 
 ```shell
-kubectl exec -it deployment/postgres -- pg_dump --host localhost --port 5432 --username postgres --format plain --column-inserts --data-only --schema public --dbname postgres > ./test-current/deployments/config/pginitdata.sql
+kubectl exec -it deployment/postgres -- pg_dump --host localhost --port 5432 --username postgres --format plain --column-inserts --data-only --schema public --dbname postgres > ./test/deployments/config/pginitdata.sql
 ```
 
 2. Change to diadata/ folder and run:
@@ -57,7 +57,7 @@ docker logs postgres-container-test -f
 
 > ref: https://devtron.ai/blog/creating-a-kubernetes-cron-job-to-backup-postgres-db/
 
-or could restore by: `cat ./test-current/deployments/config/pginitdata.sql | kubectl exec -i deployment/postgres -- psql --username postgres --dbname postgres`
+or could restore by: `cat ./test/deployments/config/pginitdata.sql | kubectl exec -i deployment/postgres -- psql --username postgres --dbname postgres`
 
 
 kubectl cp filter_data.sql postgres-74d779c47f-s7l8h:/filter_data.sql
