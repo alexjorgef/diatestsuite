@@ -136,6 +136,37 @@ spec:
     volumeMounts:
       - name: postgres-dump
         mountPath: /postgres-dump
+  - name: postgres-extract-3-dump
+    image: postgres:latest
+    imagePullPolicy: Never
+    ports:
+      - name: postgres-server
+        containerPort: 5432
+    env:
+    - name: PGHOST
+      value: "postgres-load-service.default.svc.cluster.local"
+    - name: PGUSER
+      value: "postgres"
+    - name: PGDB
+      value: "postgres"
+    - name: PGPASSWORD
+      value: "password"
+    command: ["bash", "-c", "pg_dump --host ${PGHOST} --port 5432 --username ${PGUSER} --format plain --column-inserts --data-only --schema public --dbname ${PGDB} > /postgres-dump/db_dump.sql"]
+    volumeMounts:
+      - name: postgres-dump
+        mountPath: /postgres-dump
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:v1.6.0
+    imagePullPolicy: IfNotPresent
+    args:
+      - "--dockerfile=build/Dockerfile-postgres"
+      - "--context=dir:///kaniko-context"
+      - "--destination=registry.hub.docker.com/alex1a/diadata.postgres:latest"
+    volumeMounts:
+      - name: docker-config
+        mountPath: /kaniko/.docker
+      - name: kaniko-context
+        mountPath: /kaniko-context
   volumes:
     - name: docker-config
       projected:
