@@ -42,23 +42,18 @@ metadata:
 spec:
   restartPolicy: Never
   containers:
-    - name: postgres-extract-0
-      image: postgres:latest
-      command: ["bash", "-c", "pg_dump --host ${PGHOST} --port 5432 --username ${PGUSER} --format plain --column-inserts --data-only --schema public --dbname ${PGDB} > /postgres-dump/dump-0.sql"]
-      env:
-        - name: PGHOST
-          value: "postgres.default.svc.cluster.local"
-        - name: PGUSER
-          value: "postgres"
-        - name: PGDB
-          value: "postgres"
-        - name: PGPASSWORD
-          value: "password"
-      volumeMounts:
-        - name: docker-config
-          mountPath: /kaniko/.docker
-        - name: postgres-dump
-          mountPath: /postgres-dump
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:v1.6.0
+    imagePullPolicy: IfNotPresent
+    args:
+      - "--dockerfile=build/Dockerfile-postgres"
+      - "--context=dir:///kaniko-context"
+      - "--destination=registry.hub.docker.com/alex1a/diadata.postgres:latest"
+    volumeMounts:
+      - name: docker-config
+        mountPath: /kaniko/.docker
+      - name: kaniko-context
+        mountPath: /kaniko-context
   initContainers:
   - name: check-postgres-connection
     image: postgres:15-alpine
@@ -72,36 +67,6 @@ spec:
     - name: PGPASSWORD
       value: "password"
     command: ["sh", "-c", "until pg_isready -h $PGHOST -U $PGUSER; do sleep 1; done"]
-  - name: postgres-extract-1
-    image: postgres:latest
-    env:
-    - name: PGHOST
-      value: "postgres.default.svc.cluster.local"
-    - name: PGUSER
-      value: "postgres"
-    - name: PGDB
-      value: "postgres"
-    - name: PGPASSWORD
-      value: "password"
-    command: ["bash", "-c", "pg_dump --host ${PGHOST} --port 5432 --username ${PGUSER} --format plain --column-inserts --data-only --schema public --dbname ${PGDB} > /postgres-dump/dump-1.sql"]
-    volumeMounts:
-      - name: postgres-dump
-        mountPath: /postgres-dump
-  - name: postgres-extract-2
-    image: postgres:latest
-    env:
-    - name: PGHOST
-      value: "postgres.default.svc.cluster.local"
-    - name: PGUSER
-      value: "postgres"
-    - name: PGDB
-      value: "postgres"
-    - name: PGPASSWORD
-      value: "password"
-    command: ["bash", "-c", "psql --host ${PGHOST} --port 5432 --username ${PGUSER} --dbname ${PGDB} --file /postgres-dump/dump-2-query.sql --output /postgres-dump/dump-2.csv"]
-    volumeMounts:
-      - name: postgres-dump
-        mountPath: /postgres-dump
   - name: postgres-extract-3
     image: postgres:latest
     env:
@@ -117,6 +82,18 @@ spec:
     volumeMounts:
       - name: postgres-dump
         mountPath: /postgres-dump
+  - name: check-postgres-connection-snap
+    image: postgres:15-alpine
+    env:
+    - name: PGHOST
+      value: "postgres-load-service.default.svc.cluster.local"
+    - name: PGUSER
+      value: "postgres"
+    - name: PGDB
+      value: "postgres"
+    - name: PGPASSWORD
+      value: "password"
+    command: ["sh", "-c", "until pg_isready -h $PGHOST -U $PGUSER; do sleep 1; done"]
   - name: postgres-extract-3-load
     image: diadata.postgres:latest
     imagePullPolicy: Never
@@ -155,18 +132,6 @@ spec:
     volumeMounts:
       - name: postgres-dump
         mountPath: /postgres-dump
-  - name: kaniko
-    image: gcr.io/kaniko-project/executor:v1.6.0
-    imagePullPolicy: IfNotPresent
-    args:
-      - "--dockerfile=build/Dockerfile-postgres"
-      - "--context=dir:///kaniko-context"
-      - "--destination=registry.hub.docker.com/alex1a/diadata.postgres:latest"
-    volumeMounts:
-      - name: docker-config
-        mountPath: /kaniko/.docker
-      - name: kaniko-context
-        mountPath: /kaniko-context
   volumes:
     - name: docker-config
       projected:
