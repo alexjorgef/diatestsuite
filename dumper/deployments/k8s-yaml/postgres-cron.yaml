@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-cron
+  labels:
+    app: postgres-cron
+spec:
+  schedule: "*/7 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: postgres-cron
+              image: gcr.io/kaniko-project/executor
+              imagePullPolicy: IfNotPresent
+              args:
+                - "--dockerfile=/kaniko-dockerfile/Dockerfile-postgres"
+                - "--context=/kaniko-context"
+                - "--destination=diadata.postgres:latest"
+              volumeMounts:
+              - name: postgres-cron-dockerfile
+                mountPath: /kaniko-dockerfile
+          volumes:
+          - name: postgres-cron-dockerfile
+            configMap:
+              name: postgres-cron-dockerfile
