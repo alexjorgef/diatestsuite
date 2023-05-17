@@ -1,1 +1,0 @@
-\COPY asset FROM '/tmp/dump-3-asset.csv' WITH (FORMAT csv, DELIMITER ';');

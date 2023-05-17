@@ -13,7 +13,11 @@ Start and install:
 
 1. Start the local cluster: `./scripts/minikubeStart.sh`
 2. Build the containers into cluster: `./scripts/minikubeBuild.sh`
-3. Install the platform by running the script: `./scripts/minikubeInstall.sh`
+3. Install the platform by running the scripts:
+   1. Services and exchange scrapers: `./scripts/minikubeInstall.sh`
+   2. Liquidity scrapers: `./scripts/minikubeInstallLiquidity.sh`
+   3. Return to previous folder (root directory of project) and mount a shared volume for PostgreSQL to dump: `minikube mount --profile diadata "$(pwd)/shared-volume/postgres-dump:/data/shared-postgres" --uid 70 --gid 70` (Note that uid 70 and gid 70 is due to postgres alpine image, normal image have different permissions)
+   4. Snapshot cronjob: `./scripts/minikubeInstallSnap.sh`
 
 Stop and uninstall:
 
