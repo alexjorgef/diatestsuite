@@ -6,5 +6,6 @@ psql --port 5432 --username ${PGUSER} --dbname ${PGDB} --file /postgres-dump/dum
 psql --port 5432 --username ${PGUSER} --dbname ${PGDB} --file /postgres-dump/dump-3-load-asset.sql
 psql --port 5432 --username ${PGUSER} --dbname ${PGDB} --file /postgres-dump/dump-3-load-pool.sql
 psql --port 5432 --username ${PGUSER} --dbname ${PGDB} --file /postgres-dump/dump-3-load-poolasset.sql
+# TODO: exchangepair is missing...
 
-pg_dump -p 5432 -U $PGUSER --format c --blobs --verbose --dbname $PGDB --schema public --file /data/pv0003/pgdump.sql
+pg_dump -p 5432 -U $PGUSER --format c --blobs --verbose --dbname $PGDB --schema public --file /data/shared-postgres/pgdump.sql

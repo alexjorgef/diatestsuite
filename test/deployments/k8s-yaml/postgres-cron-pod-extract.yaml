@@ -17,7 +17,7 @@ spec:
         mountPath: /kaniko/.docker
       - name: kaniko-context
         mountPath: /kaniko-context
-      - name: postgres-pv0003
+      - name: shared-volume-postgres
         mountPath: /kaniko-context/pgdump.sql
         subPath: pgdump.sql
         readOnly: true
@@ -76,14 +76,14 @@ spec:
         readOnly: true
       - name: kaniko-context
         mountPath: /docker-entrypoint-initdb.d/01-pginitscript.sh
-        subPath: dump-3.sh
+        subPath: dump.sh
         readOnly: true
       - name: kaniko-context
         mountPath: /docker-entrypoint-initdb.d/02-pginitscript.sh
-        subPath: load-3.sh
+        subPath: load.sh
         readOnly: true
-      - name: postgres-pv0003
-        mountPath: /data/pv0003/
+      - name: shared-volume-postgres
+        mountPath: /data/shared-postgres/
   volumes:
     - name: docker-config
       projected:
@@ -99,8 +99,8 @@ spec:
     - name: kaniko-context
       hostPath:
         path: /mnt/diadata
-    - name: postgres-pv0003
+    - name: shared-volume-postgres
       hostPath:
-        path: /data/pv0003/
+        path: /data/shared-postgres/
     - name: psql-data
       emptyDir: {}
