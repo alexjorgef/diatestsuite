@@ -4,12 +4,13 @@
 
 Prepare files:
 
-1. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git --depth 1`
-2. Copy modified files: `cp -Rf test/* diadata/`
+1. Create a directory for mounts: `mkdir -p mounts/`
+2. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git --depth 1 mounts/diadata-tester`
+3. Copy modified files: `cp -Rf tester/* mounts/diadata-tester/`
 
 Start and install:
 
-> Make sure you are in the injected `diadata/` directory
+> Make sure you are in the injected `mounts/diadata-tester/` directory
 
 1. Start the local cluster: `./scripts/minikubeStart.sh`
 2. Build the containers into cluster: `./scripts/minikubeBuild.sh`

@@ -5,8 +5,8 @@
 Prepare files:
 
 1. Create a directory for mounts: `mkdir -p mounts/`
-1. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git --depth 1 mounts/diadata-dumper`
-2. Copy modified files: `cp -Rf dumper/* mounts/diadata-dumper/`
+2. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git --depth 1 mounts/diadata-dumper`
+3. Copy modified files: `cp -Rf dumper/* mounts/diadata-dumper/`
 
 Start and install:
 
