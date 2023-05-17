@@ -64,11 +64,9 @@ spec:
       - name: postgres-dump
         mountPath: /postgres-dump
         readOnly: false
-      - name: psql-data
-        mountPath: /data/pv0001/
       - name: kaniko-context
         mountPath: /usr/local/bin/docker-entrypoint.sh
-        subPath: docker-entrypoint.sh
+        subPath: deployments/config/postgres-docker-entrypoint.sh
         readOnly: true
       - name: kaniko-context
         mountPath: /docker-entrypoint-initdb.d/00-pginitscript.sql
@@ -102,5 +100,3 @@ spec:
     - name: shared-volume-postgres
       hostPath:
         path: /data/shared-postgres/
-    - name: psql-data
-      emptyDir: {}
