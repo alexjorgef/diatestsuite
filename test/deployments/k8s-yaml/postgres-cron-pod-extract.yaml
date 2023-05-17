@@ -1,3 +1,28 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: shared-volume
+spec:
+  storageClassName: standard
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: /data/pv0001/
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shared-volume-claim
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+---
 # apiVersion: v1
 # kind: Pod
 # metadata:
@@ -54,6 +79,12 @@ spec:
         mountPath: /kaniko/.docker
       - name: kaniko-context
         mountPath: /kaniko-context
+      - name: shared-volume
+        mountPath: /postgres-read
+      - name: postgres-pv0003
+        mountPath: /kaniko-context/pgdump.sql
+        subPath: pgdump.sql
+        readOnly: true
   initContainers:
   - name: check-postgres-connection
     image: postgres:15-alpine
@@ -67,9 +98,15 @@ spec:
     - name: PGPASSWORD
       value: "password"
     command: ["sh", "-c", "until pg_isready -h $PGHOST -U $PGUSER; do sleep 1; done"]
+  # - name: volume-mount-hack
+  #   image: busybox
+  #   command: ["sh", "-c", "chown -R postgres:postgres /postgres-dump/"]
+  #   volumeMounts:
+  #   - name: postgres-dump
+  #     mountPath: /postgres-dump
   - name: postgres-extract
     image: postgres:15-alpine
-    imagePullPolicy: Never
+    imagePullPolicy: IfNotPresent
     # ports:
     #   - name: postgres-server
     #     containerPort: 5432
@@ -82,13 +119,13 @@ spec:
       value: password
     - name: POSTGRES_DB
       value: postgres
-    - name: PGHOST
+    - name: PGHOST_EXTRACT
       value: "postgres.default.svc.cluster.local"
-    - name: PGUSER
+    - name: PGUSER_EXTRACT
       value: "postgres"
-    - name: PGDB
+    - name: PGDB_EXTRACT
       value: "postgres"
-    - name: PGPASSWORD
+    - name: PGPASSWORD_EXTRACT
       value: "password"
     - name: PGHOST_TEMP
       value: "127.0.0.1"
@@ -98,11 +135,21 @@ spec:
       value: "postgres"
     - name: PGPASSWORD_TEMP
       value: "password"
-    # command: ["bash", "-c"]
     # args: ["tail -f /dev/null; /postgres-dump/dump-3.sh && /postgres-dump/load-3.sh && pg_dump --host ${PGHOST} --port 5432 --username ${PGUSER} --format plain --column-inserts --data-only --schema public --dbname ${PGDB} > /postgres-dump/db_dump.sql"]
     volumeMounts:
       - name: postgres-dump
         mountPath: /postgres-dump
+        readOnly: false
+      - name: psql-data
+        mountPath: /data/pv0001/
+      - name: kaniko-context
+        mountPath: /usr/local/bin/docker-entrypoint.sh
+        subPath: docker-entrypoint.sh
+        readOnly: true
+      - name: kaniko-context
+        mountPath: /docker-entrypoint-initdb.d/00-pginitscript.sql
+        subPath: deployments/config/pginit.sql
+        readOnly: true
       - name: kaniko-context
         mountPath: /docker-entrypoint-initdb.d/01-pginitscript.sh
         subPath: dump-3.sh
@@ -111,6 +158,10 @@ spec:
         mountPath: /docker-entrypoint-initdb.d/02-pginitscript.sh
         subPath: load-3.sh
         readOnly: true
+      - name: postgres-pv0003
+        mountPath: /data/pv0003/
+      - name: shared-volume
+        mountPath: /data/pv0002/
       # - name: kaniko-context
       #   mountPath: /docker-entrypoint-initdb.d/01-pginit.sql
       #   subPath: dump-3.sh
@@ -130,3 +181,11 @@ spec:
     - name: kaniko-context
       hostPath:
         path: /mnt/diadata
+    - name: postgres-pv0003
+      hostPath:
+        path: /data/pv0003/
+    - name: shared-volume
+      persistentVolumeClaim:
+        claimName: shared-volume-claim
+    - name: psql-data
+      emptyDir: {}

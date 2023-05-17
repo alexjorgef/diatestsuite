@@ -2,6 +2,7 @@ FROM postgres:latest
 
 COPY ./deployments/config/pginit.sql /docker-entrypoint-initdb.d/01-pginit.sql
 # COPY ./deployments/config/pginitdata.[sql] /docker-entrypoint-initdb.d/02-pginit.sql
+COPY ./pgdump.sql /docker-entrypoint-initdb.d/02-pginit.sql
 
 ENV POSTGRES_USER postgres
 ENV POSTGRES_PASSWORD password
