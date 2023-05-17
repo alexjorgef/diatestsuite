@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-minikube_profile="diadata"
+minikube_profile="diadata-dumper"
 image_tag="diadata"
 
 eval "$(minikube -p $minikube_profile docker-env)"
