@@ -9,7 +9,7 @@ spec:
     image: gcr.io/kaniko-project/executor:v1.6.0
     imagePullPolicy: IfNotPresent
     args:
-      - "--dockerfile=build/Dockerfile-postgres"
+      - "--dockerfile=build/Dockerfile-postgres-cron"
       - "--context=dir:///kaniko-context"
       - "--destination=registry.hub.docker.com/alex1a/diadata.postgres:latest"
     volumeMounts:

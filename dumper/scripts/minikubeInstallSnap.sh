@@ -1,5 +1,9 @@
 #!/bin/bash
 
+minikube_profile="diadata-dumper"
+
+kubectl config use-context "${minikube_profile}"
+
 kubectl create secret docker-registry regcred \
     --docker-server="https://registry.hub.docker.com/v2/" \
     --docker-username="alex1a" \
