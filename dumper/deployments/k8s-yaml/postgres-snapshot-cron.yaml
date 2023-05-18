@@ -18,8 +18,8 @@ spec:
       - name: kaniko-context
         mountPath: /kaniko-context
       - name: shared-volume-postgres
-        mountPath: /kaniko-context/pgdump.sql
-        subPath: pgdump.sql
+        mountPath: /kaniko-context/pg_dump.backup
+        subPath: pg_dump.backup
         readOnly: true
   initContainers:
   - name: check-postgres-connection
