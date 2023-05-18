@@ -10,20 +10,19 @@ Prepare files:
 
 Start and install:
 
-1. Make sure you are in the injected `mounts/diadata-tester/` directory
+1. Make sure you are in the injected *mounts/diadata-tester/* directory: `cd mounts/diadata-tester/`
 2. Start the local cluster: `./scripts/minikubeStart.sh`
 3. Build the containers into cluster: `./scripts/minikubeBuild.sh`
 4. Install the platform by running the script: `./scripts/minikubeInstall.sh`, `./scripts/minikubeInstallScrapers.sh`
 
-Stop and uninstall:
+Uninstall and Stop:
 
-1. Make sure you are in the injected `mounts/diadata-tester/` directory
+1. Make sure you are in the injected *mounts/diadata-tester/* directory: `cd mounts/diadata-tester/`
 2. Uninstall the platform: `./scripts/minikubeUninstallScrapers.sh`, `./scripts/minikubeUninstall.sh`
 3. Now you can safely stop the cluster: `./scripts/minikubeStop.sh`
 
 Clean and reset the env:
 
-1. Before cleaning the files, make sure all services are stopped
-2. Delete the cluster node: `./scripts/minikubeDelete.sh`
-3. Also, can remove the files: `rm -rf mounts/`
-4. Prune all local docker resources: `docker system prune -af`
+1. Delete the cluster node: `./scripts/minikubeDelete.sh`
+2. Also, can remove the files: `rm -rf mounts/`
+3. Prune all local docker resources: `docker system prune -af`

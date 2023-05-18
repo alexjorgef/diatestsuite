@@ -28,7 +28,6 @@ Stop and uninstall:
 
 Clean and reset the env:
 
-1. Before cleaning the files, make sure all services are stopped
-2. Delete the cluster node: `./scripts/minikubeDelete.sh`
-3. Also, can remove the files: `rm -rf mounts/`
-4. Prune all local docker resources: `docker system prune -af`
+1. Delete the cluster node: `./scripts/minikubeDelete.sh`
+2. Also, can remove the files: `rm -rf mounts/`
+3. Prune all local docker resources: `docker system prune -af`
