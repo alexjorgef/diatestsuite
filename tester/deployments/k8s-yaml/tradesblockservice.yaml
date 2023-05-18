@@ -40,6 +40,8 @@ spec:
               value: "redis.default.svc.cluster.local:6379"
             - name: KAFKAURL
               value: "kafka.default.svc.cluster.local:9094"
+            - name: TRADE_VOLUME_THRESHOLD_EXPONENT
+              value: "4"
       initContainers:
         - name: check-postgres-connection
           image: postgres:15-alpine
