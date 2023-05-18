@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: diadata.postgres:latest
-          imagePullPolicy: Never
+          image: alex1a/diadata.postgres:latest
+          imagePullPolicy: Always
           ports:
             - name: postgres-server
               containerPort: 5432
