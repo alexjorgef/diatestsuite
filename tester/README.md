@@ -1,4 +1,4 @@
-# diatestsuite
+# diatestsuite - Tester
 
 ## Development
 

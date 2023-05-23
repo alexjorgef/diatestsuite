@@ -1,4 +1,4 @@
-# diatestsuite
+# diatestsuite - Dumper
 
 ## Development
 
