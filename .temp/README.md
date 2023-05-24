@@ -128,3 +128,30 @@ kubectl port-forward diadata-clusterdev-db-kafka 8080:8080
 ```
 
 After that, you can access AKHQ, the Kafka GUI at [http://localhost:8080/](http://localhost:8080/)
+
+### Delivery services
+
+Forward data delivery service's ports to localhost:
+
+```shell
+# REST Server
+kubectl port-forward diadata-clusterdev-http-restserver 8081:8081
+
+# GraphQL Server
+kubectl port-forward diadata-clusterdev-http-graphqlserver 1111:1111
+```
+
+The routes available after you forward them to the host machine:
+
+* **REST Server**: localhost:8081
+* **GraphQL**:
+  * **Server**: localhost:1111
+  * **Web UI**: [http://localhost:1111/](http://localhost:1111/)
+
+## Other useful commands
+
+Clean unused resources on docker:
+
+```shell
+docker system prune -af
+```
