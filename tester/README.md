@@ -4,16 +4,29 @@
 
 * Start the local cluster: `minikube start`
 * Create a directory for mounts: `mkdir -p mounts`
-* Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git --depth 1 mounts/diadata-tester`
+* Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git --depth 1 diadata`
 * Copy modified files: `cp -Rf tester/* mounts/diadata-tester/`
 * Make sure you are in the injected *mounts/diadata-tester/* directory: `cd mounts/diadata-tester/`
 * Build the containers into cluster:
 
 ```shell
-minikube image build -t us.icr.io/dia-registry/devops/build:latest -f build/build/Dockerfile-DiadataBuild .
-minikube image build -t us.icr.io/dia-registry/devops/build-117:latest -f build/build/Dockerfile-DiadataBuild-117 .
-minikube image build -t diadata.filtersblockservice:latest -f build/Dockerfile-filtersBlockService .
-minikube image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService .
+minikube image build -t us.icr.io/dia-registry/devops/build:latest -f diadata/build/build/Dockerfile-DiadataBuild ./diadata
+minikube image build -t us.icr.io/dia-registry/devops/build-117:latest -f diadata/build/build/Dockerfile-DiadataBuild-117 ./diadata
+minikube image build -t diadata.filtersblockservice:latest -f diadata/build/Dockerfile-filtersBlockService ./diadata
+minikube image build -t diadata.tradesblockservice:latest -f diadata/build/Dockerfile-tradesBlockService ./diadata
+```
+
+* Add the custom scraper
+* Modify the build/Dockerfile-genericCollector file and add these two Dockerfile lines before the RUN go mod tidy step:
+
+```dockerfile
+COPY . /diadata
+RUN go mod edit -replace github.com/diadata-org/diadata=/diadata
+```
+
+* Build the necessary service's containers:
+
+```shell
 minikube image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService .
 minikube image build -t diadata.exchangescrapercollector:latest -f build/Dockerfile-genericCollector .
 ```
