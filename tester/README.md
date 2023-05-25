@@ -44,6 +44,12 @@ minikube image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-
 minikube image build -t diadata.exchangescrapercollector:latest -f build/Dockerfile-genericCollector diadata
 ```
 
+* Add a new entry to exchange table database:
+
+```shell
+kubectl exec -it deployment/postgres -- psql -U postgres -c "INSERT INTO public.exchange (exchange_id, "name", centralized, bridge, contract, blockchain, rest_api, ws_api, pairs_api, watchdog_delay, scraper_active) VALUES(gen_random_uuid(), 'Custom', true, false, '', '', 'https://api.kraken.com', 'wss://ws.kraken.com', 'https://api.kraken.com/0/public/AssetPairs', 300, true);"
+```
+
 * Wait for the services to start and finally you can install the scrapers:
 
 ```shell

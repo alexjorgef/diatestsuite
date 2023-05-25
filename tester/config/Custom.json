@@ -1,0 +1,262 @@
+{
+    "Coins": [
+      {
+        "Exchange": "Custom",
+        "ForeignName": "ADAETH",
+        "Ignore": false,
+        "Symbol": "ADA"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "ADAUSD",
+        "Ignore": false,
+        "Symbol": "ADA"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "ADAXBT",
+        "Ignore": false,
+        "Symbol": "ADA"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "ASTRUSD",
+        "Ignore": false,
+        "Symbol": "ASTR"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "AVAXUSD",
+        "Ignore": false,
+        "Symbol": "AVAX"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "BCHUSD",
+        "Ignore": false,
+        "Symbol": "BCH"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "BCHXBT",
+        "Ignore": false,
+        "Symbol": "BCH"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "BNCUSD",
+        "Ignore": false,
+        "Symbol": "BNC"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "CFGUSD",
+        "Ignore": false,
+        "Symbol": "CFG"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "DAIUSD",
+        "Ignore": false,
+        "Symbol": "DAI"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "DASHXBT",
+        "Ignore": false,
+        "Symbol": "DASH"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "DOTUSD",
+        "Ignore": false,
+        "Symbol": "DOT"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "EOSETH",
+        "Ignore": false,
+        "Symbol": "EOS"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "EOSXBT",
+        "Ignore": false,
+        "Symbol": "EOS"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "GLMRUSD",
+        "Ignore": false,
+        "Symbol": "GLMR"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "KILTUSD",
+        "Ignore": false,
+        "Symbol": "KILT"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "KINTUSD",
+        "Ignore": false,
+        "Symbol": "KINT"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "LDOUSD",
+        "Ignore": false,
+        "Symbol": "LDO"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "MOVRUSD",
+        "Ignore": false,
+        "Symbol": "MOVR"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "PAXGUSD",
+        "Ignore": false,
+        "Symbol": "PAXG"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "QTUMUSD",
+        "Ignore": false,
+        "Symbol": "QTUM"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "SDNUSD",
+        "Ignore": false,
+        "Symbol": "SDN"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "SYNUSD",
+        "Ignore": false,
+        "Symbol": "SYN"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "USDTZUSD",
+        "Ignore": false,
+        "Symbol": "USDT"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "USDCUSD",
+        "Ignore": false,
+        "Symbol": "USDC"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "USDCUSDT",
+        "Ignore": false,
+        "Symbol": "USDC"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "WBTCUSD",
+        "Ignore": false,
+        "Symbol": "WBTC"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "WBTCXBT",
+        "Ignore": false,
+        "Symbol": "WBTC"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "XETCXETH",
+        "Ignore": false,
+        "Symbol": "ETC"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "XETCXXBT",
+        "Ignore": false,
+        "Symbol": "ETC"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "XETCZUSD",
+        "Ignore": false,
+        "Symbol": "ETC"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "XETHXXBT",
+        "Ignore": false,
+        "Symbol": "ETH"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "XLTCXXBT",
+        "Ignore": false,
+        "Symbol": "LTC"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "XREPXETH",
+        "Ignore": false,
+        "Symbol": "REP"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "XREPXXBT",
+        "Ignore": false,
+        "Symbol": "REP"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "XXLMXXBT",
+        "Ignore": false,
+        "Symbol": "XLM"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "XXBTZUSD",
+        "Ignore": false,
+        "Symbol": "BTC"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "XXMRXXBT",
+        "Ignore": false,
+        "Symbol": "XMR"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "XXRPXXBT",
+        "Ignore": false,
+        "Symbol": "XRP"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "XZECXXBT",
+        "Ignore": false,
+        "Symbol": "ZEC"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "YFIUSD",
+        "Ignore": false,
+        "Symbol": "YFI"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "ZEURZUSD",
+        "Ignore": false,
+        "Symbol": "EUR"
+      },
+      {
+        "Exchange": "Custom",
+        "ForeignName": "ZGBPZUSD",
+        "Ignore": false,
+        "Symbol": "GBP"
+      }
+    ]
+  }
