@@ -15,7 +15,7 @@ minikube image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tr
 ```
 
 * Add the custom scraper
-* Modify the build/Dockerfile-genericCollector file and add these two Dockerfile lines before the RUN go mod tidy step:
+* Modify the build/Dockerfile-genericCollector and the build/Dockerfile-pairDiscoveryService file and add these two Dockerfile lines before the RUN go mod tidy step:
 
 ```dockerfile
 COPY . /diadata

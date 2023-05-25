@@ -34,9 +34,9 @@ type CustomScraper struct {
 	db           *models.RelDB
 }
 
-// NewKrakenScraper returns a new CustomScraper initialized with default values.
+// NewCustomScraper returns a new CustomScraper initialized with default values.
 // The instance is asynchronously scraping as soon as it is created.
-func NewKrakenScraper(key string, secret string, exchange dia.Exchange, scrape bool, relDB *models.RelDB) *CustomScraper {
+func NewCustomScraper(key string, secret string, exchange dia.Exchange, scrape bool, relDB *models.RelDB) *CustomScraper {
 	s := &CustomScraper{
 		shutdown:     make(chan nothing),
 		shutdownDone: make(chan nothing),
