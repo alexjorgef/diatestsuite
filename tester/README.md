@@ -29,7 +29,7 @@ kubectl create -f tester/deployments/k8s-yaml/filtersblockservice.yaml
   * pkg/dia/scraper/exchange-scrapers/APIScraper.go
   * pkg/dia/scraper/exchange-scrapers/CustomScraper.go
   * pkg/dia/Config.go
-  * config/exchanges/exchanges.json
+  * config/Custom.json
 * Modify the `build/Dockerfile-genericCollector` and the `build/Dockerfile-pairDiscoveryService` file and add these two Dockerfile lines before the RUN go mod tidy step:
 
 ```dockerfile

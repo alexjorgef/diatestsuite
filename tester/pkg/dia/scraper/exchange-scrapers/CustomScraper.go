@@ -1,19 +1,17 @@
 package scrapers
 
 import (
+	"encoding/json"
 	"errors"
 	"strconv"
 	"sync"
-	"time"
 
-	krakenapi "github.com/beldur/kraken-go-api-client"
 	"github.com/diadata-org/diadata/pkg/dia"
 	models "github.com/diadata-org/diadata/pkg/model"
+	"github.com/diadata-org/diadata/pkg/utils"
+	ws "github.com/gorilla/websocket"
+	gdax "github.com/preichenberger/go-coinbasepro/v2"
 	"github.com/zekroTJA/timedmap"
-)
-
-const (
-	customRefreshDelay = time.Second * 30 * 1
 )
 
 type CustomScraper struct {
@@ -26,8 +24,7 @@ type CustomScraper struct {
 	error        error
 	closed       bool
 	pairScrapers map[string]*CustomPairScraper // pc.ExchangePair -> pairScraperSet
-	api          *krakenapi.KrakenApi
-	ticker       *time.Ticker
+	wsConn       *ws.Conn
 	exchangeName string
 	chanTrades   chan *dia.Trade
 	db           *models.RelDB
@@ -35,18 +32,22 @@ type CustomScraper struct {
 
 // NewCustomScraper returns a new CustomScraper initialized with default values.
 // The instance is asynchronously scraping as soon as it is created.
-func NewCustomScraper(key string, secret string, exchange dia.Exchange, scrape bool, relDB *models.RelDB) *CustomScraper {
+func NewCustomScraper(exchange dia.Exchange, scrape bool, relDB *models.RelDB) *CustomScraper {
 	s := &CustomScraper{
 		shutdown:     make(chan nothing),
 		shutdownDone: make(chan nothing),
 		pairScrapers: make(map[string]*CustomPairScraper),
-		api:          krakenapi.New(key, secret),
-		ticker:       time.NewTicker(customRefreshDelay),
 		exchangeName: exchange.Name,
 		error:        nil,
 		chanTrades:   make(chan *dia.Trade),
 		db:           relDB,
 	}
+	var wsDialer ws.Dialer
+	SwConn, _, err := wsDialer.Dial("wss://ws-feed.pro.coinbase.com", nil)
+	if err != nil {
+		println(err.Error())
+	}
+	s.wsConn = SwConn
 	if scrape {
 		go s.mainLoop()
 	}
@@ -55,30 +56,81 @@ func NewCustomScraper(key string, secret string, exchange dia.Exchange, scrape b
 
 // mainLoop runs in a goroutine until channel s is closed.
 func (s *CustomScraper) mainLoop() {
+	var err error
+	tmFalseDuplicateTrades := timedmap.New(duplicateTradesScanFrequency)
+	tmDuplicateTrades := timedmap.New(duplicateTradesScanFrequency)
+
 	for {
-		select {
-		case <-s.ticker.C:
-			s.Update()
-		case <-s.shutdown: // user requested shutdown
-			log.Printf("CustomScraper shutting down")
-			s.cleanup(nil)
-			return
+		message := gdax.Message{}
+		if err = s.wsConn.ReadJSON(&message); err != nil {
+			println(err.Error())
+			break
+		}
+		if message.Type == ChannelTicker {
+			ps, ok := s.pairScrapers[message.ProductID]
+			if ok {
+				var f64Price float64
+				var f64Volume float64
+				var exchangepair dia.ExchangePair
+				f64Price, err = strconv.ParseFloat(message.Price, 64)
+				if err == nil {
+					f64Volume, err = strconv.ParseFloat(message.LastSize, 64)
+					if err == nil {
+						if message.TradeID != 0 {
+							if message.Side == "sell" {
+								f64Volume = -f64Volume
+							}
+
+							exchangepair, err = s.db.GetExchangePairCache(s.exchangeName, message.ProductID)
+							if err != nil {
+								log.Error("get exchangepair from cache: ", err)
+							}
+							t := &dia.Trade{
+								Symbol:         ps.pair.Symbol,
+								Pair:           message.ProductID,
+								Price:          f64Price,
+								Volume:         f64Volume,
+								Time:           message.Time.Time(),
+								ForeignTradeID: strconv.FormatInt(int64(message.TradeID), 16),
+								Source:         s.exchangeName,
+								VerifiedPair:   exchangepair.Verified,
+								BaseToken:      exchangepair.UnderlyingPair.BaseToken,
+								QuoteToken:     exchangepair.UnderlyingPair.QuoteToken,
+							}
+							if t.VerifiedPair {
+								log.Info("got verified trade: ", t)
+							}
+							// Handle duplicate trades.
+							discardTrade := t.IdentifyDuplicateFull(tmFalseDuplicateTrades, duplicateTradesMemory)
+							if !discardTrade {
+								t.IdentifyDuplicateTagset(tmDuplicateTrades, duplicateTradesMemory)
+								ps.parent.chanTrades <- t
+							}
+
+						}
+					} else {
+						log.Error("error parsing LastSize " + message.LastSize)
+					}
+				} else {
+					log.Error("error parsing price " + message.Price)
+				}
+			} else {
+				log.Error("unknown productError" + message.ProductID)
+			}
 		}
 	}
+	s.cleanup(err)
 }
 
 // closes all connected PairScrapers
 // must only be called from mainLoop
 func (s *CustomScraper) cleanup(err error) {
-
 	s.errorLock.Lock()
 	defer s.errorLock.Unlock()
-
 	if err != nil {
 		s.error = err
 	}
 	s.closed = true
-
 	close(s.shutdownDone) // signal that shutdown is complete
 }
 
@@ -88,6 +140,10 @@ func (s *CustomScraper) Close() error {
 	if s.closed {
 		return errors.New("CustomScraper: Already closed")
 	}
+	err := s.wsConn.Close()
+	if err != nil {
+		log.Error(err)
+	}
 	close(s.shutdown)
 	<-s.shutdownDone
 	s.errorLock.RLock()
@@ -95,7 +151,64 @@ func (s *CustomScraper) Close() error {
 	return s.error
 }
 
-// CustomPairScraper implements PairScraper for Kraken
+func (s *CustomScraper) NormalizePair(pair dia.ExchangePair) (dia.ExchangePair, error) {
+	// str := strings.Split(pair.ForeignName, "-")
+	// symbol := str[0]
+	// pair.Symbol = symbol
+	// if helpers.NameForSymbol(symbol) == symbol {
+	// 	return pair, errors.New("Foreign name can not be normalized:" + pair.ForeignName + " symbol:" + symbol)
+	// }
+	// if helpers.SymbolIsBlackListed(symbol) {
+	// 	return pair, errors.New("Symbol is black listed:" + symbol)
+	// }
+	return pair, nil
+
+}
+
+// FetchAvailablePairs returns a list with all available trade pairs
+func (s *CustomScraper) FetchAvailablePairs() (pairs []dia.ExchangePair, err error) {
+
+	data, _, err := utils.GetRequest("https://api.pro.coinbase.com/products")
+	if err != nil {
+		return
+	}
+	var ar []gdax.Product
+	err = json.Unmarshal(data, &ar)
+	if err == nil {
+		for _, p := range ar {
+			pairToNormalise := dia.ExchangePair{
+				Symbol:      p.BaseCurrency,
+				ForeignName: p.ID,
+				Exchange:    s.exchangeName,
+			}
+			pair, serr := s.NormalizePair(pairToNormalise)
+			if serr == nil {
+				pairs = append(pairs, pair)
+			} else {
+				log.Error(serr)
+			}
+		}
+	}
+	return
+}
+
+// FillSymbolData collects all available information on an asset traded on CoinBase
+func (s *CustomScraper) FillSymbolData(symbol string) (asset dia.Asset, err error) {
+	var response gdax.Currency
+	data, _, err := utils.GetRequest("https://api.pro.coinbase.com/currencies/" + symbol)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(data, &response)
+	if err != nil {
+		return
+	}
+	asset.Symbol = response.ID
+	asset.Name = response.Name
+	return asset, nil
+}
+
+// CustomPairScraper implements PairScraper for GDax
 type CustomPairScraper struct {
 	parent     *CustomScraper
 	pair       dia.ExchangePair
@@ -121,46 +234,30 @@ func (s *CustomScraper) ScrapePair(pair dia.ExchangePair) (PairScraper, error) {
 		lastRecord: 0, //TODO FIX to figure out the last we got...
 	}
 
-	s.pairScrapers[pair.Symbol] = ps
+	s.pairScrapers[pair.ForeignName] = ps
+
+	subscribe := gdax.Message{
+		Type: "subscribe",
+		Channels: []gdax.MessageChannel{
+			{
+				Name: ChannelHeartbeat,
+				ProductIds: []string{
+					pair.ForeignName,
+				},
+			},
+			{
+				Name: ChannelTicker,
+				ProductIds: []string{
+					pair.ForeignName,
+				},
+			},
+		},
+	}
+	if err := s.wsConn.WriteJSON(subscribe); err != nil {
+		println(err.Error())
+	}
 
 	return ps, nil
-}
-
-func (s *CustomScraper) FillSymbolData(symbol string) (dia.Asset, error) {
-	return dia.Asset{Symbol: symbol}, nil
-}
-
-// FetchAvailablePairs returns a list with all available trade pairs
-func (s *CustomScraper) FetchAvailablePairs() (pairs []dia.ExchangePair, err error) {
-	return []dia.ExchangePair{}, errors.New("FetchAvailablePairs() not implemented")
-}
-
-// NormalizePair accounts for the par
-func (ps *CustomScraper) NormalizePair(pair dia.ExchangePair) (dia.ExchangePair, error) {
-	if len(pair.ForeignName) == 7 {
-		if pair.ForeignName[4:5] == "Z" || pair.ForeignName[4:5] == "X" {
-			pair.ForeignName = pair.ForeignName[:4] + pair.ForeignName[5:]
-			return pair, nil
-		}
-		if pair.ForeignName[:1] == "Z" || pair.ForeignName[:1] == "X" {
-			pair.ForeignName = pair.ForeignName[1:]
-		}
-	}
-	if len(pair.ForeignName) == 8 {
-		if pair.ForeignName[4:5] == "Z" || pair.ForeignName[4:5] == "X" {
-			pair.ForeignName = pair.ForeignName[:4] + pair.ForeignName[5:]
-		}
-		if pair.ForeignName[:1] == "Z" || pair.ForeignName[:1] == "X" {
-			pair.ForeignName = pair.ForeignName[1:]
-		}
-	}
-	if pair.ForeignName[len(pair.ForeignName)-3:] == "XBT" {
-		pair.ForeignName = pair.ForeignName[:len(pair.ForeignName)-3] + "BTC"
-	}
-	if pair.ForeignName[:3] == "XBT" {
-		pair.ForeignName = "BTC" + pair.ForeignName[len(pair.ForeignName)-3:]
-	}
-	return pair, nil
 }
 
 // Channel returns a channel that can be used to receive trades/pricing information
@@ -185,31 +282,4 @@ func (ps *CustomPairScraper) Error() error {
 // Pair returns the pair this scraper is subscribed to
 func (ps *CustomPairScraper) Pair() dia.ExchangePair {
 	return ps.pair
-}
-
-func (s *CustomScraper) Update() {
-	tmDuplicateTrades := timedmap.New(duplicateTradesScanFrequency)
-
-	for _, ps := range s.pairScrapers {
-
-		r, err := s.api.Trades(ps.pair.ForeignName, ps.lastRecord)
-
-		if err != nil {
-			log.Printf("err on collect trades %v %v", err, ps.pair.ForeignName)
-			time.Sleep(1 * time.Minute)
-		} else {
-			if r != nil {
-				ps.lastRecord = r.Last
-				for _, ti := range r.Trades {
-					// p, _ := s.NormalizePair(ps.pair)
-					t := NewTrade(ps.pair, ti, strconv.FormatInt(r.Last, 16), s.db)
-					// Handle duplicate trades.
-					t.IdentifyDuplicateTagset(tmDuplicateTrades, duplicateTradesMemory)
-					ps.parent.chanTrades <- t
-				}
-			} else {
-				log.Printf("r nil")
-			}
-		}
-	}
 }
