@@ -26,7 +26,7 @@ type CustomScraper struct {
 	errorLock    sync.RWMutex
 	error        error
 	closed       bool
-	pairScrapers map[string]*KrakenPairScraper // pc.ExchangePair -> pairScraperSet
+	pairScrapers map[string]*CustomPairScraper // pc.ExchangePair -> pairScraperSet
 	api          *krakenapi.KrakenApi
 	ticker       *time.Ticker
 	exchangeName string
@@ -40,7 +40,7 @@ func NewCustomScraper(key string, secret string, exchange dia.Exchange, scrape b
 	s := &CustomScraper{
 		shutdown:     make(chan nothing),
 		shutdownDone: make(chan nothing),
-		pairScrapers: make(map[string]*KrakenPairScraper),
+		pairScrapers: make(map[string]*CustomPairScraper),
 		api:          krakenapi.New(key, secret),
 		ticker:       time.NewTicker(krakenRefreshDelay),
 		exchangeName: exchange.Name,
@@ -112,8 +112,8 @@ func (s *CustomScraper) Close() error {
 	return s.error
 }
 
-// KrakenPairScraper implements PairScraper for Kraken
-type KrakenPairScraper struct {
+// CustomPairScraper implements PairScraper for Kraken
+type CustomPairScraper struct {
 	parent     *CustomScraper
 	pair       dia.ExchangePair
 	closed     bool
@@ -132,7 +132,7 @@ func (s *CustomScraper) ScrapePair(pair dia.ExchangePair) (PairScraper, error) {
 	if s.closed {
 		return nil, errors.New("CustomScraper: Call ScrapePair on closed scraper")
 	}
-	ps := &KrakenPairScraper{
+	ps := &CustomPairScraper{
 		parent:     s,
 		pair:       pair,
 		lastRecord: 0, //TODO FIX to figure out the last we got...
@@ -185,14 +185,14 @@ func (ps *CustomScraper) Channel() chan *dia.Trade {
 	return ps.chanTrades
 }
 
-func (ps *KrakenPairScraper) Close() error {
+func (ps *CustomPairScraper) Close() error {
 	ps.closed = true
 	return nil
 }
 
 // Error returns an error when the channel Channel() is closed
 // and nil otherwise
-func (ps *KrakenPairScraper) Error() error {
+func (ps *CustomPairScraper) Error() error {
 	s := ps.parent
 	s.errorLock.RLock()
 	defer s.errorLock.RUnlock()
@@ -200,7 +200,7 @@ func (ps *KrakenPairScraper) Error() error {
 }
 
 // Pair returns the pair this scraper is subscribed to
-func (ps *KrakenPairScraper) Pair() dia.ExchangePair {
+func (ps *CustomPairScraper) Pair() dia.ExchangePair {
 	return ps.pair
 }
 
@@ -209,7 +209,7 @@ func NewTrade(pair dia.ExchangePair, info krakenapi.TradeInfo, foreignTradeID st
 	if info.Sell {
 		volume = -volume
 	}
-	exchangepair, err := relDB.GetExchangePairCache(dia.KrakenExchange, pair.ForeignName)
+	exchangepair, err := relDB.GetExchangePairCache(dia.CustomExchange, pair.ForeignName)
 	if err != nil {
 		log.Error("get exchangepair from cache: ", err)
 	}
@@ -220,7 +220,7 @@ func NewTrade(pair dia.ExchangePair, info krakenapi.TradeInfo, foreignTradeID st
 		Volume:         volume,
 		Time:           time.Unix(info.Time, 0),
 		ForeignTradeID: foreignTradeID,
-		Source:         dia.KrakenExchange,
+		Source:         dia.CustomExchange,
 		VerifiedPair:   exchangepair.Verified,
 		BaseToken:      exchangepair.UnderlyingPair.BaseToken,
 		QuoteToken:     exchangepair.UnderlyingPair.QuoteToken,

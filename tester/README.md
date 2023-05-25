@@ -14,8 +14,19 @@ minikube image build -t diadata.filtersblockservice:latest -f build/Dockerfile-f
 minikube image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService diadata
 ```
 
+* Install the platform by running the script:
+
+```shell
+kubectl create -f tester/deployments/k8s-yaml/influx.yaml
+kubectl create -f tester/deployments/k8s-yaml/redis.yaml
+kubectl create -f tester/deployments/k8s-yaml/postgres.yaml
+kubectl create -f tester/deployments/k8s-yaml/kafka.yaml
+kubectl create -f tester/deployments/k8s-yaml/tradesblockservice.yaml
+kubectl create -f tester/deployments/k8s-yaml/filtersblockservice.yaml
+```
+
 * Add the custom scraper
-* Modify the build/Dockerfile-genericCollector and the build/Dockerfile-pairDiscoveryService file and add these two Dockerfile lines before the RUN go mod tidy step:
+* Modify the `build/Dockerfile-genericCollector` and the `build/Dockerfile-pairDiscoveryService` file and add these two Dockerfile lines before the RUN go mod tidy step:
 
 ```dockerfile
 COPY . /diadata
@@ -27,18 +38,6 @@ RUN go mod edit -replace github.com/diadata-org/diadata=/diadata
 ```shell
 minikube image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService diadata
 minikube image build -t diadata.exchangescrapercollector:latest -f build/Dockerfile-genericCollector diadata
-```
-
-* You can go back to project root directory: `cd ../..`
-* Install the platform by running the script:
-
-```shell
-kubectl create -f tester/deployments/k8s-yaml/influx.yaml
-kubectl create -f tester/deployments/k8s-yaml/redis.yaml
-kubectl create -f tester/deployments/k8s-yaml/postgres.yaml
-kubectl create -f tester/deployments/k8s-yaml/kafka.yaml
-kubectl create -f tester/deployments/k8s-yaml/tradesblockservice.yaml
-kubectl create -f tester/deployments/k8s-yaml/filtersblockservice.yaml
 ```
 
 * Wait for the services to start and finally you can install the scrapers:
@@ -78,4 +77,3 @@ kubectl delete -f tester/deployments/k8s-yaml/influx.yaml
 
 * Now you can safely stop the cluster: `minikube stop`
 * Delete the cluster node: `minikube delete`
-* Also, can remove the files: `rm -rf mounts/`
