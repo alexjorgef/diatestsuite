@@ -3,7 +3,7 @@
 ## Start and install
 
 * Start the local cluster: `minikube start`
-* Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git --depth 1 diadata`
+* Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git -b v1.4.241 --depth 1 diadata`
 * Copy modified files: `cp -Rf tester/* diadata/`
 * Build the containers into cluster:
 

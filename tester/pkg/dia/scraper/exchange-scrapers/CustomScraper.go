@@ -2,7 +2,6 @@ package scrapers
 
 import (
 	"errors"
-	"math"
 	"strconv"
 	"sync"
 	"time"
@@ -14,7 +13,7 @@ import (
 )
 
 const (
-	krakenRefreshDelay = time.Second * 30 * 1
+	customRefreshDelay = time.Second * 30 * 1
 )
 
 type CustomScraper struct {
@@ -42,7 +41,7 @@ func NewCustomScraper(key string, secret string, exchange dia.Exchange, scrape b
 		shutdownDone: make(chan nothing),
 		pairScrapers: make(map[string]*CustomPairScraper),
 		api:          krakenapi.New(key, secret),
-		ticker:       time.NewTicker(krakenRefreshDelay),
+		ticker:       time.NewTicker(customRefreshDelay),
 		exchangeName: exchange.Name,
 		error:        nil,
 		chanTrades:   make(chan *dia.Trade),
@@ -52,22 +51,6 @@ func NewCustomScraper(key string, secret string, exchange dia.Exchange, scrape b
 		go s.mainLoop()
 	}
 	return s
-}
-
-func Round(x, unit float64) float64 {
-	return math.Round(x/unit) * unit
-}
-
-// func neededBalanceAdjustement(current float64, minChange float64, desired float64) (float64, string) {
-// 	obj := desired - current
-// 	roundedObj := Round(obj, minChange)
-// 	message := fmt.Sprintf("current position: %v, min change: %v, desired position: %v, delta current/desired: %v, rounded delta: %v", current, minChange, desired, obj, roundedObj)
-// 	return roundedObj, message
-// }
-
-func FloatToString(input_num float64) string {
-	// to convert a float number to a string
-	return strconv.FormatFloat(input_num, 'f', -1, 64)
 }
 
 // mainLoop runs in a goroutine until channel s is closed.
@@ -202,34 +185,6 @@ func (ps *CustomPairScraper) Error() error {
 // Pair returns the pair this scraper is subscribed to
 func (ps *CustomPairScraper) Pair() dia.ExchangePair {
 	return ps.pair
-}
-
-func NewTrade(pair dia.ExchangePair, info krakenapi.TradeInfo, foreignTradeID string, relDB *models.RelDB) *dia.Trade {
-	volume := info.VolumeFloat
-	if info.Sell {
-		volume = -volume
-	}
-	exchangepair, err := relDB.GetExchangePairCache(dia.CustomExchange, pair.ForeignName)
-	if err != nil {
-		log.Error("get exchangepair from cache: ", err)
-	}
-	t := &dia.Trade{
-		Pair:           pair.ForeignName,
-		Price:          info.PriceFloat,
-		Symbol:         pair.Symbol,
-		Volume:         volume,
-		Time:           time.Unix(info.Time, 0),
-		ForeignTradeID: foreignTradeID,
-		Source:         dia.CustomExchange,
-		VerifiedPair:   exchangepair.Verified,
-		BaseToken:      exchangepair.UnderlyingPair.BaseToken,
-		QuoteToken:     exchangepair.UnderlyingPair.QuoteToken,
-	}
-	if exchangepair.Verified {
-		log.Infoln("Got verified trade", t)
-	}
-
-	return t
 }
 
 func (s *CustomScraper) Update() {
