@@ -13,6 +13,49 @@ This will setup a [Minikube](https://github.com/kubernetes/minikube) cluster, ru
 
 ## Guides and tutorials
 
+### How to add a new exchange scraper
+
+```go
+type APIScraper interface {
+	io.Closer
+	// ScrapePair returns a PairScraper that continuously scrapes trades for a
+	// single pair from this APIScraper
+	ScrapePair(pair dia.Pair) (PairScraper, error) // only for centralized exchanges
+	// FetchAvailablePairs returns a list with all available trade pairs (usually
+	// fetched from an exchange's API)
+	FetchAvailablePairs() (pairs []dia.Pair, err error)
+	// Channel returns a channel that can be used to receive trades
+	Channel() chan *dia.Trade
+  // TODO
+  FillSymbolData(symbol string) (asset dia.Asset, err error)
+  // TODO
+  NormalizePair(pair dia.ExchangePair) (dia.ExchangePair, error)
+}
+type PairScraper interface {
+	io.Closer
+	// Error returns an error when the channel Channel() is closed
+	// and nil otherwise
+	Error() error
+	// Pair returns the pair this scraper is subscribed to
+	Pair() dia.ExchangePair
+}
+```
+
+Other common methods (totally optional):
+
+```go
+//  ExchangeScraper
+func (s *ExchangeScraper) mainLoop() {}
+  -> func (s *ExchangeScraper) cleanup() {}
+func (s *ExchangeScraper) ping() {}
+func (s *ExchangeScraper) subscribe(pair dia.ExchangePair) error {}
+func (s *ExchangeScraper) unsubscribe(pair dia.ExchangePair) error {}
+func (s *ExchangeScraper) isClosed() bool {}
+func (s *ExchangeScraper) close() {}
+func (s *ExchangeScraper) error() error {}
+func (s *ExchangeScraper) setError(err error) {}
+```
+
 ### How to add a new foreign scraper
 
 Scrapers are all at: `pkg/dia/scraper/foreign-scrapers/` and interfaces are at `pkg/dia/scraper/foreign-scrapers/Scrapper.go`

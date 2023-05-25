@@ -26,10 +26,11 @@ kubectl create -f tester/deployments/k8s-yaml/filtersblockservice.yaml
 ```
 
 * Add the custom scraper
-  * pkg/dia/scraper/exchange-scrapers/APIScraper.go
   * pkg/dia/scraper/exchange-scrapers/CustomScraper.go
   * pkg/dia/Config.go
+  * pkg/dia/scraper/exchange-scrapers/APIScraper.go
   * config/Custom.json
+
 * Modify the `build/Dockerfile-genericCollector` and the `build/Dockerfile-pairDiscoveryService` file and add these two Dockerfile lines before the RUN go mod tidy step:
 
 ```dockerfile
@@ -47,7 +48,7 @@ minikube image build -t diadata.exchangescrapercollector:latest -f build/Dockerf
 * Add a new entry to exchange table database:
 
 ```shell
-kubectl exec -it deployment/postgres -- psql -U postgres -c "INSERT INTO public.exchange (exchange_id, "name", centralized, bridge, contract, blockchain, rest_api, ws_api, pairs_api, watchdog_delay, scraper_active) VALUES(gen_random_uuid(), 'Custom', true, false, '', '', '', 'wss://ws-feed.pro.coinbase.com', 'https://api.pro.coinbase.com/products', 300, true);"
+kubectl exec -it deployment/postgres -- psql -U postgres -c "INSERT INTO exchange (exchange_id, "name", centralized, bridge, contract, blockchain, rest_api, ws_api, pairs_api, watchdog_delay, scraper_active) VALUES(gen_random_uuid(), 'Custom', true, false, '', '', '', 'wss://ws-feed.pro.coinbase.com', 'https://api.pro.coinbase.com/products', 300, true);"
 ```
 
 * Wait for the services to start and finally you can install your scraper:
