@@ -50,11 +50,15 @@ minikube image build -t diadata.exchangescrapercollector:latest -f build/Dockerf
 kubectl exec -it deployment/postgres -- psql -U postgres -c "INSERT INTO public.exchange (exchange_id, "name", centralized, bridge, contract, blockchain, rest_api, ws_api, pairs_api, watchdog_delay, scraper_active) VALUES(gen_random_uuid(), 'Custom', true, false, '', '', '', 'wss://ws-feed.pro.coinbase.com', 'https://api.pro.coinbase.com/products', 300, true);"
 ```
 
-* Wait for the services to start and finally you can install the scrapers:
+* Wait for the services to start and finally you can install your scraper:
 
 ```shell
 kubectl create -f tester/deployments/k8s-yaml/exchangescraper-custom.yaml
+```
 
+* Also, can test with a pre-configured scrapers:
+
+```shell
 kubectl create -f tester/deployments/k8s-yaml/exchangescraper-bitfinex.yaml
 kubectl create -f tester/deployments/k8s-yaml/exchangescraper-bittrex.yaml
 kubectl create -f tester/deployments/k8s-yaml/exchangescraper-coinbase.yaml
@@ -63,11 +67,15 @@ kubectl create -f tester/deployments/k8s-yaml/exchangescraper-mexc.yaml
 
 ## Stop and Uninstall
 
-* To uninstall the scrapers:
+* To uninstall your scraper:
 
 ```shell
 kubectl delete -f tester/deployments/k8s-yaml/exchangescraper-custom.yaml
+```
 
+* To uninstall the scrapers:
+
+```shell
 kubectl delete -f tester/deployments/k8s-yaml/exchangescraper-bitfinex.yaml
 kubectl delete -f tester/deployments/k8s-yaml/exchangescraper-bittrex.yaml
 kubectl delete -f tester/deployments/k8s-yaml/exchangescraper-coinbase.yaml
