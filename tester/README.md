@@ -3,17 +3,15 @@
 ## Start and install
 
 * Start the local cluster: `minikube start`
-* Create a directory for mounts: `mkdir -p mounts`
 * Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git --depth 1 diadata`
-* Copy modified files: `cp -Rf tester/* mounts/diadata-tester/`
-* Make sure you are in the injected *mounts/diadata-tester/* directory: `cd mounts/diadata-tester/`
+* Copy modified files: `cp -Rf tester/* diadata/`
 * Build the containers into cluster:
 
 ```shell
-minikube image build -t us.icr.io/dia-registry/devops/build:latest -f diadata/build/build/Dockerfile-DiadataBuild ./diadata
-minikube image build -t us.icr.io/dia-registry/devops/build-117:latest -f diadata/build/build/Dockerfile-DiadataBuild-117 ./diadata
-minikube image build -t diadata.filtersblockservice:latest -f diadata/build/Dockerfile-filtersBlockService ./diadata
-minikube image build -t diadata.tradesblockservice:latest -f diadata/build/Dockerfile-tradesBlockService ./diadata
+minikube image build -t us.icr.io/dia-registry/devops/build:latest -f build/build/Dockerfile-DiadataBuild diadata
+minikube image build -t us.icr.io/dia-registry/devops/build-117:latest -f build/build/Dockerfile-DiadataBuild-117 diadata
+minikube image build -t diadata.filtersblockservice:latest -f build/Dockerfile-filtersBlockService diadata
+minikube image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService diadata
 ```
 
 * Add the custom scraper
@@ -27,8 +25,8 @@ RUN go mod edit -replace github.com/diadata-org/diadata=/diadata
 * Build the necessary service's containers:
 
 ```shell
-minikube image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService .
-minikube image build -t diadata.exchangescrapercollector:latest -f build/Dockerfile-genericCollector .
+minikube image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService diadata
+minikube image build -t diadata.exchangescrapercollector:latest -f build/Dockerfile-genericCollector diadata
 ```
 
 * You can go back to project root directory: `cd ../..`
@@ -46,6 +44,8 @@ kubectl create -f tester/deployments/k8s-yaml/filtersblockservice.yaml
 * Wait for the services to start and finally you can install the scrapers:
 
 ```shell
+kubectl create -f tester/deployments/k8s-yaml/exchangescraper-custom.yaml
+
 kubectl create -f tester/deployments/k8s-yaml/exchangescraper-bitfinex.yaml
 kubectl create -f tester/deployments/k8s-yaml/exchangescraper-bittrex.yaml
 kubectl create -f tester/deployments/k8s-yaml/exchangescraper-coinbase.yaml
@@ -57,6 +57,8 @@ kubectl create -f tester/deployments/k8s-yaml/exchangescraper-mexc.yaml
 * To uninstall the scrapers:
 
 ```shell
+kubectl delete -f tester/deployments/k8s-yaml/exchangescraper-custom.yaml
+
 kubectl delete -f tester/deployments/k8s-yaml/exchangescraper-bitfinex.yaml
 kubectl delete -f tester/deployments/k8s-yaml/exchangescraper-bittrex.yaml
 kubectl delete -f tester/deployments/k8s-yaml/exchangescraper-coinbase.yaml
