@@ -33,7 +33,7 @@ This is a suite of scripts/tools for facilitating the test proccess of DIA platf
 
 ---
 
-## Development
+## Development Guide
 
 This section will cover the development instructions for the following products:
 
@@ -46,8 +46,8 @@ This section will cover the development instructions for the following products:
 
 > Note: Make sure you are at the root directory of this repo!
 
-1. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git -b v1.4.241 --depth 1 diadata`
-2. Copy modified files: `cp -Rf tester/* diadata/`
+1. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git -b v1.4.241 --depth 1 .temp-tester`
+2. Copy modified files: `cp -Rf tester/* .temp-tester/`
 
 #### Start the cluster
 
@@ -67,21 +67,21 @@ minikube image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tr
 2. Install the platform by running the script:
 
 ```shell
-kubectl create -f tester/deployments/k8s-yaml/influx.yaml
-kubectl create -f tester/deployments/k8s-yaml/redis.yaml
-kubectl create -f tester/deployments/k8s-yaml/postgres.yaml
-kubectl create -f tester/deployments/k8s-yaml/kafka.yaml
-kubectl create -f tester/deployments/k8s-yaml/tradesblockservice.yaml
-kubectl create -f tester/deployments/k8s-yaml/filtersblockservice.yaml
+kubectl create -f ./.temp-tester/deployments/k8s-yaml/influx.yaml
+kubectl create -f ./.temp-tester/deployments/k8s-yaml/redis.yaml
+kubectl create -f ./.temp-tester/deployments/k8s-yaml/postgres.yaml
+kubectl create -f ./.temp-tester/deployments/k8s-yaml/kafka.yaml
+kubectl create -f ./.temp-tester/deployments/k8s-yaml/tradesblockservice.yaml
+kubectl create -f ./.temp-tester/deployments/k8s-yaml/filtersblockservice.yaml
 ```
 
 #### Develop on the platform
 
-##### Modify an existing scraper
+##### Test an existing scraper
 
 WIP...
 
-##### Add a new scraper
+##### Test a new scraper
 
 1. Add the custom scraper files:
 
@@ -100,8 +100,8 @@ RUN go mod edit -replace github.com/diadata-org/diadata=/diadata
 3. Build the necessary service's containers:
 
 ```shell
-minikube image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService diadata
-minikube image build -t diadata.exchangescrapercollector:latest -f build/Dockerfile-genericCollector diadata
+minikube image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService ./.temp-tester/
+minikube image build -t diadata.exchangescrapercollector:latest -f build/Dockerfile-genericCollector ./.temp-tester/
 ```
 
 4. Add a new entry to exchange table database:
@@ -117,13 +117,13 @@ kubectl exec -it deployment/postgres -- psql -U postgres -c "INSERT INTO exchang
 For creating:
 
 ```shell
-kubectl create -f tester/deployments/k8s-yaml/exchangescraper-custom.yaml
+kubectl create -f ./.temp-tester/deployments/k8s-yaml/exchangescraper-custom.yaml
 ```
 
 For deleting:
 
 ```shell
-kubectl delete -f tester/deployments/k8s-yaml/exchangescraper-custom.yaml
+kubectl delete -f ./.temp-tester/deployments/k8s-yaml/exchangescraper-custom.yaml
 ```
 
 #### Uninstall the platform
@@ -131,62 +131,73 @@ kubectl delete -f tester/deployments/k8s-yaml/exchangescraper-custom.yaml
 Uninstall the DIA services:
 
 ```shell
-kubectl delete -f tester/deployments/k8s-yaml/filtersblockservice.yaml
-kubectl delete -f tester/deployments/k8s-yaml/tradesblockservice.yaml
-kubectl delete -f tester/deployments/k8s-yaml/kafka.yaml
-kubectl delete -f tester/deployments/k8s-yaml/postgres.yaml
-kubectl delete -f tester/deployments/k8s-yaml/redis.yaml
-kubectl delete -f tester/deployments/k8s-yaml/influx.yaml
+kubectl delete -f ./.temp-tester/deployments/k8s-yaml/filtersblockservice.yaml
+kubectl delete -f ./.temp-tester/deployments/k8s-yaml/tradesblockservice.yaml
+kubectl delete -f ./.temp-tester/deployments/k8s-yaml/kafka.yaml
+kubectl delete -f ./.temp-tester/deployments/k8s-yaml/postgres.yaml
+kubectl delete -f ./.temp-tester/deployments/k8s-yaml/redis.yaml
+kubectl delete -f ./.temp-tester/deployments/k8s-yaml/influx.yaml
 ```
 
 #### Cluster stop
 
 You can stop the cluster with `minikube stop` command
 
-#### Cluster clean
+#### Cluster delete
 
-Delete the cluster node with `minikube delete` command
+1. Delete the cluster node completly with `minikube delete` command
+2. Also, can remove the temporary files of mount:
+
+```sh
+rm -rf ./.temp-tester/
+```
 
 ### Dumper
 
 #### Prepare files
 
-> Note: Make sure you are at the root directory of this repo!
-
-1. Create a directory for mounts: `mkdir -p mounts/`
-2. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git --depth 1 mounts/diadata-dumper`
-3. Copy modified files: `cp -Rf dumper/* mounts/diadata-dumper/`
+2. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git -b v1.4.241 --depth 1 .temp-dumper`
+3. Copy modified files: `cp -Rf dumper/* ./.temp-dumper/`
 
 #### Start the cluster
 
-> Note: Now, make sure you are in the injected *mounts/diadata-dumper/* directory: `cd mounts/diadata-dumper/`!
-
-Start the local cluster by running the script: `./scripts/minikubeStart.sh`
+Start the local cluster by running the script: `./.temp-dumper/scripts/minikubeStart.sh`
 
 #### Install the platform
 
-1. Build the containers into cluster: `./scripts/minikubeBuild.sh`
-2. Services and exchange scrapers: `./scripts/minikubeInstallPreSnap.sh`
-3. Make sure you return to previous folder, the root directory of the project: `cd ../..`
-4.  Create the shared folder for postgres: `mkdir -p mounts/postgres-dump`
-5. Mount a shared volume for PostgreSQL to dump: `minikube mount --profile diadata-dumper "$(pwd)/mounts/postgres-dump:/data/shared-postgres" --uid 70 --gid 70` (Note that uid 70 and gid 70 is due to postgres alpine image, normal image have different permissions)
-6. Back again to *mounts/diadata-dumper/* directory: `cd mounts/diadata-dumper/`
+1. Build the containers into cluster: `./.temp-dumper/scripts/minikubeBuild.sh`
+2. Services and exchange scrapers: `./.temp-dumper/scripts/minikubeInstallPreSnap.sh`
+3. Create a folder for PostgreSQL dump: `mkdir -p .mount-dumper-postgresdump`
+4. Mount the folder of your host filesystem as a shared volume in the cluster: `minikube mount --profile diadata-dumper "$(pwd)/.mount-dumper-postgresdump:/data/shared-postgres" --uid 70 --gid 70` (Note that uid 70 and gid 70 is due to postgres alpine image, normal image have different permissions)
 
-#### Install the cronjob
+#### Test the cronjob
 
-1. Snapshot cronjob: `./scripts/minikubeInstallSnap.sh`
+Create a snapshot's cronjob:
+
+```shell
+./.temp-dumper/scripts/minikubeInstallSnap.sh
+```
+
+Deleting a snapshot's cronjob:
+
+```shell
+./.temp-dumper/scripts/minikubeUninstallSnap.sh
+```
 
 #### Uninstall the platform
 
-1. Make sure you are in the injected `mounts/diadata-dumper/` directory
-2. Uninstall the platform: `./scripts/minikubeUninstallSnap.sh`, `./scripts/minikubeUninstallPreSnap.sh`
-3. Now you can safely stop the cluster: `./scripts/minikubeStop.sh`
+Uninstall the platform: `./.temp-dumper/scripts/minikubeUninstallPreSnap.sh`
 
 #### Cluster stop
 
-1. Now you can safely stop the cluster: `./scripts/minikubeStop.sh`
+Now you can safely stop the cluster: `./.temp-dumper/scripts/minikubeStop.sh`
 
-#### Cluster clean
+#### Cluster delete
 
-1. Delete the cluster node: `./scripts/minikubeDelete.sh`
-2. Also, can remove the files: `rm -rf mounts/`
+1. Delete the cluster node completly: `./.temp-dumper/scripts/minikubeDelete.sh`
+2. Also, can remove the temporary files of mount:
+
+```sh
+rm -rf ./.mount-dumper-postgresdump/
+rm -rf ./.temp-dumper/
+```
