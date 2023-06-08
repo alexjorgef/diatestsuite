@@ -8,13 +8,11 @@
 
 ---
 
-## Development
-
-### Dumper
+## Development w/ Dumper
 
 Dump a snapshot of relational data from an existing PostgreSQL database and push it to a Docker registry
 
-#### Start the cluster and prepare files
+### Start the cluster and prepare files
 
 > Note: Make sure you are at the root directory of this repo!
 
@@ -30,26 +28,28 @@ Dump a snapshot of relational data from an existing PostgreSQL database and push
 10. Mount a shared volume for PostgreSQL to dump: `minikube mount --profile diadata-dumper "$(pwd)/mounts/postgres-dump:/data/shared-postgres" --uid 70 --gid 70` (Note that uid 70 and gid 70 is due to postgres alpine image, normal image have different permissions)
 11. Back again to *mounts/diadata-dumper/* directory: `cd mounts/diadata-dumper/`
 
-#### Install
+### Install
 
 1. Snapshot cronjob: `./scripts/minikubeInstallSnap.sh`
 
-#### Stop and Uninstall
+### Stop and Uninstall
 
 1. Make sure you are in the injected `mounts/diadata-dumper/` directory
 2. Uninstall the platform: `./scripts/minikubeUninstallSnap.sh`, `./scripts/minikubeUninstallPreSnap.sh`
 3. Now you can safely stop the cluster: `./scripts/minikubeStop.sh`
 
-#### Cluster clean
+### Cluster clean
 
 1. Delete the cluster node: `./scripts/minikubeDelete.sh`
 2. Also, can remove the files: `rm -rf mounts/`
 
-### Tester
+---
+
+## Development w/ Tester
 
 Create a new test space environment for DIA platform
 
-#### Start the cluster and prepare files
+### Start the cluster and prepare files
 
 > Note: Make sure you are at the root directory of this repo!
 
@@ -65,7 +65,7 @@ minikube image build -t diadata.filtersblockservice:latest -f build/Dockerfile-f
 minikube image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService diadata
 ```
 
-#### Install
+### Install
 
 1. Install the platform by running the script:
 
@@ -120,7 +120,7 @@ kubectl create -f tester/deployments/k8s-yaml/exchangescraper-coinbase.yaml
 kubectl create -f tester/deployments/k8s-yaml/exchangescraper-mexc.yaml
 ```
 
-#### Stop and Uninstall
+### Stop and Uninstall
 
 1. To uninstall your scraper:
 
@@ -150,6 +150,6 @@ kubectl delete -f tester/deployments/k8s-yaml/influx.yaml
 
 4. Now you can safely stop the cluster: `minikube stop`
 
-#### Cluster clean
+### Cluster clean
 
 1. Delete the cluster node: `minikube delete`
