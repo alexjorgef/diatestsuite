@@ -1,4 +1,8 @@
-# diatestsuite
+# DIA Test Suite
+
+This is a suite of scripts/tools for facilitating the test proccess of DIA platform.
+
+Wiki contains proposal documents for future versions of official documentation ([docs.diadata.org](https://docs.diadata.org)), with detailed instructions for users.
 
 ## Requirements
 
