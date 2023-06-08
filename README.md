@@ -58,21 +58,27 @@ Start the local cluster with `minikube start` command
 1. Build the containers into cluster:
 
 ```shell
-minikube image build -t us.icr.io/dia-registry/devops/build:latest -f build/build/Dockerfile-DiadataBuild diadata
-minikube image build -t us.icr.io/dia-registry/devops/build-117:latest -f build/build/Dockerfile-DiadataBuild-117 diadata
-minikube image build -t diadata.filtersblockservice:latest -f build/Dockerfile-filtersBlockService diadata
-minikube image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService diadata
+(
+    cd ./.temp-tester/
+    minikube image build -t us.icr.io/dia-registry/devops/build:latest -f build/build/Dockerfile-DiadataBuild .
+    minikube image build -t us.icr.io/dia-registry/devops/build-117:latest -f build/build/Dockerfile-DiadataBuild-117 .
+    minikube image build -t diadata.filtersblockservice:latest -f build/Dockerfile-filtersBlockService .
+    minikube image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService .
+)
 ```
 
 2. Install the platform by running the script:
 
 ```shell
-kubectl create -f ./.temp-tester/deployments/k8s-yaml/influx.yaml
-kubectl create -f ./.temp-tester/deployments/k8s-yaml/redis.yaml
-kubectl create -f ./.temp-tester/deployments/k8s-yaml/postgres.yaml
-kubectl create -f ./.temp-tester/deployments/k8s-yaml/kafka.yaml
-kubectl create -f ./.temp-tester/deployments/k8s-yaml/tradesblockservice.yaml
-kubectl create -f ./.temp-tester/deployments/k8s-yaml/filtersblockservice.yaml
+(
+    cd ./.temp-tester/
+    kubectl create -f ./deployments/k8s-yaml/influx.yaml
+    kubectl create -f ./deployments/k8s-yaml/redis.yaml
+    kubectl create -f ./deployments/k8s-yaml/postgres.yaml
+    kubectl create -f ./deployments/k8s-yaml/kafka.yaml
+    kubectl create -f ./deployments/k8s-yaml/tradesblockservice.yaml
+    kubectl create -f ./deployments/k8s-yaml/filtersblockservice.yaml
+)
 ```
 
 #### Develop on the platform
@@ -100,8 +106,11 @@ RUN go mod edit -replace github.com/diadata-org/diadata=/diadata
 3. Build the necessary service's containers:
 
 ```shell
-minikube image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService ./.temp-tester/
-minikube image build -t diadata.exchangescrapercollector:latest -f build/Dockerfile-genericCollector ./.temp-tester/
+(
+    cd ./.temp-tester/
+    minikube image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService .
+    minikube image build -t diadata.exchangescrapercollector:latest -f build/Dockerfile-genericCollector .
+)
 ```
 
 4. Add a new entry to exchange table database:
@@ -117,13 +126,13 @@ kubectl exec -it deployment/postgres -- psql -U postgres -c "INSERT INTO exchang
 For creating:
 
 ```shell
-kubectl create -f ./.temp-tester/deployments/k8s-yaml/exchangescraper-custom.yaml
+(cd ./.temp-tester/; kubectl create -f ./deployments/k8s-yaml/exchangescraper-custom.yaml)
 ```
 
 For deleting:
 
 ```shell
-kubectl delete -f ./.temp-tester/deployments/k8s-yaml/exchangescraper-custom.yaml
+(cd ./.temp-tester/; kubectl delete -f ./deployments/k8s-yaml/exchangescraper-custom.yaml)
 ```
 
 #### Uninstall the platform
@@ -131,12 +140,15 @@ kubectl delete -f ./.temp-tester/deployments/k8s-yaml/exchangescraper-custom.yam
 Uninstall the DIA services:
 
 ```shell
-kubectl delete -f ./.temp-tester/deployments/k8s-yaml/filtersblockservice.yaml
-kubectl delete -f ./.temp-tester/deployments/k8s-yaml/tradesblockservice.yaml
-kubectl delete -f ./.temp-tester/deployments/k8s-yaml/kafka.yaml
-kubectl delete -f ./.temp-tester/deployments/k8s-yaml/postgres.yaml
-kubectl delete -f ./.temp-tester/deployments/k8s-yaml/redis.yaml
-kubectl delete -f ./.temp-tester/deployments/k8s-yaml/influx.yaml
+(
+    cd ./.temp-tester/
+    kubectl delete -f ./deployments/k8s-yaml/filtersblockservice.yaml
+    kubectl delete -f ./deployments/k8s-yaml/tradesblockservice.yaml
+    kubectl delete -f ./deployments/k8s-yaml/kafka.yaml
+    kubectl delete -f ./deployments/k8s-yaml/postgres.yaml
+    kubectl delete -f ./deployments/k8s-yaml/redis.yaml
+    kubectl delete -f ./deployments/k8s-yaml/influx.yaml
+)
 ```
 
 #### Cluster stop
@@ -161,12 +173,12 @@ rm -rf ./.temp-tester/
 
 #### Start the cluster
 
-Start the local cluster by running the script: `./.temp-dumper/scripts/minikubeStart.sh`
+Start the local cluster by running the script: `(cd ./.temp-dumper/; ./scripts/minikubeStart.sh )`
 
 #### Install the platform
 
-1. Build the containers into cluster: `./.temp-dumper/scripts/minikubeBuild.sh`
-2. Services and exchange scrapers: `./.temp-dumper/scripts/minikubeInstallPreSnap.sh`
+1. Build the containers into cluster: `(cd ./.temp-dumper/; ./scripts/minikubeBuild.sh )`
+2. Services and exchange scrapers: `(cd ./.temp-dumper/; ./scripts/minikubeInstallPreSnap.sh)`
 3. Create a folder for PostgreSQL dump: `mkdir -p .mount-dumper-postgresdump`
 4. Mount the folder of your host filesystem as a shared volume in the cluster: `minikube mount --profile diadata-dumper "$(pwd)/.mount-dumper-postgresdump:/data/shared-postgres" --uid 70 --gid 70` (Note that uid 70 and gid 70 is due to postgres alpine image, normal image have different permissions)
 
@@ -186,15 +198,15 @@ Deleting a snapshot's cronjob:
 
 #### Uninstall the platform
 
-Uninstall the platform: `./.temp-dumper/scripts/minikubeUninstallPreSnap.sh`
+Uninstall the platform: `(cd ./.temp-dumper/; ./scripts/minikubeUninstallPreSnap.sh )`
 
 #### Cluster stop
 
-Now you can safely stop the cluster: `./.temp-dumper/scripts/minikubeStop.sh`
+Now you can safely stop the cluster: `(cd ./.temp-dumper/; ./scripts/minikubeStop.sh )`
 
 #### Cluster delete
 
-1. Delete the cluster node completly: `./.temp-dumper/scripts/minikubeDelete.sh`
+1. Delete the cluster node completly: `(cd ./.temp-dumper/; ./scripts/minikubeDelete.sh )`
 2. Also, can remove the temporary files of mount:
 
 ```sh
