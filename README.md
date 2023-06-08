@@ -2,7 +2,7 @@
 
 This is a suite of scripts/tools for facilitating the test proccess of DIA platform.
 
-Wiki contains proposal documents for future versions of official documentation ([docs.diadata.org](https://docs.diadata.org)), with detailed instructions for users.
+[Wiki](https://github.com/alexjorgef/diatestsuite/wiki) contains proposal documents for future versions of official documentation ([docs.diadata.org](https://docs.diadata.org)), with detailed instructions for users.
 
 ## Requirements
 
