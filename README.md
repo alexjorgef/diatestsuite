@@ -125,14 +125,20 @@ kubectl exec -it deployment/postgres -- psql -U postgres -c "INSERT INTO exchang
 
 For creating:
 
-```shell
-(cd ./.temp-tester/; kubectl create -f ./deployments/k8s-yaml/exchangescraper-custom.yaml)
+```sh
+(
+  cd ./.temp-tester/
+  kubectl create -f ./deployments/k8s-yaml/exchangescraper-custom.yaml
+)
 ```
 
 For deleting:
 
-```shell
-(cd ./.temp-tester/; kubectl delete -f ./deployments/k8s-yaml/exchangescraper-custom.yaml)
+```sh
+(
+  cd ./.temp-tester/
+  kubectl delete -f ./deployments/k8s-yaml/exchangescraper-custom.yaml
+)
 ```
 
 #### Uninstall the platform
@@ -173,12 +179,35 @@ rm -rf ./.temp-tester/
 
 #### Start the cluster
 
-Start the local cluster by running the script: `(cd ./.temp-dumper/; ./scripts/minikubeStart.sh )`
+Start the local cluster by running the script:
+
+```sh
+(
+    cd ./.temp-dumper/
+    ./scripts/minikubeStart.sh
+)
+```
 
 #### Install the platform
 
-1. Build the containers into cluster: `(cd ./.temp-dumper/; ./scripts/minikubeBuild.sh )`
-2. Services and exchange scrapers: `(cd ./.temp-dumper/; ./scripts/minikubeInstallPreSnap.sh)`
+1. Build the containers into cluster:
+
+```sh
+(
+    cd ./.temp-dumper/
+    ./scripts/minikubeBuild.sh
+)
+```
+
+1. Services and exchange scrapers:
+
+```sh
+(
+    cd ./.temp-dumper/
+    ./scripts/minikubeInstallPreSnap.sh
+)
+```
+
 3. Create a folder for PostgreSQL dump: `mkdir -p .mount-dumper-postgresdump`
 4. Mount the folder of your host filesystem as a shared volume in the cluster: `minikube mount --profile diadata-dumper "$(pwd)/.mount-dumper-postgresdump:/data/shared-postgres" --uid 70 --gid 70` (Note that uid 70 and gid 70 is due to postgres alpine image, normal image have different permissions)
 
@@ -198,15 +227,37 @@ Deleting a snapshot's cronjob:
 
 #### Uninstall the platform
 
-Uninstall the platform: `(cd ./.temp-dumper/; ./scripts/minikubeUninstallPreSnap.sh )`
+Uninstall the platform:
+
+```sh
+(
+    cd ./.temp-dumper/
+    ./scripts/minikubeUninstallPreSnap.sh
+)
+```
 
 #### Cluster stop
 
-Now you can safely stop the cluster: `(cd ./.temp-dumper/; ./scripts/minikubeStop.sh )`
+Now you can safely stop the cluster:
+
+```sh
+(
+    cd ./.temp-dumper/
+    ./scripts/minikubeStop.sh
+)
+```
 
 #### Cluster delete
 
-1. Delete the cluster node completly: `(cd ./.temp-dumper/; ./scripts/minikubeDelete.sh )`
+1. Delete the cluster node completly:
+
+```sh
+(
+    cd ./.temp-dumper/
+    ./scripts/minikubeDelete.sh
+)
+```
+
 2. Also, can remove the temporary files of mount:
 
 ```sh
