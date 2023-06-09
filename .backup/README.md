@@ -1,64 +1,25 @@
-# Backup Documentation
+## Debug Influx writes
 
-A toolkit for building and developing the DIA platform
-
-## Requirements
-
-* A system with at least 8GB of RAM;
-* [Docker](https://www.docker.com) installed on your system.
-
-## Running a Minikube cluster
-
-This will setup a [Minikube](https://github.com/kubernetes/minikube) cluster, running on an `diadata` profile.
-
-## Guides and tutorials
-
-### How to add a new exchange scraper
+To debug InfluxDB writes, just change points in batch to see more frequent writes to influx (`pkg/model/db.go`):
 
 ```go
-type APIScraper interface {
-	io.Closer
-	// ScrapePair returns a PairScraper that continuously scrapes trades for a
-	// single pair from this APIScraper
-	ScrapePair(pair dia.Pair) (PairScraper, error) // only for centralized exchanges
-	// FetchAvailablePairs returns a list with all available trade pairs (usually
-	// fetched from an exchange's API)
-	FetchAvailablePairs() (pairs []dia.Pair, err error)
-	// Channel returns a channel that can be used to receive trades
-	Channel() chan *dia.Trade
-  // TODO
-  FillSymbolData(symbol string) (asset dia.Asset, err error)
-  // TODO
-  NormalizePair(pair dia.ExchangePair) (dia.ExchangePair, error)
-}
-type PairScraper interface {
-	io.Closer
-	// Error returns an error when the channel Channel() is closed
-	// and nil otherwise
-	Error() error
-	// Pair returns the pair this scraper is subscribed to
-	Pair() dia.ExchangePair
-}
+influxMaxPointsInBatch = 10
 ```
 
-Other common methods (totally optional):
+## Accessing endpoints
 
-```go
-//  ExchangeScraper
-func (s *ExchangeScraper) mainLoop() {}
-  -> func (s *ExchangeScraper) cleanup() {}
-func (s *ExchangeScraper) ping() {}
-func (s *ExchangeScraper) subscribe(pair dia.ExchangePair) error {}
-func (s *ExchangeScraper) unsubscribe(pair dia.ExchangePair) error {}
-func (s *ExchangeScraper) isClosed() bool {}
-func (s *ExchangeScraper) close() {}
-func (s *ExchangeScraper) error() error {}
-func (s *ExchangeScraper) setError(err error) {}
-```
+The routes available after forward:
 
-### How to add a new foreign scraper
+* REST Server: port 8081
+* GraphQL: port 1111, and [Web UI](http://localhost:1111/)
+* Kafka: port 8080, and [AKHQ Web UI](http://localhost:8080/)
+* Grafana: port 3000, and [Web UI](http://localhost:3000/)
 
-Scrapers are all at: `pkg/dia/scraper/foreign-scrapers/` and interfaces are at `pkg/dia/scraper/foreign-scrapers/Scrapper.go`
+---
+
+## Add a new foreign scraper
+
+Implement `ForeignScrapperer` interface at `pkg/dia/scraper/foreign-scrapers/Scrapper.go` file
 
 ```go
 type ForeignScrapperer interface {
@@ -67,46 +28,32 @@ type ForeignScrapperer interface {
 }
 ```
 
-1. Add scraper implementation
-
-Add a `MyExchangeScraper.go` Golang file to `pkg/dia/scraper/foreign-scrapers/` folder and add the next implementations:
+Add the scraper implementation a `MyForeignScraper.go` Golang file to `pkg/dia/scraper/foreign-scrapers/` folder and add the next implementations:
 
 ```go
-func (scraper *MyExchangeScraper) Pool() chan dia.Pool {}
-func (scraper *MyExchangeScraper) Done() chan bool {}
+func (scraper *MyForeignScraper) Pool() chan dia.Pool {}
+func (scraper *MyForeignScraper) Done() chan bool {}
 ```
 
-2. Add a constructor
-
-Add a constructor for the scraper:
+1. Add a constructor for the scraper:
 
 ```go
-func NewMyExchangeScraper(exchange dia.Exchange) *MyExchangeScraper {}
+func NewMyForeignScraper(exchange dia.Exchange) *MyForeignScraper {}
 ```
 
-3. Add MyExchangeScraper to foreign scraper cmd
-
-At `cmd/foreignscraper/foreign.go` add a additional case on main type switch:
+1. Add `MyForeignScraper` case at scraper file `cmd/foreignscraper/foreign.go`:
 
 ```go
-// ...
 switch *scraperType {
-	// ...
-	case "CoinMarketCap":
-		log.Println("Foreign Scraper: Start scraping data from CoinMarketCap")
-		sc = scrapers.NewCoinMarketCapScraper(ds)
-	case "MyExchangeScraper": // <-- add your switch-case base on scraper name
-		log.Println("Foreign Scraper: Start scraping data from MyExchangeScraper")
-		sc = scrapers.NewMyExchangeScraper(ds)
-	default:
-		sc = scrapers.NewGenericForeignScraper()
+	case "MyForeignScraper":
+		log.Println("Start scraping data")
+		sc = scrapers.NewMyForeignScraper(ds)
 }
-// ...
 ```
 
-### How to add a new liquidity scraper
+## Add a new liquidity scraper
 
-Scrapers are all at: `pkg/dia/scraper/liquidity-scrapers/` and interfaces are at `pkg/dia/scraper/liquidity-scrapers/ScraperInterface.go`
+Implement `LiquidityScraper` interface at `pkg/dia/scraper/liquidity-scrapers/ScraperInterface.go` file
 
 ```go
 type LiquidityScraper interface {
@@ -115,86 +62,15 @@ type LiquidityScraper interface {
 }
 ```
 
-1. Add scraper implementation
-
-Add a `MySourceExchange.go` Golang file to `pkg/dia/scraper/liquidity-scrapers/` folder and add the next implementations:
+1. Add a scraper implementation, `MyLiquidityScraper.go` file to `pkg/dia/scraper/liquidity-scrapers/` folder implement the functions:
 
 ```go
-func (scraper *MySourceExchangeScraper) Pool() chan dia.Pool {}
-func (scraper *MySourceExchangeScraper) Done() chan bool {}
+func (scraper *MyLiquidityScraper) Pool() chan dia.Pool {}
+func (scraper *MyLiquidityScraper) Done() chan bool {}
 ```
 
-2. Add a constructor
-
-Add a constructor for the scraper:
+1. Add a constructor for the scraper:
 
 ```go
-func NewMySourceExchangeScraper(exchange dia.Exchange) *MySourceExchangeScraper {}
-```
-
-## Monitoring
-
-For monitoring the cluster resources we install a Prometheus operator that has multiple services with user interfaces, please check the [kube-prometheus documentation](https://github.com/prometheus-operator/kube-prometheus/blob/main/docs/access-ui.md).
-
-## Debug & Troubleshooting
-
-In order to show logs from cluster just type the following command:
-
-```sh
-kubectl logs <POD_NAME>
-```
-
-To debug InfluxDB writes, just change points in batch to see more frequent writes to influx (`pkg/model/db.go`):
-
-```go
-influxMaxPointsInBatch = 10
-```
-
-## Accessing UIs and data endpoints
-
-### Grafana
-
-Forward the ports of UIs to your machine:
-
-```bash
-kubectl port-forward diadata-clusterdev-grafana 3000:3000
-```
-
-After that, you can access Grafana at [http://localhost:3000/](http://localhost:3000/)
-
-### Kafka UI
-
-Forward the ports of UIs to your machine:
-
-```bash
-kubectl port-forward diadata-clusterdev-db-kafka 8080:8080
-```
-
-After that, you can access AKHQ, the Kafka GUI at [http://localhost:8080/](http://localhost:8080/)
-
-### Delivery services
-
-Forward data delivery service's ports to localhost:
-
-```shell
-# REST Server
-kubectl port-forward diadata-clusterdev-http-restserver 8081:8081
-
-# GraphQL Server
-kubectl port-forward diadata-clusterdev-http-graphqlserver 1111:1111
-```
-
-The routes available after you forward them to the host machine:
-
-* **REST Server**: localhost:8081
-* **GraphQL**:
-  * **Server**: localhost:1111
-  * **Web UI**: [http://localhost:1111/](http://localhost:1111/)
-
-## Other useful commands
-
-Clean unused resources on docker:
-
-```shell
-docker system prune -af
+func NewMyLiquidityScraper(exchange dia.Exchange) *MyLiquidityScraper {}
 ```

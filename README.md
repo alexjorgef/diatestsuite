@@ -5,7 +5,7 @@ This repo cover the development of:
 
 ---
 
-> :warning:	All instructions are run at the root directory of this repository!
+> :warning:	All commands are run at the root directory of this repository!
 
 Software dependencies needed:
 
@@ -22,7 +22,7 @@ The tests are cover by with the followding systems:
 * Architectures: x86_64
 * OSs: Arch Linux v6.3.6-arch1-1
 
-> Also, [Wiki](https://github.com/alexjorgef/diatestsuite/wiki) contains proposal documents for future versions of official documentation ([docs.diadata.org](https://docs.diadata.org)), with detailed instructions for public.
+> Note for [Wiki](https://github.com/alexjorgef/diatestsuite/wiki), that contains proposal documents for public.
 
 - [Tester](#tester)
   - [Prepare files](#prepare-files)
