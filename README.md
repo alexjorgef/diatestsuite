@@ -1,59 +1,60 @@
 This is a suite of scripts/tools for facilitating the test proccess of DIA platform.
 
-[Wiki](https://github.com/alexjorgef/diatestsuite/wiki) contains proposal documents for future versions of official documentation ([docs.diadata.org](https://docs.diadata.org)), with detailed instructions for users.
+Will cover the development for the following products:
 
-- [Requirements](#requirements)
-- [Development](#development)
-  - [Tester](#tester)
-    - [Prepare files](#prepare-files)
-    - [Start the cluster](#start-the-cluster)
-    - [Install the platform](#install-the-platform)
-    - [Develop on the platform](#develop-on-the-platform)
-      - [Modify an existing scraper](#modify-an-existing-scraper)
-      - [Add a new scraper](#add-a-new-scraper)
-    - [Uninstall the platform](#uninstall-the-platform)
-    - [Cluster stop](#cluster-stop)
-    - [Cluster clean](#cluster-clean)
-  - [Dumper](#dumper)
-    - [Prepare files](#prepare-files-1)
-    - [Start the cluster](#start-the-cluster-1)
-    - [Install the platform](#install-the-platform-1)
-    - [Install the cronjob](#install-the-cronjob)
-    - [Uninstall the platform](#uninstall-the-platform-1)
-    - [Cluster stop](#cluster-stop-1)
-    - [Cluster clean](#cluster-clean-1)
+* Tester: Create a new test-space environment with DIA's platform (runs on a local machine of contributors/mantainers).
+* Dumper: Dumper will extract a snapshot of data, and upload it to registry (runs on a production cluster machine, by operator).
 
----
+> :warning: Note:	All instructions are run at the root directory of this repository!
 
-## Requirements
+Software dependencies needed:
 
 * bash
-* minikube
-* docker
+* minikube, and docker as main driver
 
----
+Minimum hardware recommended:
 
-## Development Guide
+* Disk space available: 30 GB
+* RAM available: 8 GB
 
-This section will cover the development instructions for the following products:
+The tests are cover by with the followding systems:
 
-* [Tester](#tester): Create a new test space environment with DIA's platform (runs on a local machine).
-* [Dumper](#dumper): Dumper will extract a snapshot of relational data, and upload it to registry (runs on a production cluster machine).
+* Architectures: x86_64
+* OSs: Arch Linux v6.3.6-arch1-1
 
-### Tester
+> Also, [Wiki](https://github.com/alexjorgef/diatestsuite/wiki) contains proposal documents for future versions of official documentation ([docs.diadata.org](https://docs.diadata.org)), with detailed instructions for public.
 
-#### Prepare files
+- [Tester](#tester)
+  - [Prepare files](#prepare-files)
+  - [Start the cluster](#start-the-cluster)
+  - [Install the platform](#install-the-platform)
+  - [Develop on the platform](#develop-on-the-platform)
+    - [Test a new scraper](#test-a-new-scraper)
+    - [Test an existing scraper](#test-an-existing-scraper)
+  - [Uninstall the platform](#uninstall-the-platform)
+  - [Cluster stop](#cluster-stop)
+  - [Cluster delete](#cluster-delete)
+- [Dumper](#dumper)
+  - [Prepare files](#prepare-files-1)
+  - [Start the cluster](#start-the-cluster-1)
+  - [Install the platform](#install-the-platform-1)
+  - [Create a dumper](#create-a-dumper)
+  - [Uninstall the platform](#uninstall-the-platform-1)
+  - [Cluster stop](#cluster-stop-1)
+  - [Cluster delete](#cluster-delete-1)
 
-> Note: Make sure you are at the root directory of this repo!
+## Tester
+
+### Prepare files
 
 1. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git -b v1.4.241 --depth 1 .temp-tester`
 2. Copy modified files: `cp -Rf tester/* .temp-tester/`
 
-#### Start the cluster
+### Start the cluster
 
 Start the local cluster with `minikube start` command
 
-#### Install the platform
+### Install the platform
 
 1. Build the containers into cluster:
 
@@ -81,13 +82,9 @@ Start the local cluster with `minikube start` command
 )
 ```
 
-#### Develop on the platform
+### Develop on the platform
 
-##### Test an existing scraper
-
-WIP...
-
-##### Test a new scraper
+#### Test a new scraper
 
 1. Add the custom scraper files:
 
@@ -141,7 +138,11 @@ For deleting:
 )
 ```
 
-#### Uninstall the platform
+#### Test an existing scraper
+
+WIP...
+
+### Uninstall the platform
 
 Uninstall the DIA services:
 
@@ -157,11 +158,11 @@ Uninstall the DIA services:
 )
 ```
 
-#### Cluster stop
+### Cluster stop
 
 You can stop the cluster with `minikube stop` command
 
-#### Cluster delete
+### Cluster delete
 
 1. Delete the cluster node completly with `minikube delete` command
 2. Also, can remove the temporary files of mount:
@@ -170,14 +171,14 @@ You can stop the cluster with `minikube stop` command
 rm -rf ./.temp-tester/
 ```
 
-### Dumper
+## Dumper
 
-#### Prepare files
+### Prepare files
 
 2. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git -b v1.4.241 --depth 1 .temp-dumper`
 3. Copy modified files: `cp -Rf dumper/* ./.temp-dumper/`
 
-#### Start the cluster
+### Start the cluster
 
 Start the local cluster by running the script:
 
@@ -188,7 +189,7 @@ Start the local cluster by running the script:
 )
 ```
 
-#### Install the platform
+### Install the platform
 
 1. Build the containers into cluster:
 
@@ -211,21 +212,27 @@ Start the local cluster by running the script:
 3. Create a folder for PostgreSQL dump: `mkdir -p .mount-dumper-postgresdump`
 4. Mount the folder of your host filesystem as a shared volume in the cluster: `minikube mount --profile diadata-dumper "$(pwd)/.mount-dumper-postgresdump:/data/shared-postgres" --uid 70 --gid 70` (Note that uid 70 and gid 70 is due to postgres alpine image, normal image have different permissions)
 
-#### Test the cronjob
+### Create a dumper
 
-Create a snapshot's cronjob:
+Creating a cronjob:
 
-```shell
-./.temp-dumper/scripts/minikubeInstallSnap.sh
+```sh
+(
+    cd ./.temp-dumper/
+    ./scripts/minikubeInstallSnap.sh
+)
 ```
 
-Deleting a snapshot's cronjob:
+Delete the cronjob:
 
-```shell
-./.temp-dumper/scripts/minikubeUninstallSnap.sh
+```sh
+(
+    cd ./.temp-dumper/
+    ./scripts/minikubeUninstallSnap.sh
+)
 ```
 
-#### Uninstall the platform
+### Uninstall the platform
 
 Uninstall the platform:
 
@@ -236,9 +243,9 @@ Uninstall the platform:
 )
 ```
 
-#### Cluster stop
+### Cluster stop
 
-Now you can safely stop the cluster:
+You can safely stop the cluster:
 
 ```sh
 (
@@ -247,7 +254,7 @@ Now you can safely stop the cluster:
 )
 ```
 
-#### Cluster delete
+### Cluster delete
 
 1. Delete the cluster node completly:
 
