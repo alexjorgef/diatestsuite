@@ -1,28 +1,30 @@
 This repo cover the development of:
 
 * Tester: Create a new test-space environment with DIA's platform (used for contributing/mantaining).
-* Dumper: Extract a snapshot of data, and upload it to registry (runs on a production machine).
+* Dumper: Extract a snapshot of data, and upload it to registry (runs on production machine).
+
+> Note for [Wiki](https://github.com/alexjorgef/diatestsuite/wiki), that contains proposal documents.
 
 ---
-
-> :warning:	All commands are run at the root directory of this repository!
-
-Software dependencies needed:
-
-* **bash**
-* **minikube**, and **docker** as main driver
 
 Minimum hardware recommended:
 
 * Disk space available: 30 GB
 * RAM available: 8 GB
 
-The tests are cover by with the followding systems:
+The followding systems are covered:
 
 * Architectures: x86_64
 * OSs: Arch Linux v6.3.6-arch1-1
 
-> Note for [Wiki](https://github.com/alexjorgef/diatestsuite/wiki), that contains proposal documents for public.
+Software dependencies needed:
+
+* **bash**
+* **minikube**, and **docker** as main driver
+
+> :warning:	All commands are run at the root directory of this repository.
+
+---
 
 - [Tester](#tester)
   - [Prepare files](#prepare-files)
