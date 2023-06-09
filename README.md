@@ -1,16 +1,16 @@
-This is a suite of scripts/tools for facilitating the test proccess of DIA platform.
+This repo cover the development of:
 
-Will cover the development for the following products:
+* Tester: Create a new test-space environment with DIA's platform (used for contributing/mantaining).
+* Dumper: Extract a snapshot of data, and upload it to registry (runs on a production machine).
 
-* Tester: Create a new test-space environment with DIA's platform (runs on a local machine of contributors/mantainers).
-* Dumper: Dumper will extract a snapshot of data, and upload it to registry (runs on a production cluster machine, by operator).
+---
 
-> :warning: Note:	All instructions are run at the root directory of this repository!
+> :warning:	All instructions are run at the root directory of this repository!
 
 Software dependencies needed:
 
-* bash
-* minikube, and docker as main driver
+* **bash**
+* **minikube**, and **docker** as main driver
 
 Minimum hardware recommended:
 
@@ -43,6 +43,8 @@ The tests are cover by with the followding systems:
   - [Cluster stop](#cluster-stop-1)
   - [Cluster delete](#cluster-delete-1)
 
+---
+
 ## Tester
 
 ### Prepare files
@@ -60,11 +62,11 @@ Start the local cluster with `minikube start` command
 
 ```shell
 (
-    cd ./.temp-tester/
-    minikube image build -t us.icr.io/dia-registry/devops/build:latest -f build/build/Dockerfile-DiadataBuild .
-    minikube image build -t us.icr.io/dia-registry/devops/build-117:latest -f build/build/Dockerfile-DiadataBuild-117 .
-    minikube image build -t diadata.filtersblockservice:latest -f build/Dockerfile-filtersBlockService .
-    minikube image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService .
+  cd ./.temp-tester/
+  minikube image build -t us.icr.io/dia-registry/devops/build:latest -f build/build/Dockerfile-DiadataBuild .
+  minikube image build -t us.icr.io/dia-registry/devops/build-117:latest -f build/build/Dockerfile-DiadataBuild-117 .
+  minikube image build -t diadata.filtersblockservice:latest -f build/Dockerfile-filtersBlockService .
+  minikube image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService .
 )
 ```
 
@@ -72,13 +74,13 @@ Start the local cluster with `minikube start` command
 
 ```shell
 (
-    cd ./.temp-tester/
-    kubectl create -f ./deployments/k8s-yaml/influx.yaml
-    kubectl create -f ./deployments/k8s-yaml/redis.yaml
-    kubectl create -f ./deployments/k8s-yaml/postgres.yaml
-    kubectl create -f ./deployments/k8s-yaml/kafka.yaml
-    kubectl create -f ./deployments/k8s-yaml/tradesblockservice.yaml
-    kubectl create -f ./deployments/k8s-yaml/filtersblockservice.yaml
+  cd ./.temp-tester/
+  kubectl create -f ./deployments/k8s-yaml/influx.yaml
+  kubectl create -f ./deployments/k8s-yaml/redis.yaml
+  kubectl create -f ./deployments/k8s-yaml/postgres.yaml
+  kubectl create -f ./deployments/k8s-yaml/kafka.yaml
+  kubectl create -f ./deployments/k8s-yaml/tradesblockservice.yaml
+  kubectl create -f ./deployments/k8s-yaml/filtersblockservice.yaml
 )
 ```
 
@@ -104,9 +106,9 @@ RUN go mod edit -replace github.com/diadata-org/diadata=/diadata
 
 ```shell
 (
-    cd ./.temp-tester/
-    minikube image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService .
-    minikube image build -t diadata.exchangescrapercollector:latest -f build/Dockerfile-genericCollector .
+  cd ./.temp-tester/
+  minikube image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService .
+  minikube image build -t diadata.exchangescrapercollector:latest -f build/Dockerfile-genericCollector .
 )
 ```
 
@@ -148,13 +150,13 @@ Uninstall the DIA services:
 
 ```shell
 (
-    cd ./.temp-tester/
-    kubectl delete -f ./deployments/k8s-yaml/filtersblockservice.yaml
-    kubectl delete -f ./deployments/k8s-yaml/tradesblockservice.yaml
-    kubectl delete -f ./deployments/k8s-yaml/kafka.yaml
-    kubectl delete -f ./deployments/k8s-yaml/postgres.yaml
-    kubectl delete -f ./deployments/k8s-yaml/redis.yaml
-    kubectl delete -f ./deployments/k8s-yaml/influx.yaml
+  cd ./.temp-tester/
+  kubectl delete -f ./deployments/k8s-yaml/filtersblockservice.yaml
+  kubectl delete -f ./deployments/k8s-yaml/tradesblockservice.yaml
+  kubectl delete -f ./deployments/k8s-yaml/kafka.yaml
+  kubectl delete -f ./deployments/k8s-yaml/postgres.yaml
+  kubectl delete -f ./deployments/k8s-yaml/redis.yaml
+  kubectl delete -f ./deployments/k8s-yaml/influx.yaml
 )
 ```
 
@@ -165,18 +167,20 @@ You can stop the cluster with `minikube stop` command
 ### Cluster delete
 
 1. Delete the cluster node completly with `minikube delete` command
-2. Also, can remove the temporary files of mount:
+2. Also, the temporary files can be removed:
 
 ```sh
 rm -rf ./.temp-tester/
 ```
 
+---
+
 ## Dumper
 
 ### Prepare files
 
-2. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git -b v1.4.241 --depth 1 .temp-dumper`
-3. Copy modified files: `cp -Rf dumper/* ./.temp-dumper/`
+1. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git -b v1.4.241 --depth 1 .temp-dumper`
+2. Copy modified files: `cp -Rf dumper/* ./.temp-dumper/`
 
 ### Start the cluster
 
@@ -184,8 +188,8 @@ Start the local cluster by running the script:
 
 ```sh
 (
-    cd ./.temp-dumper/
-    ./scripts/minikubeStart.sh
+  cd ./.temp-dumper/
+  ./scripts/minikubeStart.sh
 )
 ```
 
@@ -195,8 +199,8 @@ Start the local cluster by running the script:
 
 ```sh
 (
-    cd ./.temp-dumper/
-    ./scripts/minikubeBuild.sh
+  cd ./.temp-dumper/
+  ./scripts/minikubeBuild.sh
 )
 ```
 
@@ -204,8 +208,8 @@ Start the local cluster by running the script:
 
 ```sh
 (
-    cd ./.temp-dumper/
-    ./scripts/minikubeInstallPreSnap.sh
+  cd ./.temp-dumper/
+  ./scripts/minikubeInstallPreSnap.sh
 )
 ```
 
@@ -218,8 +222,8 @@ Creating a cronjob:
 
 ```sh
 (
-    cd ./.temp-dumper/
-    ./scripts/minikubeInstallSnap.sh
+  cd ./.temp-dumper/
+  ./scripts/minikubeInstallSnap.sh
 )
 ```
 
@@ -227,8 +231,8 @@ Delete the cronjob:
 
 ```sh
 (
-    cd ./.temp-dumper/
-    ./scripts/minikubeUninstallSnap.sh
+  cd ./.temp-dumper/
+  ./scripts/minikubeUninstallSnap.sh
 )
 ```
 
@@ -238,8 +242,8 @@ Uninstall the platform:
 
 ```sh
 (
-    cd ./.temp-dumper/
-    ./scripts/minikubeUninstallPreSnap.sh
+  cd ./.temp-dumper/
+  ./scripts/minikubeUninstallPreSnap.sh
 )
 ```
 
@@ -249,8 +253,8 @@ You can safely stop the cluster:
 
 ```sh
 (
-    cd ./.temp-dumper/
-    ./scripts/minikubeStop.sh
+  cd ./.temp-dumper/
+  ./scripts/minikubeStop.sh
 )
 ```
 
@@ -260,14 +264,14 @@ You can safely stop the cluster:
 
 ```sh
 (
-    cd ./.temp-dumper/
-    ./scripts/minikubeDelete.sh
+  cd ./.temp-dumper/
+  ./scripts/minikubeDelete.sh
 )
 ```
 
-2. Also, can remove the temporary files of mount:
+2. Also, the temporary files and mounts can be removed:
 
 ```sh
-rm -rf ./.mount-dumper-postgresdump/
 rm -rf ./.temp-dumper/
+rm -rf ./.mount-dumper-postgresdump/
 ```
