@@ -103,8 +103,16 @@ function main()
     KUBECONFIG=~/.kube/config
 
     case "${paths[0]}" in
-        minikube)
+        minikube-start)
             minikube start --kubernetes-version ${MINIKUBE_K8S_VERSION} -p ${MINIKUBE_PROFILE} --driver ${MINIKUBE_DRIVER} 
+            ;;
+        minikube-stop)
+            minikube stop -p ${MINIKUBE_PROFILE}
+            ;;
+        minikube-delete)
+            minikube delete -p ${MINIKUBE_PROFILE}
+            # TODO: remove all minikube mount files
+            # rm -rf ./.temp-tester/
             ;;
         minikube-build)
             echo "Building minikube images ..."
@@ -131,8 +139,22 @@ function main()
             minikube -p ${MINIKUBE_PROFILE} image build -t diadata.filtersblockservice:latest -f build/Dockerfile-filtersBlockService .
             minikube -p ${MINIKUBE_PROFILE} image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService .
             ;;
-        minikube-create)
+        minikube-install)
             kubectl create -f deployments/k8s-yaml/install.yaml
+            # kubectl delete -f ./deployments/k8s-yaml/filtersblockservice.yaml
+            # kubectl delete -f ./deployments/k8s-yaml/tradesblockservice.yaml
+            # kubectl delete -f ./deployments/k8s-yaml/kafka.yaml
+            # kubectl delete -f ./deployments/k8s-yaml/postgres.yaml
+            # kubectl delete -f ./deployments/k8s-yaml/redis.yaml
+            # kubectl delete -f ./deployments/k8s-yaml/influx.yaml
+            ;;
+        minikube-uninstall)
+            kubectl delete -f deployments/k8s-yaml/install.yaml
+            ;;
+        minikube-create)
+            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService .
+            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.exchangescrapercollector:latest -f build/Dockerfile-genericCollector .
+            kubectl create -f deployments/k8s-yaml/exchangescraper-custom.yaml
             ;;
         recreate)
             docker_service drop "${@:2}"
@@ -145,7 +167,7 @@ function main()
             docker compose -f ~/dotfiles/dist/deploy/compose.yaml ps "${@:2}"
             ;;
         logs)
-            docker compose -f ~/dotfiles/dist/deploy/compose.yaml logs -tf "${@:2}"
+            minikube -p ${MINIKUBE_PROFILE} logs -f
             ;;
         build)
             docker compose -f ~/dotfiles/dist/deploy/compose.yaml build --pull --progress plain "${@:2}"

@@ -1,11 +1,47 @@
-This repo cover the development of:
+This repo cover the development of a new test-space environment with DIA's platform. [Wiki](https://github.com/alexjorgef/diatestsuite/wiki) contains proposal documents.
 
-* **Tester** - Create a new test-space environment with DIA's platform (used for contributing/mantaining)
-* **Dumper** - Extract a snapshot of data, and distribute (runs on production machine)
+- [Prepare files](#prepare-files)
+- [Requirements](#requirements)
+- [Test Env](#test-env)
+- [Tester](#tester)
+  - [Develop on the platform](#develop-on-the-platform)
+- [Dumper](#dumper)
+  - [Prepare files](#prepare-files-1)
+  - [Start the cluster](#start-the-cluster)
+  - [Install the platform](#install-the-platform)
+  - [Create a dumper](#create-a-dumper)
+  - [Uninstall the platform](#uninstall-the-platform)
+  - [Cluster stop](#cluster-stop)
+  - [Cluster delete](#cluster-delete)
+- [Inspirations](#inspirations)
 
-> [Wiki](https://github.com/alexjorgef/diatestsuite/wiki) contains proposal documents.
+## Prepare files
 
----
+1. Clone the DIA's repo or a fork to .testenv folder:
+
+```sh
+git clone git@github.com:diadata-org/diadata.git .testenv
+```
+
+2. Copy the prepared files:
+
+```sh
+cp -Rf inject/* .testenv/
+```
+
+1. Link the setup script:
+
+```sh
+ln -s "$PWD/setup" .testenv/setup
+```
+
+4. Change to .testenv directory, and test-space are ready to run;
+
+```sh
+cd .testenv
+```
+
+## Requirements
 
 Minimum hardware recommended:
 
@@ -19,80 +55,25 @@ The followding systems are covered:
 
 Software dependencies needed:
 
-* *bash*
+* *bash*, *git*, *yq*
 * *minikube*, and *docker* as main driver
 
----
+## Getting Started
 
-- [Tester](#tester)
-  - [Prepare files](#prepare-files)
-  - [Start the cluster](#start-the-cluster)
-  - [Install the platform](#install-the-platform)
-  - [Develop on the platform](#develop-on-the-platform)
-    - [Test a new scraper](#test-a-new-scraper)
-    - [Test an existing scraper](#test-an-existing-scraper)
-  - [Uninstall the platform](#uninstall-the-platform)
-  - [Cluster stop](#cluster-stop)
-  - [Cluster delete](#cluster-delete)
-- [Dumper](#dumper)
-  - [Prepare files](#prepare-files-1)
-  - [Start the cluster](#start-the-cluster-1)
-  - [Install the platform](#install-the-platform-1)
-  - [Create a dumper](#create-a-dumper)
-  - [Uninstall the platform](#uninstall-the-platform-1)
-  - [Cluster stop](#cluster-stop-1)
-  - [Cluster delete](#cluster-delete-1)
+Run the setup script:
 
----
+`./setup <COMMAND>`
 
-## Test Env
+Where `<COMMAND>` could be:
 
-1. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git .testenv`
-2. Copy modified files: `cp -Rf inject/* .testenv/`
-3. Change to .testenv directory: `cd .testenv`
-4. Run the CLI tool: `./setup --help`
-
-## Inspirations
-
-* https://github.com/ljmf00/dotfiles
-* https://github.com/googleforgames/agones
-* https://github.com/smartcontractkit/chainlink-env
-
-## Tester
-
-### Prepare files
-
-### Start the cluster
-
-Start the local cluster with `minikube start` command
-
-### Install the platform
-
-2. Install the platform by running the script:
-
-```shell
-(
-  cd ./.temp-tester/
-  kubectl create -f ./deployments/k8s-yaml/influx.yaml
-  kubectl create -f ./deployments/k8s-yaml/redis.yaml
-  kubectl create -f ./deployments/k8s-yaml/postgres.yaml
-  kubectl create -f ./deployments/k8s-yaml/kafka.yaml
-  kubectl create -f ./deployments/k8s-yaml/tradesblockservice.yaml
-  kubectl create -f ./deployments/k8s-yaml/filtersblockservice.yaml
-)
-```
-
-### Develop on the platform
-
-#### Test a new scraper
-
-1. Add the custom scraper files:
-
-* `pkg/dia/scraper/exchange-scrapers/CustomScraper.go`
-* `pkg/dia/Config.go`
-* `pkg/dia/scraper/exchange-scrapers/APIScraper.go`
-* `config/Custom.json`
-
+* `minikube-start`: Start cluster
+* `minikube-build`: Build images
+* `minikube-install`/`minikube-uninstall`: Install/Uninstall DIA's platform
+1. Modify files
+   * `pkg/dia/scraper/exchange-scrapers/CustomScraper.go`
+   * `pkg/dia/Config.go`
+   * `pkg/dia/scraper/exchange-scrapers/APIScraper.go`
+   * `config/Custom.json`
 2. Modify the `build/Dockerfile-genericCollector` and the `build/Dockerfile-pairDiscoveryService` file and add these two Dockerfile lines before the RUN go mod tidy step:
 
 ```dockerfile
@@ -100,79 +81,51 @@ COPY . /diadata
 RUN go mod edit -replace github.com/diadata-org/diadata=/diadata
 ```
 
-3. Build the necessary service's containers:
+7. Build the necessary service's containers:
 
 ```shell
-(
-  cd ./.temp-tester/
-  minikube image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService .
-  minikube image build -t diadata.exchangescrapercollector:latest -f build/Dockerfile-genericCollector .
-)
+minikube image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService .
+minikube image build -t diadata.exchangescrapercollector:latest -f build/Dockerfile-genericCollector .
 ```
 
-4. Add a new entry to exchange table database:
+1. Add a new entry to exchange table database:
 
 ```shell
 kubectl exec -it deployment/postgres -- psql -U postgres -c "INSERT INTO exchange (exchange_id, "name", centralized, bridge, contract, blockchain, rest_api, ws_api, pairs_api, watchdog_delay, scraper_active) VALUES(gen_random_uuid(), 'Custom', true, false, '', '', '', 'wss://ws-feed.pro.coinbase.com', 'https://api.pro.coinbase.com/products', 300, true);"
 ```
 
-5. Wait for the services to start and finally you can create/delete your scraper:
+9. `minikube-create exchangescraper`: Create a new exchange scraper
+10. `minikube-delete exchangescraper`: Delete a exchange scraper
+
+11. Wait for the services to start and finally you can create/delete your scraper:
 
 > Also, can test with a pre-configured scraper, defined at `tester/deployments/k8s-yaml/exchangescraper-<NAME>.yaml` file.
 
 For creating:
 
 ```sh
-(
-  cd ./.temp-tester/
-  kubectl create -f ./deployments/k8s-yaml/exchangescraper-custom.yaml
-)
+kubectl create -f ./deployments/k8s-yaml/exchangescraper-custom.yaml
 ```
 
 For deleting:
 
 ```sh
-(
-  cd ./.temp-tester/
-  kubectl delete -f ./deployments/k8s-yaml/exchangescraper-custom.yaml
-)
+kubectl delete -f ./deployments/k8s-yaml/exchangescraper-custom.yaml
 ```
 
-#### Test an existing scraper
+## Inspirations
 
-WIP...
+* https://github.com/ljmf00/dotfiles
+* https://github.com/googleforgames/agones
+* https://github.com/smartcontractkit/chainlink-env
 
-### Uninstall the platform
+<!--
+##################################################################################
+##################################################################################
+##################################################################################
+-->
 
-Uninstall the DIA services:
-
-```shell
-(
-  cd ./.temp-tester/
-  kubectl delete -f ./deployments/k8s-yaml/filtersblockservice.yaml
-  kubectl delete -f ./deployments/k8s-yaml/tradesblockservice.yaml
-  kubectl delete -f ./deployments/k8s-yaml/kafka.yaml
-  kubectl delete -f ./deployments/k8s-yaml/postgres.yaml
-  kubectl delete -f ./deployments/k8s-yaml/redis.yaml
-  kubectl delete -f ./deployments/k8s-yaml/influx.yaml
-)
-```
-
-### Cluster stop
-
-You can stop the cluster with `minikube stop` command
-
-### Cluster delete
-
-1. Delete the cluster node completly with `minikube delete` command
-2. Also, the temporary files can be removed:
-
-```sh
-rm -rf ./.temp-tester/
-```
-
----
-
+<!--
 ## Dumper
 
 DIA version: `v1.4.241`
@@ -274,3 +227,4 @@ You can safely stop the cluster:
 rm -rf ./.temp-dumper/
 rm -rf ./.mount-dumper-postgresdump/
 ```
+-->
