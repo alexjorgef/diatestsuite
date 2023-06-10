@@ -2,17 +2,7 @@ This repo cover the development of a new test-space environment with DIA's platf
 
 - [Prepare files](#prepare-files)
 - [Requirements](#requirements)
-- [Test Env](#test-env)
-- [Tester](#tester)
-  - [Develop on the platform](#develop-on-the-platform)
-- [Dumper](#dumper)
-  - [Prepare files](#prepare-files-1)
-  - [Start the cluster](#start-the-cluster)
-  - [Install the platform](#install-the-platform)
-  - [Create a dumper](#create-a-dumper)
-  - [Uninstall the platform](#uninstall-the-platform)
-  - [Cluster stop](#cluster-stop)
-  - [Cluster delete](#cluster-delete)
+- [Getting Started](#getting-started)
 - [Inspirations](#inspirations)
 
 ## Prepare files
