@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: alex1a/diadata.postgres:latest
-          imagePullPolicy: Always
+          image: postgres:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - name: postgres-server
               containerPort: 5432
@@ -27,6 +27,15 @@ spec:
               value: postgres
             - name: POSTGRES_PASSWORD
               value: password
+          volumeMounts:
+            - name: postgres-init-schemma
+              mountPath: /docker-entrypoint-initdb.d/pginit.sql
+              subPath: deployments/config/pginit.sql
+              readOnly: true
+      volumes:
+        - name: postgres-init-schemma
+          hostPath:
+            path: /mnt/diadata-dumper
 ---
 apiVersion: v1
 kind: Service

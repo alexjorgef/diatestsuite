@@ -40,6 +40,8 @@ spec:
               value: "redis.default.svc.cluster.local:6379"
             - name: KAFKAURL
               value: "kafka.default.svc.cluster.local:9094"
+            - name: TRADE_VOLUME_THRESHOLD_EXPONENT
+              value: "4"
       initContainers:
         - name: check-postgres-connection
           image: postgres:15-alpine
@@ -73,68 +75,3 @@ spec:
           - name: KAFKA_BROKER_URL
             value: "kafka.default.svc.cluster.local:9094"
           command: ["sh", "-c", "until kafkacat -b $KAFKA_BROKER_URL -L; do sleep 1; done"]
-        - name: blockchainservice
-          image: diadata.blockchainservice:latest
-          imagePullPolicy: IfNotPresent
-          command: ["blockchainservice"]
-          args: []
-          env:
-            - name: USE_ENV
-              value: "true"
-            - name: POSTGRES_HOST
-              value: "postgres.default.svc.cluster.local"
-            - name: POSTGRES_USER
-              value: "postgres"
-            - name: POSTGRES_PASSWORD
-              value: "password"
-            - name: POSTGRES_DB
-              value: "postgres"
-        - name: assetcollectionservice-ethassets
-          image: diadata.assetcollectionservice:latest
-          imagePullPolicy: Never
-          command: ["assetCollectionService"]
-          args: ["-source=assetlists", "-secret=eth_assets", "-caching=true"]
-          env:
-            - name: USE_ENV
-              value: "true"
-            - name: POSTGRES_HOST
-              value: "postgres.default.svc.cluster.local"
-            - name: POSTGRES_USER
-              value: "postgres"
-            - name: POSTGRES_PASSWORD
-              value: "password"
-            - name: POSTGRES_DB
-              value: "postgres"
-        - name: assetcollectionservice-nonethassets
-          image: diadata.assetcollectionservice:latest
-          imagePullPolicy: Never
-          command: ["assetCollectionService"]
-          args:
-            ["-source=assetlists", "-secret=non_eth_assets", "-caching=true"]
-          env:
-            - name: USE_ENV
-              value: "true"
-            - name: POSTGRES_HOST
-              value: "postgres.default.svc.cluster.local"
-            - name: POSTGRES_USER
-              value: "postgres"
-            - name: POSTGRES_PASSWORD
-              value: "password"
-            - name: POSTGRES_DB
-              value: "postgres"
-        - name: assetcollectionservice-fiatassets
-          image: diadata.assetcollectionservice:latest
-          imagePullPolicy: Never
-          command: ["assetCollectionService"]
-          args: ["-source=assetlists", "-secret=fiat_assets", "-caching=true"]
-          env:
-            - name: USE_ENV
-              value: "true"
-            - name: POSTGRES_HOST
-              value: "postgres.default.svc.cluster.local"
-            - name: POSTGRES_USER
-              value: "postgres"
-            - name: POSTGRES_PASSWORD
-              value: "password"
-            - name: POSTGRES_DB
-              value: "postgres"

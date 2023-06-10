@@ -20,6 +20,7 @@ spec:
           ports:
             - name: influx-server
               containerPort: 8086
+          # command: ["influxd", "-config", "/etc/influxdb/influxdb.conf"]
           env:
           - name: INFLUXDB_HTTP_MAX_BODY_SIZE
             value: "0"
@@ -39,6 +40,15 @@ spec:
             value: "test_bucket"
           - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
             value: "test_token"
+      #     volumeMounts:
+      #     - name: influx-config
+      #       mountPath: /etc/influxdb/influxdb.conf
+      #       subPath: influxdb.conf
+      #       readOnly: true
+      # volumes:
+      # - name: influx-config
+      #   configMap:
+      #     name: influx-configmap
 ---
 apiVersion: v1
 kind: Service
