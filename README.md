@@ -1,7 +1,6 @@
 This repo cover the development of:
 
 * **Tester** - Create a new test-space environment with DIA's platform (used for contributing/mantaining)
-
 * **Dumper** - Extract a snapshot of data, and distribute (runs on production machine)
 
 > [Wiki](https://github.com/alexjorgef/diatestsuite/wiki) contains proposal documents.
@@ -46,30 +45,28 @@ Software dependencies needed:
 
 ---
 
+## Test Env
+
+1. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git .testenv`
+2. Copy modified files: `cp -Rf inject/* .testenv/`
+3. Change to .testenv directory: `cd .testenv`
+4. Run the CLI tool: `./setup --help`
+
+## Inspirations
+
+* https://github.com/ljmf00/dotfiles
+* https://github.com/googleforgames/agones
+* https://github.com/smartcontractkit/chainlink-env
+
 ## Tester
 
 ### Prepare files
-
-1. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git -b v1.4.241 --depth 1 .temp-tester`
-2. Copy modified files: `cp -Rf tester/* .temp-tester/`
 
 ### Start the cluster
 
 Start the local cluster with `minikube start` command
 
 ### Install the platform
-
-1. Build the containers into cluster:
-
-```shell
-(
-  cd ./.temp-tester/
-  minikube image build -t us.icr.io/dia-registry/devops/build:latest -f build/build/Dockerfile-DiadataBuild .
-  minikube image build -t us.icr.io/dia-registry/devops/build-117:latest -f build/build/Dockerfile-DiadataBuild-117 .
-  minikube image build -t diadata.filtersblockservice:latest -f build/Dockerfile-filtersBlockService .
-  minikube image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService .
-)
-```
 
 2. Install the platform by running the script:
 

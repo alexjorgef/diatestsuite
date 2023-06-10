@@ -1,0 +1,160 @@
+#!/usr/bin/env bash
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  SCRIPT_FOLDER="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$SCRIPT_FOLDER/$SOURCE"
+done
+SCRIPT_FOLDER="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+unset SOURCE
+
+# echo "$PWD"
+# echo "$SCRIPT_FOLDER"
+
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    echo "GNU/Linux"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "Mac OSX"
+else
+    echo "Unknown operating system"
+    exit 1
+fi
+
+###############################################################################
+
+function usage()
+{
+    echo "Usage: setup [OPTIONS] PATH"
+    echo
+    echo "Options:"
+    echo
+    echo "  -h --help         Print help"
+    echo "  -g --goto <alias> Goto specified alias before edit"
+    echo "  -n --nodetached   Don't try to run in a detached window"
+    echo "  -s --session      Attach to a tmux session"
+    echo
+    echo "Report bugs to: <https://github.com/ljmf00/dotfiles/issues>"
+}
+
+function main()
+{
+    local paths=()
+    local args=
+    args=$(getopt -o hnsg:                                \
+                   --long goto:,nodetached,nosession,help \
+                   -n 'setup' -- "$@"                    \
+          )
+
+    # shellcheck disable=SC2181
+    if [ $? != 0 ] ; then usage 1>&2; return 1; fi
+
+    set -euo pipefail
+    eval set -- "$args"
+
+    while true; do
+        case "$1" in
+            --session | -s )
+                insession=true
+                shift ;;
+            --goto | -g    )
+                galias="$2"
+
+                # shellcheck disable=SC1090
+                source "$HOME/.oh-luis-bash/goto-command.sh"
+
+                gpath="$(goto -x "$galias" 2>/dev/null)"
+                if [ "$gpath" = "" ]; then
+                    echo "Invalid foto alias!" >&2
+                    return 1
+                fi
+
+                shift 2 ;;
+            --nodetached | -n )
+                detached=false
+                shift ;;
+            --help | -h     ) usage; return 0 ;;
+            --              ) shift; break    ;;
+            *               )        break    ;;
+        esac
+    done
+
+    # expand paths after parsing
+    paths=( "$@" )
+
+    # echo "${#paths[@]}"
+    # echo "${paths[@]}"
+    # echo "${paths:-.}"
+    # echo "${paths[0]}"
+    # echo "${paths[1]}"
+
+    if [ -f "${paths:-.}" ] || [ "${#paths[@]}" -gt 1 ]; then
+        edit_args=()
+    fi
+
+    # build_version = $(call sha,$(build_path)/build-image/Dockerfile)
+    # build_tag = agones-build:$(build_version)
+
+    MINIKUBE_PROFILE=dia
+    MINIKUBE_K8S_VERSION=v1.25.7
+    MINIKUBE_DRIVER=docker
+    MINIKUBE_CERT_MOUNT=~/.minikube
+    # kubectl configuration to use
+    KUBECONFIG=~/.kube/config
+
+    case "${paths[0]}" in
+        minikube)
+            minikube start --kubernetes-version ${MINIKUBE_K8S_VERSION} -p ${MINIKUBE_PROFILE} --driver ${MINIKUBE_DRIVER} 
+            ;;
+        minikube-build)
+            echo "Building minikube images ..."
+            images_needed=(
+                "us.icr.io/dia-registry/devops/build:latest"
+                "us.icr.io/dia-registry/devops/build-117:latest"
+                "docker.io/library/diadata.filtersblockservice:latest"
+                "docker.io/library/diadata.tradesblockservice:latest"
+            )
+            minikube_images=$(minikube -p ${MINIKUBE_PROFILE} image ls)
+            for image_needed in "${images_needed[@]}"; do
+                for minikube_image in $minikube_images; do
+                    if [ "$image_needed" = "$minikube_image" ]; then
+                        echo "Image $image_needed found in minikube"
+                    fi
+                done
+            done
+            echo "${@:0}"
+            echo "${@:1}"
+            echo "${@:2}"
+            # sha256sum README.md | head -c 10
+            minikube -p ${MINIKUBE_PROFILE} image build -t us.icr.io/dia-registry/devops/build:latest -f build/build/Dockerfile-DiadataBuild .
+            minikube -p ${MINIKUBE_PROFILE} image build -t us.icr.io/dia-registry/devops/build-117:latest -f build/build/Dockerfile-DiadataBuild-117 .
+            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.filtersblockservice:latest -f build/Dockerfile-filtersBlockService .
+            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService .
+            ;;
+        minikube-create)
+            kubectl create -f deployments/k8s-yaml/install.yaml
+            ;;
+        recreate)
+            docker_service drop "${@:2}"
+            docker_service start "${@:2}"
+            ;;
+        drop)
+            docker compose -f ~/dotfiles/dist/deploy/compose.yaml rm -svf "${@:2}"
+            ;;
+        status)
+            docker compose -f ~/dotfiles/dist/deploy/compose.yaml ps "${@:2}"
+            ;;
+        logs)
+            docker compose -f ~/dotfiles/dist/deploy/compose.yaml logs -tf "${@:2}"
+            ;;
+        build)
+            docker compose -f ~/dotfiles/dist/deploy/compose.yaml build --pull --progress plain "${@:2}"
+            ;;
+        *)
+            echo "Unknown service command" >&2
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"
