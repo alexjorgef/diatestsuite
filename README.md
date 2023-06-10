@@ -1,9 +1,10 @@
 This repo cover the development of:
 
-* Tester: Create a new test-space environment with DIA's platform (used for contributing/mantaining).
-* Dumper: Extract a snapshot of data, and upload it to registry (runs on production machine).
+* **Tester** - Create a new test-space environment with DIA's platform (used for contributing/mantaining)
 
-> Note for [Wiki](https://github.com/alexjorgef/diatestsuite/wiki), that contains proposal documents.
+* **Dumper** - Extract a snapshot of data, and distribute (runs on production machine)
+
+> [Wiki](https://github.com/alexjorgef/diatestsuite/wiki) contains proposal documents.
 
 ---
 
@@ -19,10 +20,8 @@ The followding systems are covered:
 
 Software dependencies needed:
 
-* **bash**
-* **minikube**, and **docker** as main driver
-
-> :warning:	All commands are run at the root directory of this repository.
+* *bash*
+* *minikube*, and *docker* as main driver
 
 ---
 
@@ -179,10 +178,12 @@ rm -rf ./.temp-tester/
 
 ## Dumper
 
+DIA version: `v1.4.241`
+
 ### Prepare files
 
 1. Clone DIA repo: `git clone git@github.com:diadata-org/diadata.git -b v1.4.241 --depth 1 .temp-dumper`
-2. Copy modified files: `cp -Rf dumper/* ./.temp-dumper/`
+2. Copy modified files: `cp -Rf dumper/* .temp-dumper`
 
 ### Start the cluster
 
@@ -190,8 +191,7 @@ Start the local cluster by running the script:
 
 ```sh
 (
-  cd ./.temp-dumper/
-  ./scripts/minikubeStart.sh
+  cd .temp-dumper && ./scripts/minikubeStart.sh
 )
 ```
 
