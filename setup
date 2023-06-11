@@ -244,18 +244,21 @@ function main()
                 influx -host 'localhost' -port '8086' -execute 'SHOW DATABASES' >/dev/null 2>&1 && echo "InfluxDB OK" || echo "InfluxDB FAILED" >&2
             ;;
         minikube-tradeslist)
-            num_trades=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            # https://stackoverflow.com/a/28353785/2042014
+            uptime=$(minikube -p ${MINIKUBE_PROFILE} ssh -- uptime -p)
+            echo "Uptime: $uptime"
+            num_tradestmp=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 exec -it deployment/influx -- \
                 influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM tradesTmp' | wc -l)
-            echo "Number of trades: $num_trades"
-            num_quotations=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                exec -it deployment/influx -- \
-                influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM assetQuotations' | wc -l)
-            echo "Number of quotations: $num_quotations"
+            echo "Num. of tradesTmp: $num_tradestmp"
             num_filters=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 exec -it deployment/influx -- \
                 influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM filters' | wc -l)
-            echo "Number of filters: $num_filters"
+            echo "Num. of filters: $num_filters"
+            num_quotations=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/influx -- \
+                influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM assetQuotations' | wc -l)
+            echo "Num. of quotations: $num_quotations"
             ;;
         minikube-install)
             if [ "${#paths[@]}" -eq 1 ]; then
