@@ -241,10 +241,10 @@ func NewAPIScraper(exchange string, scrape bool, key string, secret string, relD
 		return NewUniswapScraper(Exchanges[dia.StellaswapExchange], scrape)
 	case dia.WanswapExchange:
 		return NewUniswapScraper(Exchanges[dia.WanswapExchange], scrape)
-	case dia.CustomExchange:
-		return NewCustomScraper(Exchanges[dia.CustomExchange], scrape, relDB)
-	// case dia.OsmosisExchange:
-	// 	return NewOsmosisScraper(Exchanges[dia.OsmosisExchange], scrape, relDB)
+	case dia.OsmosisExchange:
+		return NewOsmosisScraper(Exchanges[dia.OsmosisExchange], scrape, relDB)
+	case dia.ZenlinkswapExchange:
+		return NewZenlinkScraper(Exchanges[dia.ZenlinkswapExchange], scrape)
 		// case dia.FinageForex:
 		// 	return NewFinageForexScraper(Exchanges[dia.FinageForex], scrape, relDB, key, secret)
 
@@ -257,6 +257,8 @@ func NewAPIScraper(exchange string, scrape bool, key string, secret string, relD
 	case "UniswapHistory":
 		return NewUniswapHistoryScraper(Exchanges[dia.UniswapExchange], scrape, relDB)
 
+	case dia.CustomExchange:
+		return NewCustomScraper(Exchanges[dia.CustomExchange], scrape, relDB)
 	default:
 		return nil
 	}

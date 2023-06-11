@@ -12,14 +12,14 @@ unset SOURCE
 # echo "$PWD"
 # echo "$SCRIPT_FOLDER"
 
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    echo "GNU/Linux"
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-    echo "Mac OSX"
-else
-    echo "Unknown operating system"
-    exit 1
-fi
+# if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+#     echo "GNU/Linux"
+# elif [[ "$OSTYPE" == "darwin"* ]]; then
+#     echo "Mac OSX"
+# else
+#     echo "Unknown operating system"
+#     exit 1
+# fi
 
 ###############################################################################
 
@@ -104,10 +104,22 @@ function main()
 
     case "${paths[0]}" in
         minikube-start)
-            minikube start --kubernetes-version ${MINIKUBE_K8S_VERSION} -p ${MINIKUBE_PROFILE} --driver ${MINIKUBE_DRIVER} 
+            minikube -p ${MINIKUBE_PROFILE} start --kubernetes-version ${MINIKUBE_K8S_VERSION} --driver ${MINIKUBE_DRIVER} 
             ;;
         minikube-stop)
-            minikube stop -p ${MINIKUBE_PROFILE}
+            minikube -p ${MINIKUBE_PROFILE} stop
+            ;;
+        minikube-shell)
+            minikube -p ${MINIKUBE_PROFILE} ssh
+            ;;
+        minikube-log)
+            minikube -p ${MINIKUBE_PROFILE} logs -f
+            ;;
+        minikube-status)
+            minikube -p ${MINIKUBE_PROFILE} status
+            ;;
+        minikube-image-list | minikube-image-ls)
+            minikube -p ${MINIKUBE_PROFILE} image ls
             ;;
         minikube-delete)
             minikube delete -p ${MINIKUBE_PROFILE}
@@ -115,24 +127,24 @@ function main()
             # rm -rf ./.temp-tester/
             ;;
         minikube-build)
-            echo "Building minikube images ..."
-            images_needed=(
-                "us.icr.io/dia-registry/devops/build:latest"
-                "us.icr.io/dia-registry/devops/build-117:latest"
-                "docker.io/library/diadata.filtersblockservice:latest"
-                "docker.io/library/diadata.tradesblockservice:latest"
-            )
-            minikube_images=$(minikube -p ${MINIKUBE_PROFILE} image ls)
-            for image_needed in "${images_needed[@]}"; do
-                for minikube_image in $minikube_images; do
-                    if [ "$image_needed" = "$minikube_image" ]; then
-                        echo "Image $image_needed found in minikube"
-                    fi
-                done
-            done
-            echo "${@:0}"
-            echo "${@:1}"
-            echo "${@:2}"
+            # echo "Building minikube images ..."
+            # images_needed=(
+            #     "us.icr.io/dia-registry/devops/build:latest"
+            #     "us.icr.io/dia-registry/devops/build-117:latest"
+            #     "docker.io/library/diadata.filtersblockservice:latest"
+            #     "docker.io/library/diadata.tradesblockservice:latest"
+            # )
+            # minikube_images=$(minikube -p ${MINIKUBE_PROFILE} image ls)
+            # for image_needed in "${images_needed[@]}"; do
+            #     for minikube_image in $minikube_images; do
+            #         if [ "$image_needed" = "$minikube_image" ]; then
+            #             echo "Image $image_needed found in minikube"
+            #         fi
+            #     done
+            # done
+            # echo "${@:0}"
+            # echo "${@:1}"
+            # echo "${@:2}"
             # sha256sum README.md | head -c 10
             minikube -p ${MINIKUBE_PROFILE} image build -t us.icr.io/dia-registry/devops/build:latest -f build/build/Dockerfile-DiadataBuild .
             minikube -p ${MINIKUBE_PROFILE} image build -t us.icr.io/dia-registry/devops/build-117:latest -f build/build/Dockerfile-DiadataBuild-117 .
@@ -140,21 +152,24 @@ function main()
             minikube -p ${MINIKUBE_PROFILE} image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService .
             ;;
         minikube-install)
-            kubectl create -f deployments/k8s-yaml/install.yaml
-            # kubectl delete -f ./deployments/k8s-yaml/filtersblockservice.yaml
-            # kubectl delete -f ./deployments/k8s-yaml/tradesblockservice.yaml
-            # kubectl delete -f ./deployments/k8s-yaml/kafka.yaml
-            # kubectl delete -f ./deployments/k8s-yaml/postgres.yaml
-            # kubectl delete -f ./deployments/k8s-yaml/redis.yaml
-            # kubectl delete -f ./deployments/k8s-yaml/influx.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/install.yaml
+            # minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f ./deployments/k8s-yaml/filtersblockservice.yaml
+            # minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f ./deployments/k8s-yaml/tradesblockservice.yaml
+            # minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f ./deployments/k8s-yaml/kafka.yaml
+            # minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f ./deployments/k8s-yaml/postgres.yaml
+            # minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f ./deployments/k8s-yaml/redis.yaml
+            # minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f ./deployments/k8s-yaml/influx.yaml
             ;;
         minikube-uninstall)
-            kubectl delete -f deployments/k8s-yaml/install.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/install.yaml
             ;;
         minikube-create)
             minikube -p ${MINIKUBE_PROFILE} image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService .
             minikube -p ${MINIKUBE_PROFILE} image build -t diadata.exchangescrapercollector:latest -f build/Dockerfile-genericCollector .
-            kubectl create -f deployments/k8s-yaml/exchangescraper-custom.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/exchangescraper-custom.yaml
+            ;;
+        minikube-remove)
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/exchangescraper-custom.yaml
             ;;
         recreate)
             docker_service drop "${@:2}"
@@ -165,9 +180,6 @@ function main()
             ;;
         status)
             docker compose -f ~/dotfiles/dist/deploy/compose.yaml ps "${@:2}"
-            ;;
-        logs)
-            minikube -p ${MINIKUBE_PROFILE} logs -f
             ;;
         build)
             docker compose -f ~/dotfiles/dist/deploy/compose.yaml build --pull --progress plain "${@:2}"
