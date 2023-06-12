@@ -494,6 +494,9 @@ function main()
                         # TODO: Move pod to job
                         minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
                         ;;
+                    foreignscraper)
+                        echo WIP
+                        ;;
                     *)
                         echo "Unknown command" >&2
                         exit 1
@@ -515,6 +518,9 @@ function main()
                         ;;
                     liquidity)
                         minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
+                        ;;
+                    foreignscraper)
+                        echo WIP
                         ;;
                     *)
                         echo "Unknown command" >&2
