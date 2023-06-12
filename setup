@@ -260,25 +260,94 @@ function main()
                 # kafkacat -b "kafka.default.svc.cluster.local:9094" -L
                 # >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
             ;;
-        minikube-tradeslist)
+        minikube-exchangelist)
+            echo "Exchange Name:"
+            read -r inputExchangeName
+            echo "Exchange Information:"
+            echo "  Name: $inputExchangeName"
+            is_centralized=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/postgres -- \
+                psql -U postgres -tA \
+                -c "SELECT centralized FROM exchange WHERE name = '$inputExchangeName'")
+            echo "  Centralized: $is_centralized"
+            is_bridge=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/postgres -- \
+                psql -U postgres -tA \
+                -c "SELECT bridge FROM exchange WHERE name = '$inputExchangeName'")
+            echo "  Bridge: $is_bridge"
+            is_active=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/postgres -- \
+                psql -U postgres -tA \
+                -c "SELECT scraper_active FROM exchange WHERE name = '$inputExchangeName'")
+            echo "  Active: $is_active"
+            echo "PostgreSQL Data:"
+            num_pools=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/postgres -- \
+                psql -U postgres -tA \
+                -c "SELECT COUNT(*) FROM pool WHERE exchange = '$inputExchangeName'")
+            echo "  Num. of pools: $num_pools"
+            num_exchangepairs=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/postgres -- \
+                psql -U postgres -tA \
+                -c "SELECT COUNT(*) FROM exchangepair WHERE exchange = '$inputExchangeName'")
+            echo "  Num. of exchange pairs: $num_exchangepairs"
+            num_exchangesymbols=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/postgres -- \
+                psql -U postgres -tA \
+                -c "SELECT COUNT(*) FROM exchangesymbol WHERE exchange = '$inputExchangeName'")
+            echo "  Num. of exchange symbols: $num_exchangesymbols"
+            ;;
+        minikube-list)
             # https://stackoverflow.com/a/28353785/2042014
             uptime=$(minikube -p ${MINIKUBE_PROFILE} ssh -- uptime -p)
             echo "Uptime: $uptime"
+            echo "InfluxDB Data:"
             # TODO: SELECT * is slow
             num_tradestmp=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 exec -it deployment/influx -- \
                 influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM tradesTmp' | wc -l)
-            echo "Num. of tradesTmp: $num_tradestmp"
+            echo "  Num. of tradesTmp: $num_tradestmp"
             # TODO: SELECT * is slow
             num_filters=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 exec -it deployment/influx -- \
                 influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM filters' | wc -l)
-            echo "Num. of filters: $num_filters"
+            echo "  Num. of filters: $num_filters"
             # TODO: SELECT * is slow
             num_quotations=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 exec -it deployment/influx -- \
                 influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM assetQuotations' | wc -l)
-            echo "Num. of quotations: $num_quotations"
+            echo "  Num. of quotations: $num_quotations"
+            echo "PostgreSQL Data:"
+            num_exchanges=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/postgres -- \
+                psql -U postgres -tA \
+                -c "SELECT COUNT(*) FROM exchange")
+            echo "  Num. of exchanges: $num_exchanges"
+            num_pools=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/postgres -- \
+                psql -U postgres -tA \
+                -c "SELECT COUNT(*) FROM pool")
+            echo "  Num. of pools: $num_pools"
+            num_poolassets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/postgres -- \
+                psql -U postgres -tA \
+                -c "SELECT COUNT(*) FROM poolasset")
+            echo "  Num. of pool assets: $num_poolassets"
+            num_assets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/postgres -- \
+                psql -U postgres -tA \
+                -c "SELECT COUNT(*) FROM asset")
+            echo "  Num. of assets: $num_assets"
+            num_exchangepairs=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/postgres -- \
+                psql -U postgres -tA \
+                -c "SELECT COUNT(*) FROM exchangepair")
+            echo "  Num. of exchange pairs: $num_exchangepairs"
+            num_exchangesymbols=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/postgres -- \
+                psql -U postgres -tA \
+                -c "SELECT COUNT(*) FROM exchangesymbol")
+            echo "  Num. of exchange symbols: $num_exchangesymbols"
             ;;
         minikube-install)
             if [ "${#paths[@]}" -eq 1 ]; then
