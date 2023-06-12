@@ -28,14 +28,14 @@ spec:
             - name: POSTGRES_PASSWORD
               value: password
           volumeMounts:
-            - name: postgres-schemma
+            - name: postgres-schemma-volume
               mountPath: /docker-entrypoint-initdb.d/pginit.sql
-              subPath: deployments/config/pginit.sql
+              subPath: pginit.sql
               readOnly: true
       volumes:
-        - name: postgres-schemma
-          hostPath:
-            path: /mnt/diadata
+      - name: postgres-schemma-volume
+        configMap:
+          name: postgres-schemma
 ---
 apiVersion: v1
 kind: Service

@@ -316,6 +316,7 @@ function main()
                 minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/service-filtersblockservice.yaml
                 minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/service-tradesblockservice.yaml
                 minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-kafka.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-schemma --from-file=deployments/config/pginit.sql
                 minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-postgres.yaml
                 minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
                 minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-influx.yaml
@@ -331,8 +332,31 @@ function main()
                 minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-tradesblockservice.yaml
                 minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-kafka.yaml
                 minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-postgres.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-schemma
                 minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-redis.yaml
                 minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-influx.yaml
+            else
+                echo "Unknown command" >&2
+                exit 1
+            fi
+            ;;
+        minikube-installcron)
+            if [ "${#paths[@]}" -eq 1 ]; then
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create secret docker-registry regcred \
+                    --docker-server="https://registry.hub.docker.com/v2/" \
+                    --docker-username="alex1a" \
+                    --docker-password="R3Uf&nq@A9&hv&" \
+                    --docker-email="alex.jorge.m@gmail.com"
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f "deployments/k8s-yaml/postgres-snapshot-cron.yaml"
+            else
+                echo "Unknown command" >&2
+                exit 1
+            fi
+            ;;
+        minikube-uninstallcron)
+            if [ "${#paths[@]}" -eq 1 ]; then
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f "deployments/k8s-yaml/postgres-snapshot-cron.yaml"
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete secret regcred
             else
                 echo "Unknown command" >&2
                 exit 1
