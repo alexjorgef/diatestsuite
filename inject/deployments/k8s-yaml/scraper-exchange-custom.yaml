@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
   - name: exchangescraper-custom
-    image: diadata.exchangescrapercollector:latest
+    image: diadata.genericcollector:latest
     imagePullPolicy: Never
     command: ["collector"]
     args: ["-exchange=Custom", "-mode=current", "-pairsfile=true"]

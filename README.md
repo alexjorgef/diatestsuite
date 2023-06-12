@@ -75,7 +75,7 @@ RUN go mod edit -replace github.com/diadata-org/diadata=/diadata
 
 ```shell
 minikube image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService .
-minikube image build -t diadata.exchangescrapercollector:latest -f build/Dockerfile-genericCollector .
+minikube image build -t diadata.genericCollector:latest -f build/Dockerfile-genericCollector .
 ```
 
 1. Add a new entry to exchange table database:

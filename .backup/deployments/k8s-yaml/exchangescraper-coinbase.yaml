@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
   - name: exchangescraper-coinbase
-    image: diadata.exchangescrapercollector:latest
+    image: diadata.genericcollector:latest
     imagePullPolicy: Never
     command: ["collector"]
     args: ["-exchange=CoinBase", "-mode=current", "-pairsfile=true"]

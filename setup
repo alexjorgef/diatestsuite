@@ -208,10 +208,11 @@ function main()
                 minikube -p ${MINIKUBE_PROFILE} image build -t diadata.filtersblockservice:latest -f build/Dockerfile-filtersBlockService .
                 minikube -p ${MINIKUBE_PROFILE} image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService .
                 minikube -p ${MINIKUBE_PROFILE} image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService .
-                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.exchangescrapercollector:latest -f build/Dockerfile-genericCollector .
+                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.genericcollector:latest -f build/Dockerfile-genericCollector .
                 minikube -p ${MINIKUBE_PROFILE} image build -t diadata.blockchainservice:latest -f build/Dockerfile-blockchainservice .
                 minikube -p ${MINIKUBE_PROFILE} image build -t diadata.assetcollectionservice:latest -f build/Dockerfile-assetCollectionService .
                 minikube -p ${MINIKUBE_PROFILE} image build -t diadata.liquidityscraper:latest -f build/Dockerfile-liquidityScraper .
+                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.genericforeignscraper:latest -f build/Dockerfile-genericForeignScraper .
             else
                 echo "Unknown command" >&2
                 exit 1
@@ -635,7 +636,7 @@ function main()
                         minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
                         ;;
                     foreignscraper)
-                        echo WIP
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
                         ;;
                     *)
                         echo "Unknown command" >&2
@@ -660,7 +661,7 @@ function main()
                         minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
                         ;;
                     foreignscraper)
-                        echo WIP
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
                         ;;
                     *)
                         echo "Unknown command" >&2
