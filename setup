@@ -239,9 +239,47 @@ function main()
             fi
             ;;
         minikube-ping)
+            # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            #     exec -it deployment/influx -- \
+            #     influx -host 'influx.default.svc.cluster.local' -port '8086' -execute 'SHOW DATABASES' >/dev/null 2>&1 && echo "InfluxDB OK" || echo "InfluxDB FAILED" >&2
             minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                exec -it deployment/influx -- \
-                influx -host 'localhost' -port '8086' -execute 'SHOW DATABASES' >/dev/null 2>&1 && echo "InfluxDB OK" || echo "InfluxDB FAILED" >&2
+                delete -f deployments/k8s-yaml/job-ping-redis.yaml >/dev/null 2>&1 || true
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                create -f deployments/k8s-yaml/job-ping-redis.yaml >/dev/null 2>&1
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                wait --timeout=30s --for=condition=complete job/ping-redis >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                delete -f deployments/k8s-yaml/job-ping-influx.yaml >/dev/null 2>&1 || true
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                create -f deployments/k8s-yaml/job-ping-influx.yaml >/dev/null 2>&1
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                wait --timeout=30s --for=condition=complete job/ping-influx >/dev/null 2>&1 && echo "InfluxDB OK" || echo "InfluxDB FAILED" >&2
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                delete -f deployments/k8s-yaml/job-ping-postgres.yaml >/dev/null 2>&1 || true
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                create -f deployments/k8s-yaml/job-ping-postgres.yaml >/dev/null 2>&1
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                wait --timeout=30s --for=condition=complete job/ping-postgres >/dev/null 2>&1 && echo "PostgreSQL OK" || echo "PostgreSQL FAILED" >&2
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                delete -f deployments/k8s-yaml/job-ping-kafka.yaml >/dev/null 2>&1 || true
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                create -f deployments/k8s-yaml/job-ping-kafka.yaml >/dev/null 2>&1
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                wait --timeout=30s --for=condition=complete job/ping-kafka >/dev/null 2>&1 && echo "Kafka OK" || echo "Kafka FAILED" >&2
+            # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            #     exec -it deployment/postgres -- \
+            #     pg_isready -h 'postgres.default.svc.cluster.local' -U 'postgres' >/dev/null 2>&1 && echo "PostgreSQL OK" || echo "PostgreSQL FAILED" >&2
+            # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            #     exec -it deployment/redis -- \
+            #     redis-cli -u 'redis://redis.default.svc.cluster.local:6379/0' ping >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
+            # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            #     run x --image=influxdb:1.8 --restart=Never --command -- \
+            #     influx -host 'influx.default.svc.cluster.local' -port '8086' -execute 'SHOW DATABASES'
+            # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            #     exec -it deployment/redis -- \
+            #     echo dump | nc kafka.default.svc.cluster.local 9094 | grep brokers
+                # kafkacat -b "kafka.default.svc.cluster.local:9094" -L
+                # >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
             ;;
         minikube-tradeslist)
             # https://stackoverflow.com/a/28353785/2042014
