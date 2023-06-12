@@ -46,4 +46,6 @@ cd .testenv
 
 Run the setup script to manage the enviornment 🚀:
 
-`./setup --help`
+```sh
+./setup --help
+```
