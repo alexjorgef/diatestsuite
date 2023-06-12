@@ -1,4 +1,4 @@
-Cover the development of a test-space environment with DIA's platform. [Wiki](https://github.com/alexjorgef/diatestsuite/wiki) contains proposal documents.
+Cover the development of a test-space environment with DIA's platform. [Wiki](https://github.com/alexjorgef/diatestsuite/wiki) contains notes for documentation.
 
 Minimum hardware recommended:
 
@@ -36,7 +36,7 @@ cp -Rf inject/* .testenv/
 ln -s "$PWD/setup" .testenv/setup
 ```
 
-1. After changing the directory to .testenv, test-space are ready to be run:
+1. After changing the directory to .testenv, the test-space are ready to be run:
 
 ```sh
 cd .testenv
