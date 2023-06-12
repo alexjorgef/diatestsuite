@@ -2,11 +2,11 @@
 
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do
-  SCRIPT_FOLDER="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-  SOURCE="$(readlink "$SOURCE")"
-  [[ $SOURCE != /* ]] && SOURCE="$SCRIPT_FOLDER/$SOURCE"
+    SCRIPT_FOLDER="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$SCRIPT_FOLDER/$SOURCE"
 done
-SCRIPT_FOLDER="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+SCRIPT_FOLDER="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
 unset SOURCE
 
 # echo "$PWD"
@@ -23,64 +23,84 @@ unset SOURCE
 
 ###############################################################################
 
-function usage()
-{
-    echo "Usage: setup [OPTIONS] PATH"
+function usage() {
+    echo "Usage: setup [OPTIONS] COMMAND [ARGS]..."
     echo
     echo "Options:"
     echo
     echo "  -h --help         Print help"
     echo "  -g --goto <alias> Goto specified alias before edit"
     echo "  -n --nodetached   Don't try to run in a detached window"
-    echo "  -s --session      Attach to a tmux session"
+    echo "  -s --full         Start a full environment"
     echo
-    echo "Report bugs to: <https://github.com/ljmf00/dotfiles/issues>"
+    echo "Commands:"
+    echo
+    echo "  minikube-start        Start minikube"
+    echo "  minikube-stop         Stop minikube"
+    echo "  minikube-delete       Delete minikube"
+    echo "  minikube-build        Build images"
+    echo "  minikube-install      Install DIA platform"
+    echo "  minikube-uninstall    Un-Install DIA platform"
+    echo
+    echo "Report bugs to: <https://github.com/diadata-org/diadata/issues>"
 }
 
-function main()
-{
+function main() {
     local paths=()
     local args=
-    args=$(getopt -o hnsg:                                \
-                   --long goto:,nodetached,nosession,help \
-                   -n 'setup' -- "$@"                    \
-          )
+    args=$(
+        getopt -o hnsg: \
+            --long goto:,nodetached,full,help \
+            -n 'setup' -- "$@"
+    )
 
     # shellcheck disable=SC2181
-    if [ $? != 0 ] ; then usage 1>&2; return 1; fi
+    if [ $? != 0 ]; then
+        usage 1>&2
+        return 1
+    fi
 
     set -euo pipefail
     eval set -- "$args"
 
     while true; do
         case "$1" in
-            --session | -s )
-                insession=true
-                shift ;;
-            --goto | -g    )
-                galias="$2"
+        --full | -f)
+            full=true
+            shift
+            ;;
+        --goto | -g)
+            galias="$2"
 
-                # shellcheck disable=SC1090
-                source "$HOME/.oh-luis-bash/goto-command.sh"
+            # shellcheck disable=SC1090
+            source "$HOME/.oh-luis-bash/goto-command.sh"
 
-                gpath="$(goto -x "$galias" 2>/dev/null)"
-                if [ "$gpath" = "" ]; then
-                    echo "Invalid foto alias!" >&2
-                    return 1
-                fi
+            gpath="$(goto -x "$galias" 2>/dev/null)"
+            if [ "$gpath" = "" ]; then
+                echo "Invalid foto alias!" >&2
+                return 1
+            fi
 
-                shift 2 ;;
-            --nodetached | -n )
-                detached=false
-                shift ;;
-            --help | -h     ) usage; return 0 ;;
-            --              ) shift; break    ;;
-            *               )        break    ;;
+            shift 2
+            ;;
+        --nodetached | -n)
+            detached=false
+            shift
+            ;;
+        --help | -h)
+            usage
+            return 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *) break ;;
         esac
     done
 
     # expand paths after parsing
-    paths=( "$@" )
+    paths=("$@")
 
     # echo "${#paths[@]}"
     # echo "${paths[@]}"
@@ -106,431 +126,431 @@ function main()
     KUBECONFIG=~/.kube/config
 
     case "${paths[0]}" in
-        minikube-start)
-            if [ "${#paths[@]}" -eq 1 ]; then
-                minikube -p ${MINIKUBE_PROFILE} start \
-                    --kubernetes-version ${MINIKUBE_K8S_VERSION} \
-                    --driver ${MINIKUBE_DRIVER} \
-                    --memory ${MINIKUBE_HW_RAM} \
-                    --cpus ${MINIKUBE_HW_CPUS} \
-                    --disk-size ${MINIKUBE_HW_DISK_SIZE}
-                    # --mount-string="$(pwd):/mnt/diadata:rw" \
-                    # --mount=true
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        minikube-stop)
-            if [ "${#paths[@]}" -eq 1 ]; then
-                minikube -p ${MINIKUBE_PROFILE} stop
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        minikube-shell)
-            if [ "${#paths[@]}" -eq 1 ]; then
-                minikube -p ${MINIKUBE_PROFILE} ssh
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        minikube-log)
-            if [ "${#paths[@]}" -eq 1 ]; then
-                minikube -p ${MINIKUBE_PROFILE} logs -f
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        minikube-info)
-            if [ "${#paths[@]}" -eq 1 ]; then
-                minikube profile list
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        minikube-status)
-            if [ "${#paths[@]}" -eq 1 ]; then
-                minikube -p ${MINIKUBE_PROFILE} status
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        minikube-image-list | minikube-image-ls)
-            if [ "${#paths[@]}" -eq 1 ]; then
-                minikube -p ${MINIKUBE_PROFILE} image ls
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        minikube-delete)
-            if [ "${#paths[@]}" -eq 1 ]; then
-                minikube delete -p ${MINIKUBE_PROFILE}
-                # TODO: remove all minikube mount files
-                # rm -rf ./.temp-tester/
-                docker image prune -a -f
-                docker volume prune -a -f
-                docker network prune -f
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        minikube-build)
-            if [ "${#paths[@]}" -eq 1 ]; then
-                # echo "Building minikube images ..."
-                # images_needed=(
-                #     "us.icr.io/dia-registry/devops/build:latest"
-                #     "us.icr.io/dia-registry/devops/build-117:latest"
-                #     "docker.io/library/diadata.filtersblockservice:latest"
-                #     "docker.io/library/diadata.tradesblockservice:latest"
-                # )
-                # minikube_images=$(minikube -p ${MINIKUBE_PROFILE} image ls)
-                # for image_needed in "${images_needed[@]}"; do
-                #     for minikube_image in $minikube_images; do
-                #         if [ "$image_needed" = "$minikube_image" ]; then
-                #             echo "Image $image_needed found in minikube"
-                #         fi
-                #     done
-                # done
-                # echo "${@:0}"
-                # echo "${@:1}"
-                # echo "${@:2}"
-                # sha256sum README.md | head -c 10
-                minikube -p ${MINIKUBE_PROFILE} image build -t us.icr.io/dia-registry/devops/build:latest -f build/build/Dockerfile-DiadataBuild .
-                minikube -p ${MINIKUBE_PROFILE} image build -t us.icr.io/dia-registry/devops/build-117:latest -f build/build/Dockerfile-DiadataBuild-117 .
-                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.filtersblockservice:latest -f build/Dockerfile-filtersBlockService .
-                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService .
-                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService .
-                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.genericcollector:latest -f build/Dockerfile-genericCollector .
-                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.blockchainservice:latest -f build/Dockerfile-blockchainservice .
-                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.assetcollectionservice:latest -f build/Dockerfile-assetCollectionService .
-                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.liquidityscraper:latest -f build/Dockerfile-liquidityScraper .
-                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.genericforeignscraper:latest -f build/Dockerfile-genericForeignScraper .
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        minikube-ping)
-            # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            #     exec -it deployment/influx -- \
-            #     influx -host 'influx.default.svc.cluster.local' -port '8086' -execute 'SHOW DATABASES' >/dev/null 2>&1 && echo "InfluxDB OK" || echo "InfluxDB FAILED" >&2
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                delete -f deployments/k8s-yaml/job-ping-redis.yaml >/dev/null 2>&1 || true
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                create -f deployments/k8s-yaml/job-ping-redis.yaml >/dev/null 2>&1
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                wait --timeout=30s --for=condition=complete job/ping-redis >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                delete -f deployments/k8s-yaml/job-ping-influx.yaml >/dev/null 2>&1 || true
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                create -f deployments/k8s-yaml/job-ping-influx.yaml >/dev/null 2>&1
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                wait --timeout=30s --for=condition=complete job/ping-influx >/dev/null 2>&1 && echo "InfluxDB OK" || echo "InfluxDB FAILED" >&2
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                delete -f deployments/k8s-yaml/job-ping-postgres.yaml >/dev/null 2>&1 || true
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                create -f deployments/k8s-yaml/job-ping-postgres.yaml >/dev/null 2>&1
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                wait --timeout=30s --for=condition=complete job/ping-postgres >/dev/null 2>&1 && echo "PostgreSQL OK" || echo "PostgreSQL FAILED" >&2
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                delete -f deployments/k8s-yaml/job-ping-kafka.yaml >/dev/null 2>&1 || true
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                create -f deployments/k8s-yaml/job-ping-kafka.yaml >/dev/null 2>&1
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                wait --timeout=30s --for=condition=complete job/ping-kafka >/dev/null 2>&1 && echo "Kafka OK" || echo "Kafka FAILED" >&2
-            # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            #     exec -it deployment/postgres -- \
-            #     pg_isready -h 'postgres.default.svc.cluster.local' -U 'postgres' >/dev/null 2>&1 && echo "PostgreSQL OK" || echo "PostgreSQL FAILED" >&2
-            # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            #     exec -it deployment/redis -- \
-            #     redis-cli -u 'redis://redis.default.svc.cluster.local:6379/0' ping >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
-            # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            #     run x --image=influxdb:1.8 --restart=Never --command -- \
-            #     influx -host 'influx.default.svc.cluster.local' -port '8086' -execute 'SHOW DATABASES'
-            # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            #     exec -it deployment/redis -- \
-            #     echo dump | nc kafka.default.svc.cluster.local 9094 | grep brokers
-                # kafkacat -b "kafka.default.svc.cluster.local:9094" -L
-                # >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
-            ;;
-        minikube-list)
-            if [ "${#paths[@]}" -gt 1 ]; then
-                case "${paths[1]}" in
-                    exchange)
-                        echo "Exchange:"
-                        read -r inputExchangeName
-                        echo "PostgreSQL Data:"
-                        echo "  Name: $inputExchangeName"
-                        is_centralized=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                            exec -it deployment/postgres -- \
-                            psql -U postgres -AXqt \
-                            -c "SELECT centralized FROM exchange WHERE name = '$inputExchangeName'" | sed 's/\r$//')
-                        echo "  Centralized: $is_centralized"
-                        is_bridge=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                            exec -it deployment/postgres -- \
-                            psql -U postgres -tA \
-                            -c "SELECT bridge FROM exchange WHERE name = '$inputExchangeName'")
-                        echo "  Bridge: $is_bridge"
-                        is_active=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                            exec -it deployment/postgres -- \
-                            psql -U postgres -tA \
-                            -c "SELECT scraper_active FROM exchange WHERE name = '$inputExchangeName'")
-                        echo "  Active: $is_active"
-                        if [[ "$is_centralized" == "t" ]]; then
-                            num_exchangepairs=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                                exec -it deployment/postgres -- \
-                                psql -U postgres -tA \
-                                -c "SELECT COUNT(*) FROM exchangepair WHERE exchange = '$inputExchangeName'")
-                            echo "  Num. of exchange pairs: $num_exchangepairs"
-                            num_exchangepairassets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                                exec -it deployment/postgres -- \
-                                psql -U postgres -tA \
-                                -c "SELECT COUNT(*) FROM asset WHERE asset_id IN (SELECT id_quotetoken FROM exchangepair WHERE exchange = '$inputExchangeName') OR asset_id IN (SELECT id_basetoken FROM exchangepair WHERE exchange = '$inputExchangeName')")
-                            echo "    Num. of assets: $num_exchangepairassets"
-                            num_exchangesymbols=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                                exec -it deployment/postgres -- \
-                                psql -U postgres -tA \
-                                -c "SELECT COUNT(*) FROM exchangesymbol WHERE exchange = '$inputExchangeName'")
-                            echo "  Num. of exchange symbols: $num_exchangesymbols"
-                            num_exchangesymbolsassets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                                exec -it deployment/postgres -- \
-                                psql -U postgres -tA \
-                                -c "SELECT COUNT(*) FROM asset WHERE asset_id IN (SELECT asset_id FROM exchangesymbol WHERE exchange = '$inputExchangeName')")
-                            echo "    Num. of assets: $num_exchangesymbolsassets"
-                        else
-                            blockchain=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                                exec -it deployment/postgres -- \
-                                psql -U postgres -tA \
-                                -c "SELECT blockchain FROM exchange WHERE name = '$inputExchangeName'")
-                            echo "  Blockchain: $blockchain"
-                            num_pools=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                                exec -it deployment/postgres -- \
-                                psql -U postgres -tA \
-                                -c "SELECT COUNT(*) FROM pool WHERE exchange = '$inputExchangeName'")
-                            echo "  Num. of pools: $num_pools"
-                            num_poolassets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                                exec -it deployment/postgres -- \
-                                psql -U postgres -tA \
-                                -c "SELECT COUNT(*) FROM poolasset WHERE pool_id IN (SELECT pool_id FROM pool WHERE exchange = '$inputExchangeName')")
-                            echo "    Num. of pool assets: $num_poolassets"
-                            num_poolassetsassets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                                exec -it deployment/postgres -- \
-                                psql -U postgres -tA \
-                                -c "SELECT COUNT(*) FROM asset WHERE asset_id IN (SELECT asset_id FROM poolasset WHERE pool_id IN (SELECT pool_id FROM pool WHERE exchange = '$inputExchangeName'))")
-                            echo "      Num. of assets: $num_poolassetsassets"
-                        fi
-                        ;;
-                    blockchain)
-                        echo "Blockchain:"
-                        read -r inputBlockchainName
-                        echo "PostgreSQL Data:"
-                        verificationmechanism=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                            exec -it deployment/postgres -- \
-                            psql -U postgres -tA \
-                            -c "SELECT verificationmechanism FROM blockchain WHERE name = '$inputBlockchainName'")
-                        echo "  Consensus: $verificationmechanism"
-                        genesisdate=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                            exec -it deployment/postgres -- \
-                            psql -U postgres -tA \
-                            -c "SELECT genesisdate FROM blockchain WHERE name = '$inputBlockchainName'")
-                        echo "  Genesis Date: $genesisdate"
-                        chainid=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                            exec -it deployment/postgres -- \
-                            psql -U postgres -tA \
-                            -c "SELECT chain_id FROM blockchain WHERE name = '$inputBlockchainName'")
-                        echo "  Chain ID: $chainid"
-                        # TODO: nativetoken_id column of blockchain table is not being used
-                        # native_token_name=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                        #     exec -it deployment/postgres -- \
-                        #     psql -U postgres -tA \
-                        #     -c "SELECT name FROM asset WHERE asset_id IN (SELECT nativetoken_id FROM blockchain WHERE name = 'inputBlockchainName')")
-                        # native_token_symbol=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                        #     exec -it deployment/postgres -- \
-                        #     psql -U postgres -tA \
-                        #     -c "SELECT symbol FROM asset WHERE asset_id IN (SELECT nativetoken_id FROM blockchain WHERE name = 'inputBlockchainName')")
-                        # echo "  Native token: $native_token_name ($native_token_symbol)"
-                        num_blockchainassets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                            exec -it deployment/postgres -- \
-                            psql -U postgres -tA \
-                            -c "SELECT COUNT(*) FROM asset WHERE blockchain = '$inputBlockchainName'")
-                        echo "  Num. of blockchain assets: $num_blockchainassets"
-                        ;;
-                    *)
-                        echo "Unknown command" >&2
-                        exit 1
-                        ;;
-                esac
-            else
-                # https://stackoverflow.com/a/28353785/2042014
-                uptime=$(minikube -p ${MINIKUBE_PROFILE} ssh -- uptime -p)
-                echo "Uptime: $uptime"
-                echo "InfluxDB Data:"
-                # TODO: SELECT * is slow
-                num_tradestmp=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                    exec -it deployment/influx -- \
-                    influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM tradesTmp' | wc -l)
-                echo "  Num. of tradesTmp: $num_tradestmp"
-                # TODO: SELECT * is slow
-                num_filters=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                    exec -it deployment/influx -- \
-                    influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM filters' | wc -l)
-                echo "  Num. of filters: $num_filters"
-                # TODO: SELECT * is slow
-                num_quotations=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                    exec -it deployment/influx -- \
-                    influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM assetQuotations' | wc -l)
-                echo "  Num. of quotations: $num_quotations"
+    minikube-start)
+        if [ "${#paths[@]}" -eq 1 ]; then
+            minikube -p ${MINIKUBE_PROFILE} start \
+                --kubernetes-version ${MINIKUBE_K8S_VERSION} \
+                --driver ${MINIKUBE_DRIVER} \
+                --memory ${MINIKUBE_HW_RAM} \
+                --cpus ${MINIKUBE_HW_CPUS} \
+                --disk-size ${MINIKUBE_HW_DISK_SIZE}
+            # --mount-string="$(pwd):/mnt/diadata:rw" \
+            # --mount=true
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    minikube-stop)
+        if [ "${#paths[@]}" -eq 1 ]; then
+            minikube -p ${MINIKUBE_PROFILE} stop
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    minikube-shell)
+        if [ "${#paths[@]}" -eq 1 ]; then
+            minikube -p ${MINIKUBE_PROFILE} ssh
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    minikube-log)
+        if [ "${#paths[@]}" -eq 1 ]; then
+            minikube -p ${MINIKUBE_PROFILE} logs -f
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    minikube-info)
+        if [ "${#paths[@]}" -eq 1 ]; then
+            minikube profile list
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    minikube-status)
+        if [ "${#paths[@]}" -eq 1 ]; then
+            minikube -p ${MINIKUBE_PROFILE} status
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    minikube-image-list | minikube-image-ls)
+        if [ "${#paths[@]}" -eq 1 ]; then
+            minikube -p ${MINIKUBE_PROFILE} image ls
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    minikube-delete)
+        if [ "${#paths[@]}" -eq 1 ]; then
+            minikube delete -p ${MINIKUBE_PROFILE}
+            # TODO: remove all minikube mount files
+            # rm -rf ./.testenv/
+            docker image prune -a -f
+            docker volume prune -a -f
+            docker network prune -f
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    minikube-build)
+        if [ "${#paths[@]}" -eq 1 ]; then
+            # echo "Building minikube images ..."
+            # images_needed=(
+            #     "us.icr.io/dia-registry/devops/build:latest"
+            #     "us.icr.io/dia-registry/devops/build-117:latest"
+            #     "docker.io/library/diadata.filtersblockservice:latest"
+            #     "docker.io/library/diadata.tradesblockservice:latest"
+            # )
+            # minikube_images=$(minikube -p ${MINIKUBE_PROFILE} image ls)
+            # for image_needed in "${images_needed[@]}"; do
+            #     for minikube_image in $minikube_images; do
+            #         if [ "$image_needed" = "$minikube_image" ]; then
+            #             echo "Image $image_needed found in minikube"
+            #         fi
+            #     done
+            # done
+            # echo "${@:0}"
+            # echo "${@:1}"
+            # echo "${@:2}"
+            # sha256sum README.md | head -c 10
+            minikube -p ${MINIKUBE_PROFILE} image build -t us.icr.io/dia-registry/devops/build:latest -f build/build/Dockerfile-DiadataBuild .
+            minikube -p ${MINIKUBE_PROFILE} image build -t us.icr.io/dia-registry/devops/build-117:latest -f build/build/Dockerfile-DiadataBuild-117 .
+            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.filtersblockservice:latest -f build/Dockerfile-filtersBlockService .
+            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService .
+            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService .
+            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.genericcollector:latest -f build/Dockerfile-genericCollector .
+            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.blockchainservice:latest -f build/Dockerfile-blockchainservice .
+            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.assetcollectionservice:latest -f build/Dockerfile-assetCollectionService .
+            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.liquidityscraper:latest -f build/Dockerfile-liquidityScraper .
+            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.genericforeignscraper:latest -f build/Dockerfile-genericForeignScraper .
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    minikube-ping)
+        # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+        #     exec -it deployment/influx -- \
+        #     influx -host 'influx.default.svc.cluster.local' -port '8086' -execute 'SHOW DATABASES' >/dev/null 2>&1 && echo "InfluxDB OK" || echo "InfluxDB FAILED" >&2
+        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            delete -f deployments/k8s-yaml/job-ping-redis.yaml >/dev/null 2>&1 || true
+        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            create -f deployments/k8s-yaml/job-ping-redis.yaml >/dev/null 2>&1
+        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            wait --timeout=30s --for=condition=complete job/ping-redis >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
+        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            delete -f deployments/k8s-yaml/job-ping-influx.yaml >/dev/null 2>&1 || true
+        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            create -f deployments/k8s-yaml/job-ping-influx.yaml >/dev/null 2>&1
+        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            wait --timeout=30s --for=condition=complete job/ping-influx >/dev/null 2>&1 && echo "InfluxDB OK" || echo "InfluxDB FAILED" >&2
+        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            delete -f deployments/k8s-yaml/job-ping-postgres.yaml >/dev/null 2>&1 || true
+        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            create -f deployments/k8s-yaml/job-ping-postgres.yaml >/dev/null 2>&1
+        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            wait --timeout=30s --for=condition=complete job/ping-postgres >/dev/null 2>&1 && echo "PostgreSQL OK" || echo "PostgreSQL FAILED" >&2
+        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            delete -f deployments/k8s-yaml/job-ping-kafka.yaml >/dev/null 2>&1 || true
+        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            create -f deployments/k8s-yaml/job-ping-kafka.yaml >/dev/null 2>&1
+        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            wait --timeout=30s --for=condition=complete job/ping-kafka >/dev/null 2>&1 && echo "Kafka OK" || echo "Kafka FAILED" >&2
+        # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+        #     exec -it deployment/postgres -- \
+        #     pg_isready -h 'postgres.default.svc.cluster.local' -U 'postgres' >/dev/null 2>&1 && echo "PostgreSQL OK" || echo "PostgreSQL FAILED" >&2
+        # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+        #     exec -it deployment/redis -- \
+        #     redis-cli -u 'redis://redis.default.svc.cluster.local:6379/0' ping >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
+        # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+        #     run x --image=influxdb:1.8 --restart=Never --command -- \
+        #     influx -host 'influx.default.svc.cluster.local' -port '8086' -execute 'SHOW DATABASES'
+        # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+        #     exec -it deployment/redis -- \
+        #     echo dump | nc kafka.default.svc.cluster.local 9094 | grep brokers
+        # kafkacat -b "kafka.default.svc.cluster.local:9094" -L
+        # >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
+        ;;
+    minikube-list)
+        if [ "${#paths[@]}" -gt 1 ]; then
+            case "${paths[1]}" in
+            exchange)
+                echo "Exchange:"
+                read -r inputExchangeName
                 echo "PostgreSQL Data:"
-                num_exchanges=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                echo "  Name: $inputExchangeName"
+                is_centralized=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                    exec -it deployment/postgres -- \
+                    psql -U postgres -AXqt \
+                    -c "SELECT centralized FROM exchange WHERE name = '$inputExchangeName'" | sed 's/\r$//')
+                echo "  Centralized: $is_centralized"
+                is_bridge=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                     exec -it deployment/postgres -- \
                     psql -U postgres -tA \
-                    -c "SELECT COUNT(*) FROM exchange")
-                echo "  Num. of exchanges: $num_exchanges"
-                num_pools=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                    -c "SELECT bridge FROM exchange WHERE name = '$inputExchangeName'")
+                echo "  Bridge: $is_bridge"
+                is_active=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                     exec -it deployment/postgres -- \
                     psql -U postgres -tA \
-                    -c "SELECT COUNT(*) FROM pool")
-                echo "  Num. of pools: $num_pools"
-                num_poolassets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                    -c "SELECT scraper_active FROM exchange WHERE name = '$inputExchangeName'")
+                echo "  Active: $is_active"
+                if [[ "$is_centralized" == "t" ]]; then
+                    num_exchangepairs=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                        exec -it deployment/postgres -- \
+                        psql -U postgres -tA \
+                        -c "SELECT COUNT(*) FROM exchangepair WHERE exchange = '$inputExchangeName'")
+                    echo "  Num. of exchange pairs: $num_exchangepairs"
+                    num_exchangepairassets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                        exec -it deployment/postgres -- \
+                        psql -U postgres -tA \
+                        -c "SELECT COUNT(*) FROM asset WHERE asset_id IN (SELECT id_quotetoken FROM exchangepair WHERE exchange = '$inputExchangeName') OR asset_id IN (SELECT id_basetoken FROM exchangepair WHERE exchange = '$inputExchangeName')")
+                    echo "    Num. of assets: $num_exchangepairassets"
+                    num_exchangesymbols=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                        exec -it deployment/postgres -- \
+                        psql -U postgres -tA \
+                        -c "SELECT COUNT(*) FROM exchangesymbol WHERE exchange = '$inputExchangeName'")
+                    echo "  Num. of exchange symbols: $num_exchangesymbols"
+                    num_exchangesymbolsassets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                        exec -it deployment/postgres -- \
+                        psql -U postgres -tA \
+                        -c "SELECT COUNT(*) FROM asset WHERE asset_id IN (SELECT asset_id FROM exchangesymbol WHERE exchange = '$inputExchangeName')")
+                    echo "    Num. of assets: $num_exchangesymbolsassets"
+                else
+                    blockchain=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                        exec -it deployment/postgres -- \
+                        psql -U postgres -tA \
+                        -c "SELECT blockchain FROM exchange WHERE name = '$inputExchangeName'")
+                    echo "  Blockchain: $blockchain"
+                    num_pools=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                        exec -it deployment/postgres -- \
+                        psql -U postgres -tA \
+                        -c "SELECT COUNT(*) FROM pool WHERE exchange = '$inputExchangeName'")
+                    echo "  Num. of pools: $num_pools"
+                    num_poolassets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                        exec -it deployment/postgres -- \
+                        psql -U postgres -tA \
+                        -c "SELECT COUNT(*) FROM poolasset WHERE pool_id IN (SELECT pool_id FROM pool WHERE exchange = '$inputExchangeName')")
+                    echo "    Num. of pool assets: $num_poolassets"
+                    num_poolassetsassets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                        exec -it deployment/postgres -- \
+                        psql -U postgres -tA \
+                        -c "SELECT COUNT(*) FROM asset WHERE asset_id IN (SELECT asset_id FROM poolasset WHERE pool_id IN (SELECT pool_id FROM pool WHERE exchange = '$inputExchangeName'))")
+                    echo "      Num. of assets: $num_poolassetsassets"
+                fi
+                ;;
+            blockchain)
+                echo "Blockchain:"
+                read -r inputBlockchainName
+                echo "PostgreSQL Data:"
+                verificationmechanism=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                     exec -it deployment/postgres -- \
                     psql -U postgres -tA \
-                    -c "SELECT COUNT(*) FROM poolasset")
-                echo "  Num. of pool assets: $num_poolassets"
-                num_assets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                    -c "SELECT verificationmechanism FROM blockchain WHERE name = '$inputBlockchainName'")
+                echo "  Consensus: $verificationmechanism"
+                genesisdate=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                     exec -it deployment/postgres -- \
                     psql -U postgres -tA \
-                    -c "SELECT COUNT(*) FROM asset")
-                echo "  Num. of assets: $num_assets"
-                num_exchangepairs=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                    -c "SELECT genesisdate FROM blockchain WHERE name = '$inputBlockchainName'")
+                echo "  Genesis Date: $genesisdate"
+                chainid=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                     exec -it deployment/postgres -- \
                     psql -U postgres -tA \
-                    -c "SELECT COUNT(*) FROM exchangepair")
-                echo "  Num. of exchange pairs: $num_exchangepairs"
-                num_exchangesymbols=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                    -c "SELECT chain_id FROM blockchain WHERE name = '$inputBlockchainName'")
+                echo "  Chain ID: $chainid"
+                # TODO: nativetoken_id column of blockchain table is not being used
+                # native_token_name=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                #     exec -it deployment/postgres -- \
+                #     psql -U postgres -tA \
+                #     -c "SELECT name FROM asset WHERE asset_id IN (SELECT nativetoken_id FROM blockchain WHERE name = 'inputBlockchainName')")
+                # native_token_symbol=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                #     exec -it deployment/postgres -- \
+                #     psql -U postgres -tA \
+                #     -c "SELECT symbol FROM asset WHERE asset_id IN (SELECT nativetoken_id FROM blockchain WHERE name = 'inputBlockchainName')")
+                # echo "  Native token: $native_token_name ($native_token_symbol)"
+                num_blockchainassets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                     exec -it deployment/postgres -- \
                     psql -U postgres -tA \
-                    -c "SELECT COUNT(*) FROM exchangesymbol")
-                echo "  Num. of exchange symbols: $num_exchangesymbols"
-            fi
-            ;;
-        minikube-install)
-            if [ "${#paths[@]}" -eq 1 ]; then
-                # TODO: Check if all images are built
-                # TODO: Check if installation depends on a pre-built image or not
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/service-filtersblockservice.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/service-tradesblockservice.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-kafka.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-postgres-prepopulated.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-influx.yaml
-            else
+                    -c "SELECT COUNT(*) FROM asset WHERE blockchain = '$inputBlockchainName'")
+                echo "  Num. of blockchain assets: $num_blockchainassets"
+                ;;
+            *)
                 echo "Unknown command" >&2
                 exit 1
-            fi
-            ;;
-        minikube-uninstall)
-            if [ "${#paths[@]}" -eq 1 ]; then
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-filtersblockservice.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-tradesblockservice.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-kafka.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-postgres-prepopulated.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-redis.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-influx.yaml
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        minikube-installfull)
-            if [ "${#paths[@]}" -eq 1 ]; then
-                # minikube -p ${MINIKUBE_PROFILE} mount "$(pwd):/mnt/diadata"
-                # mkdir -p /tmp/postgres
-                # minikube -p ${MINIKUBE_PROFILE} mount "/tmp/postgres:/mnt/diadata/postgres" --uid 70 --gid 70
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/service-filtersblockservice.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/service-tradesblockservice.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-kafka.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-schemma --from-file=deployments/config/pginit.sql
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-postgres.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-influx.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/job-prepare.yaml
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        minikube-uninstallfull)
-            if [ "${#paths[@]}" -eq 1 ]; then
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-filtersblockservice.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-tradesblockservice.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-kafka.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-postgres.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-schemma
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-redis.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-influx.yaml
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        minikube-installcron)
-            if [ "${#paths[@]}" -eq 1 ]; then
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create secret docker-registry regcred \
-                    --docker-server="https://registry.hub.docker.com/v2/" \
-                    --docker-username="alex1a" \
-                    --docker-password="R3Uf&nq@A9&hv&" \
-                    --docker-email="alex.jorge.m@gmail.com"
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f "deployments/k8s-yaml/postgres-snapshot-cron.yaml"
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        minikube-uninstallcron)
-            if [ "${#paths[@]}" -eq 1 ]; then
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f "deployments/k8s-yaml/postgres-snapshot-cron.yaml"
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete secret regcred
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        minikube-psqlinsert)
-            inputExchangeName="Custom"
-            # echo "Exchange Name:"
-            # read -r inputExchangeName
-            # while true; do
-            #     echo "The exchange is decentralized in a blockchain?"
-            #     read -r inputExchangeCentralized
-            #     case $inputExchangeCentralized in
-            #         [Yy]* ) echo "You choose yes."; break;;
-            #         [Nn]* ) echo "You choose no.";;
-            #         * ) echo "Please answer yes or no.";;
-            #     esac
-            # done
-            # echo "$inputExchangeCentralized"
-            # while true; do
-            #     echo "The exchange is a bridge?"
-            #     read -r inputExchangeBridge
-            #     case $inputExchangeBridge in
-            #         [Yy]* ) echo "You choose yes."; break;;
-            #         [Nn]* ) echo "You choose no.";;
-            #         * ) echo "Please answer yes or no.";;
-            #     esac
-            # done
-            # echo "$inputExchangeBridge"
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                ;;
+            esac
+        else
+            # https://stackoverflow.com/a/28353785/2042014
+            uptime=$(minikube -p ${MINIKUBE_PROFILE} ssh -- uptime -p)
+            echo "Uptime: $uptime"
+            echo "InfluxDB Data:"
+            # TODO: SELECT * is slow
+            num_tradestmp=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/influx -- \
+                influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM tradesTmp' | wc -l)
+            echo "  Num. of tradesTmp: $num_tradestmp"
+            # TODO: SELECT * is slow
+            num_filters=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/influx -- \
+                influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM filters' | wc -l)
+            echo "  Num. of filters: $num_filters"
+            # TODO: SELECT * is slow
+            num_quotations=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/influx -- \
+                influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM assetQuotations' | wc -l)
+            echo "  Num. of quotations: $num_quotations"
+            echo "PostgreSQL Data:"
+            num_exchanges=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 exec -it deployment/postgres -- \
-                psql -v ON_ERROR_STOP=on -U postgres \
-                -c "INSERT INTO exchange (
+                psql -U postgres -tA \
+                -c "SELECT COUNT(*) FROM exchange")
+            echo "  Num. of exchanges: $num_exchanges"
+            num_pools=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/postgres -- \
+                psql -U postgres -tA \
+                -c "SELECT COUNT(*) FROM pool")
+            echo "  Num. of pools: $num_pools"
+            num_poolassets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/postgres -- \
+                psql -U postgres -tA \
+                -c "SELECT COUNT(*) FROM poolasset")
+            echo "  Num. of pool assets: $num_poolassets"
+            num_assets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/postgres -- \
+                psql -U postgres -tA \
+                -c "SELECT COUNT(*) FROM asset")
+            echo "  Num. of assets: $num_assets"
+            num_exchangepairs=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/postgres -- \
+                psql -U postgres -tA \
+                -c "SELECT COUNT(*) FROM exchangepair")
+            echo "  Num. of exchange pairs: $num_exchangepairs"
+            num_exchangesymbols=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/postgres -- \
+                psql -U postgres -tA \
+                -c "SELECT COUNT(*) FROM exchangesymbol")
+            echo "  Num. of exchange symbols: $num_exchangesymbols"
+        fi
+        ;;
+    minikube-install)
+        if [ "${#paths[@]}" -eq 1 ]; then
+            # TODO: Check if all images are built
+            # TODO: Check if installation depends on a pre-built image or not
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/service-filtersblockservice.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/service-tradesblockservice.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-kafka.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-postgres-prepopulated.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-influx.yaml
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    minikube-uninstall)
+        if [ "${#paths[@]}" -eq 1 ]; then
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-filtersblockservice.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-tradesblockservice.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-kafka.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-postgres-prepopulated.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-redis.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-influx.yaml
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    minikube-installfull)
+        if [ "${#paths[@]}" -eq 1 ]; then
+            # minikube -p ${MINIKUBE_PROFILE} mount "$(pwd):/mnt/diadata"
+            # mkdir -p /tmp/postgres
+            # minikube -p ${MINIKUBE_PROFILE} mount "/tmp/postgres:/mnt/diadata/postgres" --uid 70 --gid 70
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/service-filtersblockservice.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/service-tradesblockservice.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-kafka.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-schemma --from-file=deployments/config/pginit.sql
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-postgres.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-influx.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/job-prepare.yaml
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    minikube-uninstallfull)
+        if [ "${#paths[@]}" -eq 1 ]; then
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-filtersblockservice.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-tradesblockservice.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-kafka.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-postgres.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-schemma
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-redis.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-influx.yaml
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    minikube-installcron)
+        if [ "${#paths[@]}" -eq 1 ]; then
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create secret docker-registry regcred \
+                --docker-server="https://registry.hub.docker.com/v2/" \
+                --docker-username="alex1a" \
+                --docker-password="R3Uf&nq@A9&hv&" \
+                --docker-email="alex.jorge.m@gmail.com"
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f "deployments/k8s-yaml/postgres-snapshot-cron.yaml"
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    minikube-uninstallcron)
+        if [ "${#paths[@]}" -eq 1 ]; then
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f "deployments/k8s-yaml/postgres-snapshot-cron.yaml"
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete secret regcred
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    minikube-psqlinsert)
+        inputExchangeName="Custom"
+        # echo "Exchange Name:"
+        # read -r inputExchangeName
+        # while true; do
+        #     echo "The exchange is decentralized in a blockchain?"
+        #     read -r inputExchangeCentralized
+        #     case $inputExchangeCentralized in
+        #         [Yy]* ) echo "You choose yes."; break;;
+        #         [Nn]* ) echo "You choose no.";;
+        #         * ) echo "Please answer yes or no.";;
+        #     esac
+        # done
+        # echo "$inputExchangeCentralized"
+        # while true; do
+        #     echo "The exchange is a bridge?"
+        #     read -r inputExchangeBridge
+        #     case $inputExchangeBridge in
+        #         [Yy]* ) echo "You choose yes."; break;;
+        #         [Nn]* ) echo "You choose no.";;
+        #         * ) echo "Please answer yes or no.";;
+        #     esac
+        # done
+        # echo "$inputExchangeBridge"
+        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            exec -it deployment/postgres -- \
+            psql -v ON_ERROR_STOP=on -U postgres \
+            -c "INSERT INTO exchange (
                     exchange_id,
                     name,
                     centralized,
@@ -556,127 +576,127 @@ function main()
                     true
                 )
                 ;" >/dev/null 2>&1 && echo "Success" || echo "Error, a exchange with the name $inputExchangeName already exists." >&2
-            # set +e
-            # psqlExitCode=$?
-            # if [ $psqlExitCode -ne 0 ]; then
-            #     echo "Error, a exchange with the name $inputExchangeName already exists."
-            # else
-            #     echo "Success"
-            # fi
-            ;;
-        minikube-psqldelete)
-            # TODO: error handling when cannot delete row
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                exec -it deployment/postgres -- \
-                psql -U postgres -t \
-                -c "DELETE FROM exchange WHERE name = 'Custom'" >/dev/null 2>&1 && echo "Row deleted." || echo "Error, a exchange does not exists and cannot be deleted." >&2
-            ;;
-        minikube-psqlfind)
-            # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            #     exec -it deployment/postgres -- \
-            #     psql -U postgres -t \
-            #     -c "SELECT exchange_id FROM exchange WHERE name = 'Custom'" \
-            #     -c "SELECT exchange_id FROM exchange WHERE name = 'Custom'"
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                exec -it deployment/postgres -- \
-                psql -U postgres -t \
-                -c "SELECT exchange_id FROM exchange WHERE name = 'Custom'" | if [[ $(wc -l) -ge 2 ]]; then echo "Found"; else echo "Not Found"; fi
-                # -c "SELECT exchange_id FROM exchange WHERE name = 'Custom';
-                #     IF NOT FOUND THEN RAISE EXCEPTION 'User not found'"
-                # "select coalesce(
-                #     (select name from exchange where name = 'CustomA'), '(none)'
-                # )"
-            # echo $?
-            ;;
-        minikube-create)
-            if [ "${#paths[@]}" -gt 1 ]; then
-                echo "${#paths[@]}"
-                case "${paths[1]}" in
-                    exchange)
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-custom.yaml
-                        ;;
-                    *)
-                        echo "Unknown command" >&2
-                        exit 1
-                        ;;
-                esac
-            else
+        # set +e
+        # psqlExitCode=$?
+        # if [ $psqlExitCode -ne 0 ]; then
+        #     echo "Error, a exchange with the name $inputExchangeName already exists."
+        # else
+        #     echo "Success"
+        # fi
+        ;;
+    minikube-psqldelete)
+        # TODO: error handling when cannot delete row
+        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            exec -it deployment/postgres -- \
+            psql -U postgres -t \
+            -c "DELETE FROM exchange WHERE name = 'Custom'" >/dev/null 2>&1 && echo "Row deleted." || echo "Error, a exchange does not exists and cannot be deleted." >&2
+        ;;
+    minikube-psqlfind)
+        # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+        #     exec -it deployment/postgres -- \
+        #     psql -U postgres -t \
+        #     -c "SELECT exchange_id FROM exchange WHERE name = 'Custom'" \
+        #     -c "SELECT exchange_id FROM exchange WHERE name = 'Custom'"
+        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            exec -it deployment/postgres -- \
+            psql -U postgres -t \
+            -c "SELECT exchange_id FROM exchange WHERE name = 'Custom'" | if [[ $(wc -l) -ge 2 ]]; then echo "Found"; else echo "Not Found"; fi
+        # -c "SELECT exchange_id FROM exchange WHERE name = 'Custom';
+        #     IF NOT FOUND THEN RAISE EXCEPTION 'User not found'"
+        # "select coalesce(
+        #     (select name from exchange where name = 'CustomA'), '(none)'
+        # )"
+        # echo $?
+        ;;
+    minikube-create)
+        if [ "${#paths[@]}" -gt 1 ]; then
+            echo "${#paths[@]}"
+            case "${paths[1]}" in
+            exchange)
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-custom.yaml
+                ;;
+            *)
                 echo "Unknown command" >&2
                 exit 1
-            fi
-            ;;
-        minikube-remove)
-            if [ "${#paths[@]}" -gt 1 ]; then
-                echo "${#paths[@]}"
-                case "${paths[1]}" in
-                    exchange)
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-custom.yaml
-                        ;;
-                    *)
-                        echo "Unknown command" >&2
-                        exit 1
-                        ;;
-                esac
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        minikube-create-example)
-            if [ "${#paths[@]}" -gt 1 ]; then
-                case "${paths[1]}" in
-                    exchange)
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
-                        ;;
-                    liquidity)
-                        # TODO: Move pod to job
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
-                        ;;
-                    foreignscraper)
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
-                        ;;
-                    *)
-                        echo "Unknown command" >&2
-                        exit 1
-                        ;;
-                esac
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        minikube-remove-example)
-            if [ "${#paths[@]}" -gt 1 ]; then
-                case "${paths[1]}" in
-                    exchange)
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
-                        ;;
-                    liquidity)
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
-                        ;;
-                    foreignscraper)
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
-                        ;;
-                    *)
-                        echo "Unknown command" >&2
-                        exit 1
-                        ;;
-                esac
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        *)
+                ;;
+            esac
+        else
             echo "Unknown command" >&2
             exit 1
-            ;;
+        fi
+        ;;
+    minikube-remove)
+        if [ "${#paths[@]}" -gt 1 ]; then
+            echo "${#paths[@]}"
+            case "${paths[1]}" in
+            exchange)
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-custom.yaml
+                ;;
+            *)
+                echo "Unknown command" >&2
+                exit 1
+                ;;
+            esac
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    minikube-create-example)
+        if [ "${#paths[@]}" -gt 1 ]; then
+            case "${paths[1]}" in
+            exchange)
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
+                ;;
+            liquidity)
+                # TODO: Move pod to job
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
+                ;;
+            foreignscraper)
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
+                ;;
+            *)
+                echo "Unknown command" >&2
+                exit 1
+                ;;
+            esac
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    minikube-remove-example)
+        if [ "${#paths[@]}" -gt 1 ]; then
+            case "${paths[1]}" in
+            exchange)
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
+                ;;
+            liquidity)
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
+                ;;
+            foreignscraper)
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
+                ;;
+            *)
+                echo "Unknown command" >&2
+                exit 1
+                ;;
+            esac
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    *)
+        echo "Unknown command" >&2
+        exit 1
+        ;;
     esac
 }
 
