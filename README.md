@@ -18,31 +18,33 @@ Software dependencies needed:
 * *bash*, *git*, *yq*
 * *minikube*, and *docker* as main driver
 
-## Setup
+## Prepare this repository
 
-1. Clone the DIA's repo or a fork to .testenv folder:
+Clone the DIA's repo or a fork to .testenv folder:
 
 ```sh
 git clone git@github.com:diadata-org/diadata.git -b v1.4.261 --depth 1 .testenv
 ```
 
-2. Copy the modification files:
+Copy the modification files:
 
 ```sh
 cp -Rf inject/* .testenv/
 ```
 
-1. Link the setup script (for fast development):
+Link the setup script (for fast development):
 
 ```sh
 ln -s "$PWD/setup" .testenv/setup
 ```
 
-1. After changing the directory to .testenv, a isolated test-space are ready to be run:
+After changing the directory to .testenv, a isolated test-space are ready to be run:
 
 ```sh
 cd .testenv
 ```
+
+## Setup
 
 Run the setup script to manage the enviornment 🚀:
 
