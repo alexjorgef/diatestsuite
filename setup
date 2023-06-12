@@ -286,6 +286,11 @@ function main()
                 psql -U postgres -tA \
                 -c "SELECT COUNT(*) FROM pool WHERE exchange = '$inputExchangeName'")
             echo "  Num. of pools: $num_pools"
+            num_poolassets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec -it deployment/postgres -- \
+                psql -U postgres -tA \
+                -c "SELECT COUNT(*) FROM poolasset WHERE pool_id IN (SELECT pool_id FROM pool WHERE exchange = '$inputExchangeName')")
+            echo "  Num. of pool assets: $num_poolassets"
             num_exchangepairs=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 exec -it deployment/postgres -- \
                 psql -U postgres -tA \
