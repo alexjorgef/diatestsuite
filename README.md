@@ -1,4 +1,6 @@
-Cover the development of a test-space environment with DIA's platform. [Wiki](https://github.com/alexjorgef/diatestsuite/wiki) contains notes for documentation.
+Cover the development of a test-space environment with DIA's platform. [Wiki](https://github.com/alexjorgef/diatestsuite/wiki) contain notes.
+
+## Requirements
 
 Minimum hardware recommended:
 
@@ -16,7 +18,7 @@ Software dependencies needed:
 * *bash*, *git*, *yq*
 * *minikube*, and *docker* as main driver
 
-## Prepare files
+## Setup
 
 1. Clone the DIA's repo or a fork to .testenv folder:
 
@@ -24,25 +26,23 @@ Software dependencies needed:
 git clone git@github.com:diadata-org/diadata.git -b v1.4.261 --depth 1 .testenv
 ```
 
-2. Copy the prepared files:
+2. Copy the modification files:
 
 ```sh
 cp -Rf inject/* .testenv/
 ```
 
-1. Link the setup script:
+1. Link the setup script (for fast development):
 
 ```sh
 ln -s "$PWD/setup" .testenv/setup
 ```
 
-1. After changing the directory to .testenv, the test-space are ready to be run:
+1. After changing the directory to .testenv, a isolated test-space are ready to be run:
 
 ```sh
 cd .testenv
 ```
-
-## Setup
 
 Run the setup script to manage the enviornment 🚀:
 
