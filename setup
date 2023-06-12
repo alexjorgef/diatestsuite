@@ -114,6 +114,8 @@ function main()
                     --memory ${MINIKUBE_HW_RAM} \
                     --cpus ${MINIKUBE_HW_CPUS} \
                     --disk-size ${MINIKUBE_HW_DISK_SIZE}
+                    # --mount-string="$(pwd):/mnt/diadata:rw" \
+                    # --mount=true
             else
                 echo "Unknown command" >&2
                 exit 1
@@ -207,32 +209,9 @@ function main()
                 minikube -p ${MINIKUBE_PROFILE} image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService .
                 minikube -p ${MINIKUBE_PROFILE} image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService .
                 minikube -p ${MINIKUBE_PROFILE} image build -t diadata.exchangescrapercollector:latest -f build/Dockerfile-genericCollector .
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        minikube-installfull)
-            if [ "${#paths[@]}" -eq 1 ]; then
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/filtersblockservice.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/tradesblockservice.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/kafka.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/postgres.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/redis.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/influx.yaml
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        minikube-uninstallfull)
-            if [ "${#paths[@]}" -eq 1 ]; then
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/filtersblockservice.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/tradesblockservice.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/kafka.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/postgres.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/redis.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/influx.yaml
+                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.blockchainservice:latest -f build/Dockerfile-blockchainservice .
+                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.assetcollectionservice:latest -f build/Dockerfile-assetCollectionService .
+                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.liquidityscraper:latest -f build/Dockerfile-liquidityScraper .
             else
                 echo "Unknown command" >&2
                 exit 1
@@ -285,14 +264,17 @@ function main()
             # https://stackoverflow.com/a/28353785/2042014
             uptime=$(minikube -p ${MINIKUBE_PROFILE} ssh -- uptime -p)
             echo "Uptime: $uptime"
+            # TODO: SELECT * is slow
             num_tradestmp=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 exec -it deployment/influx -- \
                 influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM tradesTmp' | wc -l)
             echo "Num. of tradesTmp: $num_tradestmp"
+            # TODO: SELECT * is slow
             num_filters=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 exec -it deployment/influx -- \
                 influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM filters' | wc -l)
             echo "Num. of filters: $num_filters"
+            # TODO: SELECT * is slow
             num_quotations=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 exec -it deployment/influx -- \
                 influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM assetQuotations' | wc -l)
@@ -302,12 +284,12 @@ function main()
             if [ "${#paths[@]}" -eq 1 ]; then
                 # TODO: Check if all images are built
                 # TODO: Check if installation depends on a pre-built image or not
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/filtersblockservice.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/tradesblockservice-prepopulated.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/kafka.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/postgres-prepopulated.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/redis.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/influx.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/service-filtersblockservice.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/service-tradesblockservice.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-kafka.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-postgres-prepopulated.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-influx.yaml
             else
                 echo "Unknown command" >&2
                 exit 1
@@ -315,12 +297,42 @@ function main()
             ;;
         minikube-uninstall)
             if [ "${#paths[@]}" -eq 1 ]; then
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/filtersblockservice.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/tradesblockservice-prepopulated.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/kafka.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/postgres-prepopulated.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/redis.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/influx.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-filtersblockservice.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-tradesblockservice.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-kafka.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-postgres-prepopulated.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-redis.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-influx.yaml
+            else
+                echo "Unknown command" >&2
+                exit 1
+            fi
+            ;;
+        minikube-installfull)
+            if [ "${#paths[@]}" -eq 1 ]; then
+                # minikube -p ${MINIKUBE_PROFILE} mount "$(pwd):/mnt/diadata"
+                # mkdir -p /tmp/postgres
+                # minikube -p ${MINIKUBE_PROFILE} mount "/tmp/postgres:/mnt/diadata/postgres" --uid 70 --gid 70
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/service-filtersblockservice.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/service-tradesblockservice.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-kafka.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-postgres.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-influx.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/job-prepare.yaml
+            else
+                echo "Unknown command" >&2
+                exit 1
+            fi
+            ;;
+        minikube-uninstallfull)
+            if [ "${#paths[@]}" -eq 1 ]; then
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-filtersblockservice.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-tradesblockservice.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-kafka.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-postgres.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-redis.yaml
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-influx.yaml
             else
                 echo "Unknown command" >&2
                 exit 1
@@ -416,26 +428,7 @@ function main()
                 echo "${#paths[@]}"
                 case "${paths[1]}" in
                     exchange)
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/exchangescraper-custom.yaml
-                        ;;
-                    *)
-                        echo "Unknown command" >&2
-                        exit 1
-                        ;;
-                esac
-            else
-                echo "Unknown command" >&2
-                exit 1
-            fi
-            ;;
-        minikube-create-example)
-            if [ "${#paths[@]}" -gt 1 ]; then
-                case "${paths[1]}" in
-                    exchange)
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/exchangescraper-example-bitfinex.yaml
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/exchangescraper-example-bittrex.yaml
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/exchangescraper-example-coinbase.yaml
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/exchangescraper-example-mexc.yaml
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-custom.yaml
                         ;;
                     *)
                         echo "Unknown command" >&2
@@ -452,7 +445,30 @@ function main()
                 echo "${#paths[@]}"
                 case "${paths[1]}" in
                     exchange)
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/exchangescraper-custom.yaml
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-custom.yaml
+                        ;;
+                    *)
+                        echo "Unknown command" >&2
+                        exit 1
+                        ;;
+                esac
+            else
+                echo "Unknown command" >&2
+                exit 1
+            fi
+            ;;
+        minikube-create-example)
+            if [ "${#paths[@]}" -gt 1 ]; then
+                case "${paths[1]}" in
+                    exchange)
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
+                        ;;
+                    liquidity)
+                        # TODO: Move pod to job
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
                         ;;
                     *)
                         echo "Unknown command" >&2
@@ -468,10 +484,13 @@ function main()
             if [ "${#paths[@]}" -gt 1 ]; then
                 case "${paths[1]}" in
                     exchange)
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/exchangescraper-example-bitfinex.yaml
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/exchangescraper-example-bittrex.yaml
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/exchangescraper-example-coinbase.yaml
-                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/exchangescraper-example-mexc.yaml
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
+                        ;;
+                    liquidity)
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
                         ;;
                     *)
                         echo "Unknown command" >&2
@@ -482,19 +501,6 @@ function main()
                 echo "Unknown command" >&2
                 exit 1
             fi
-            ;;
-        recreate)
-            docker_service drop "${@:2}"
-            docker_service start "${@:2}"
-            ;;
-        drop)
-            docker compose -f ~/dotfiles/dist/deploy/compose.yaml rm -svf "${@:2}"
-            ;;
-        status)
-            docker compose -f ~/dotfiles/dist/deploy/compose.yaml ps "${@:2}"
-            ;;
-        build)
-            docker compose -f ~/dotfiles/dist/deploy/compose.yaml build --pull --progress plain "${@:2}"
             ;;
         *)
             echo "Unknown command" >&2
