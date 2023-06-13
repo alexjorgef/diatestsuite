@@ -9,18 +9,6 @@ done
 SCRIPT_FOLDER="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
 unset SOURCE
 
-# echo "$PWD"
-# echo "$SCRIPT_FOLDER"
-
-# if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-#     echo "GNU/Linux"
-# elif [[ "$OSTYPE" == "darwin"* ]]; then
-#     echo "Mac OSX"
-# else
-#     echo "Unknown operating system"
-#     exit 1
-# fi
-
 ###############################################################################
 
 function usage() {
@@ -109,6 +97,11 @@ function main() {
 
     if [ -f "${paths:-.}" ] || [ "${#paths[@]}" -gt 1 ]; then
         edit_args=()
+    fi
+
+    if [[ "$OSTYPE" != "linux-gnu"* ]] && [[ "$OSTYPE" != "darwin"* ]]; then
+        echo "Unknown operating system"
+        exit 1
     fi
 
     MINIKUBE_PROFILE=dia
@@ -360,37 +353,56 @@ function main() {
                 ;;
             esac
         else
+            echo "PWD: $PWD"
+            echo "SCRIPT_FOLDER: $SCRIPT_FOLDER"
+            if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+                echo "OSTYPE: GNU/Linux"
+            elif [[ "$OSTYPE" == "darwin"* ]]; then
+                echo "OSTYPE: Mac OSX"
+            fi
+            uptime=$(minikube -p ${MINIKUBE_PROFILE} ssh -- uptime -p)
+            echo "Uptime: $uptime"
+            echo; echo "Images:"
             minikube -p ${MINIKUBE_PROFILE} image ls
+
+            echo; echo "Status:"
             minikube -p ${MINIKUBE_PROFILE} status
+            
+            echo; echo "Disk available:"
             minikube -p ${MINIKUBE_PROFILE} ssh -- df -h
-            minikube -p ${MINIKUBE_PROFILE} ssh -- docker system df
+            if [[ "$MINIKUBE_DRIVER" == "docker" ]]; then
+                echo; echo "Disk available of Docker:"
+                minikube -p ${MINIKUBE_PROFILE} ssh -- docker system df
+            fi
+
              # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
             #     exec -it deployment/influx -- \
             #     influx -host 'influx.default.svc.cluster.local' -port '8086' -execute 'SHOW DATABASES' >/dev/null 2>&1 && echo "InfluxDB OK" || echo "InfluxDB FAILED" >&2
+            echo; echo "Ping tests:"
             minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 delete -f deployments/k8s-yaml/job-ping-redis.yaml >/dev/null 2>&1 || true
             minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 create -f deployments/k8s-yaml/job-ping-redis.yaml >/dev/null 2>&1
             minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                wait --timeout=30s --for=condition=complete job/ping-redis >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
+                wait --timeout=30s --for=condition=complete job/ping-redis >/dev/null 2>&1 && echo "  Redis OK" || echo "  Redis FAILED" >&2
             minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 delete -f deployments/k8s-yaml/job-ping-influx.yaml >/dev/null 2>&1 || true
             minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 create -f deployments/k8s-yaml/job-ping-influx.yaml >/dev/null 2>&1
             minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                wait --timeout=30s --for=condition=complete job/ping-influx >/dev/null 2>&1 && echo "InfluxDB OK" || echo "InfluxDB FAILED" >&2
+                wait --timeout=30s --for=condition=complete job/ping-influx >/dev/null 2>&1 && echo "  InfluxDB OK" || echo "  InfluxDB FAILED" >&2
             minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 delete -f deployments/k8s-yaml/job-ping-postgres.yaml >/dev/null 2>&1 || true
             minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 create -f deployments/k8s-yaml/job-ping-postgres.yaml >/dev/null 2>&1
             minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                wait --timeout=30s --for=condition=complete job/ping-postgres >/dev/null 2>&1 && echo "PostgreSQL OK" || echo "PostgreSQL FAILED" >&2
+                wait --timeout=30s --for=condition=complete job/ping-postgres >/dev/null 2>&1 && echo "  PostgreSQL OK" || echo "  PostgreSQL FAILED" >&2
             minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 delete -f deployments/k8s-yaml/job-ping-kafka.yaml >/dev/null 2>&1 || true
             minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 create -f deployments/k8s-yaml/job-ping-kafka.yaml >/dev/null 2>&1
             minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                wait --timeout=30s --for=condition=complete job/ping-kafka >/dev/null 2>&1 && echo "Kafka OK" || echo "Kafka FAILED" >&2
+                wait --timeout=30s --for=condition=complete job/ping-kafka >/dev/null 2>&1 && echo "  Kafka OK" || echo "  Kafka FAILED" >&2
             # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
             #     exec -it deployment/postgres -- \
             #     pg_isready -h 'postgres.default.svc.cluster.local' -U 'postgres' >/dev/null 2>&1 && echo "PostgreSQL OK" || echo "PostgreSQL FAILED" >&2
@@ -406,9 +418,8 @@ function main() {
             # kafkacat -b "kafka.default.svc.cluster.local:9094" -L
             # >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
             # https://stackoverflow.com/a/28353785/2042014
-            uptime=$(minikube -p ${MINIKUBE_PROFILE} ssh -- uptime -p)
-            echo "Uptime: $uptime"
-            echo "InfluxDB Data:"
+            
+            echo; echo "InfluxDB Data:"
             # TODO: SELECT * is slow
             num_tradestmp=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 exec -it deployment/influx -- \
