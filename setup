@@ -35,12 +35,12 @@ function usage() {
     echo
     echo "Commands:"
     echo
-    echo "  minikube-start         Start minikube"
-    echo "  minikube-stop         Stop minikube"
-    echo "  minikube-delete       Delete minikube"
-    echo "  minikube-build        Build images"
-    echo "  minikube-install      Install DIA platform"
-    echo "  minikube-uninstall    Un-Install DIA platform"
+    echo "  cluster-start           Start minikube"
+    echo "  cluster-stop            Stop minikube"
+    echo "  cluster-delete          Delete minikube"
+    echo "  env-build               Build DIA images"
+    echo "  env-install             Install DIA platform"
+    echo "  env-uninstall           Un-Install DIA platform"
     echo
     echo "Report bugs to: <https://github.com/diadata-org/diadata/issues>"
 }
@@ -116,10 +116,10 @@ function main() {
     # kubectl configuration to use
     KUBECONFIG=~/.kube/config
 
-    source ./.env.local
+    if [ -f "./.env.local" ]; then source ./.env.local; fi
 
     case "${paths[0]}" in
-    minikube-start)
+    cluster-start)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} start \
                 --kubernetes-version ${MINIKUBE_K8S_VERSION} \
@@ -134,7 +134,7 @@ function main() {
             exit 1
         fi
         ;;
-    minikube-stop)
+    cluster-stop)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} stop
         else
@@ -142,7 +142,7 @@ function main() {
             exit 1
         fi
         ;;
-    minikube-shell)
+    cluster-shell)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} ssh
         else
@@ -150,7 +150,7 @@ function main() {
             exit 1
         fi
         ;;
-    minikube-log)
+    cluster-log)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} logs -f
         else
@@ -158,7 +158,7 @@ function main() {
             exit 1
         fi
         ;;
-    minikube-info)
+    cluster-info)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube profile list
         else
@@ -166,15 +166,27 @@ function main() {
             exit 1
         fi
         ;;
-    minikube-status)
+    env-info)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} status
+            minikube -p ${MINIKUBE_PROFILE} ssh -- df -h
+            minikube -p ${MINIKUBE_PROFILE} ssh -- docker system df
         else
             echo "Unknown command" >&2
             exit 1
         fi
         ;;
-    minikube-image-list | minikube-image-ls)
+    env-clean)
+        if [ "${#paths[@]}" -eq 1 ]; then
+            minikube -p ${MINIKUBE_PROFILE} ssh -- docker image prune -a -f
+            minikube -p ${MINIKUBE_PROFILE} ssh -- docker volume prune -f
+            minikube -p ${MINIKUBE_PROFILE} ssh -- docker network prune -f
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    cluster-image-list | cluster-image-ls)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} image ls
         else
@@ -182,7 +194,7 @@ function main() {
             exit 1
         fi
         ;;
-    minikube-delete)
+    cluster-delete)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube delete -p ${MINIKUBE_PROFILE}
             # TODO: remove all minikube mount files
@@ -195,7 +207,7 @@ function main() {
             exit 1
         fi
         ;;
-    minikube-build)
+    env-build)
         if [ "${#paths[@]}" -eq 1 ]; then
             # echo "Building minikube images ..."
             # images_needed=(
@@ -216,16 +228,34 @@ function main() {
             # echo "${@:1}"
             # echo "${@:2}"
             # sha256sum README.md | head -c 10
-            minikube -p ${MINIKUBE_PROFILE} image build -t us.icr.io/dia-registry/devops/build:latest -f build/build/Dockerfile-DiadataBuild .
-            minikube -p ${MINIKUBE_PROFILE} image build -t us.icr.io/dia-registry/devops/build-117:latest -f build/build/Dockerfile-DiadataBuild-117 .
-            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.filtersblockservice:latest -f build/Dockerfile-filtersBlockService .
-            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService .
-            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService .
-            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.genericcollector:latest -f build/Dockerfile-genericCollector .
-            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.blockchainservice:latest -f build/Dockerfile-blockchainservice .
-            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.assetcollectionservice:latest -f build/Dockerfile-assetCollectionService .
-            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.liquidityscraper:latest -f build/Dockerfile-liquidityScraper .
-            minikube -p ${MINIKUBE_PROFILE} image build -t diadata.genericforeignscraper:latest -f build/Dockerfile-genericForeignScraper .
+            if [[ "$MINIKUBE_DRIVER" == "docker" ]]; then
+                echo "Building minikube images ..."
+                eval "$(minikube -p ${MINIKUBE_PROFILE} docker-env)"
+
+                source ./baseimage.sh --notpush
+
+                docker buildx build -f "build/Dockerfile-filtersBlockService" -t "diadata.filtersblockservice:latest" .
+                docker buildx build -f "build/Dockerfile-tradesBlockService" -t "diadata.tradesblockservice:latest" .
+                docker buildx build -f "build/Dockerfile-pairDiscoveryService" -t "diadata.pairdiscoveryservice:latest" .
+                docker buildx build -f "build/Dockerfile-genericCollector" -t "diadata.genericCollector:latest" .
+                docker buildx build -f "build/Dockerfile-blockchainservice" -t "diadata.blockchainservice:latest" .
+                docker buildx build -f "build/Dockerfile-assetCollectionService" -t "diadata.assetcollectionservice:latest" .
+                docker buildx build -f "build/Dockerfile-liquidityScraper" -t "diadata.liquidityscraper:latest" .
+                docker buildx build -f "build/Dockerfile-genericForeignScraper" -t "diadata.genericforeignscraper:latest" .
+
+                eval "$(minikube -p ${MINIKUBE_PROFILE} docker-env --unset)"
+            else
+                minikube -p ${MINIKUBE_PROFILE} image build -t us.icr.io/dia-registry/devops/build:latest -f build/build/Dockerfile-DiadataBuild .
+                minikube -p ${MINIKUBE_PROFILE} image build -t us.icr.io/dia-registry/devops/build-117:latest -f build/build/Dockerfile-DiadataBuild-117 .
+                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.filtersblockservice:latest -f build/Dockerfile-filtersBlockService .
+                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService .
+                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService .
+                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.genericcollector:latest -f build/Dockerfile-genericCollector .
+                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.blockchainservice:latest -f build/Dockerfile-blockchainservice .
+                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.assetcollectionservice:latest -f build/Dockerfile-assetCollectionService .
+                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.liquidityscraper:latest -f build/Dockerfile-liquidityScraper .
+                minikube -p ${MINIKUBE_PROFILE} image build -t diadata.genericforeignscraper:latest -f build/Dockerfile-genericForeignScraper .
+            fi
         else
             echo "Unknown command" >&2
             exit 1

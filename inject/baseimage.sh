@@ -13,7 +13,7 @@ build_and_push() {
                 docker push "us.icr.io/dia-registry/$3/$2:$version"
         fi
 }
-if [[ "$*" != *"--notpush"* ]]; then
+if [[ "$1" != "--notpush" ]]; then
     notpush="false"
 else
     notpush="true"
