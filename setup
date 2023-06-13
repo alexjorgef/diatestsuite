@@ -181,6 +181,9 @@ function main() {
             minikube -p ${MINIKUBE_PROFILE} ssh -- docker image prune -a -f
             minikube -p ${MINIKUBE_PROFILE} ssh -- docker volume prune -f
             minikube -p ${MINIKUBE_PROFILE} ssh -- docker network prune -f
+            eval "$(minikube -p ${MINIKUBE_PROFILE} docker-env)"
+            docker buildx prune -a -f
+            eval "$(minikube -p ${MINIKUBE_PROFILE} docker-env --unset)"
         else
             echo "Unknown command" >&2
             exit 1
@@ -237,7 +240,7 @@ function main() {
                 docker buildx build -f "build/Dockerfile-filtersBlockService" -t "diadata.filtersblockservice:latest" .
                 docker buildx build -f "build/Dockerfile-tradesBlockService" -t "diadata.tradesblockservice:latest" .
                 docker buildx build -f "build/Dockerfile-pairDiscoveryService" -t "diadata.pairdiscoveryservice:latest" .
-                docker buildx build -f "build/Dockerfile-genericCollector" -t "diadata.genericCollector:latest" .
+                docker buildx build -f "build/Dockerfile-genericCollector" -t "diadata.genericcollector:latest" .
                 docker buildx build -f "build/Dockerfile-blockchainservice" -t "diadata.blockchainservice:latest" .
                 docker buildx build -f "build/Dockerfile-assetCollectionService" -t "diadata.assetcollectionservice:latest" .
                 docker buildx build -f "build/Dockerfile-liquidityScraper" -t "diadata.liquidityscraper:latest" .
@@ -464,7 +467,7 @@ function main() {
             echo "  Num. of exchange symbols: $num_exchangesymbols"
         fi
         ;;
-    minikube-install)
+    env-install)
         if [ "${#paths[@]}" -eq 1 ]; then
             # TODO: Check if all images are built
             # TODO: Check if installation depends on a pre-built image or not
@@ -479,7 +482,7 @@ function main() {
             exit 1
         fi
         ;;
-    minikube-uninstall)
+    env-uninstall)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-filtersblockservice.yaml
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-tradesblockservice.yaml
@@ -492,7 +495,7 @@ function main() {
             exit 1
         fi
         ;;
-    minikube-installfull)
+    env-installfull)
         if [ "${#paths[@]}" -eq 1 ]; then
             # minikube -p ${MINIKUBE_PROFILE} mount "$(pwd):/mnt/diadata"
             # mkdir -p /tmp/postgres
@@ -510,7 +513,7 @@ function main() {
             exit 1
         fi
         ;;
-    minikube-uninstallfull)
+    env-uninstallfull)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-filtersblockservice.yaml
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-tradesblockservice.yaml
@@ -524,7 +527,7 @@ function main() {
             exit 1
         fi
         ;;
-    minikube-installcron)
+    env-installcron)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create secret docker-registry regcred \
                 --docker-server="https://registry.hub.docker.com/v2/" \
@@ -537,7 +540,7 @@ function main() {
             exit 1
         fi
         ;;
-    minikube-uninstallcron)
+    env-uninstallcron)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f "deployments/k8s-yaml/postgres-snapshot-cron.yaml"
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete secret regcred
@@ -546,7 +549,7 @@ function main() {
             exit 1
         fi
         ;;
-    minikube-psqlinsert)
+    env-psqlinsert)
         inputExchangeName="Custom"
         # echo "Exchange Name:"
         # read -r inputExchangeName
@@ -607,14 +610,14 @@ function main() {
         #     echo "Success"
         # fi
         ;;
-    minikube-psqldelete)
+    env-psqldelete)
         # TODO: error handling when cannot delete row
         minikube -p ${MINIKUBE_PROFILE} kubectl -- \
             exec -it deployment/postgres -- \
             psql -U postgres -t \
             -c "DELETE FROM exchange WHERE name = 'Custom'" >/dev/null 2>&1 && echo "Row deleted." || echo "Error, a exchange does not exists and cannot be deleted." >&2
         ;;
-    minikube-psqlfind)
+    env-psqlfind)
         # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
         #     exec -it deployment/postgres -- \
         #     psql -U postgres -t \
@@ -631,7 +634,7 @@ function main() {
         # )"
         # echo $?
         ;;
-    minikube-create)
+    env-create)
         if [ "${#paths[@]}" -gt 1 ]; then
             echo "${#paths[@]}"
             case "${paths[1]}" in
@@ -648,7 +651,7 @@ function main() {
             exit 1
         fi
         ;;
-    minikube-remove)
+    env-remove)
         if [ "${#paths[@]}" -gt 1 ]; then
             echo "${#paths[@]}"
             case "${paths[1]}" in
@@ -665,7 +668,7 @@ function main() {
             exit 1
         fi
         ;;
-    minikube-create-example)
+    env-create-example)
         if [ "${#paths[@]}" -gt 1 ]; then
             case "${paths[1]}" in
             exchange)
@@ -691,7 +694,7 @@ function main() {
             exit 1
         fi
         ;;
-    minikube-remove-example)
+    env-remove-example)
         if [ "${#paths[@]}" -gt 1 ]; then
             case "${paths[1]}" in
             exchange)
