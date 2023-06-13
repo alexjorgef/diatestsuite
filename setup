@@ -28,14 +28,14 @@ function usage() {
     echo
     echo "Options:"
     echo
-    echo "  -h --help         Print help"
-    echo "  -g --goto <alias> Goto specified alias before edit"
-    echo "  -n --nodetached   Don't try to run in a detached window"
-    echo "  -s --full         Start a full environment"
+    echo "  -h --help               Print help"
+    echo "  -g --goto <alias>       Goto specified alias before edit"
+    echo "  -n --nodetached         Don't try to run in a detached window"
+    echo "  -s --full               Start a full environment"
     echo
     echo "Commands:"
     echo
-    echo "  minikube-start        Start minikube"
+    echo "  minikube-start         Start minikube"
     echo "  minikube-stop         Stop minikube"
     echo "  minikube-delete       Delete minikube"
     echo "  minikube-build        Build images"
@@ -50,7 +50,7 @@ function main() {
     local args=
     args=$(
         getopt -o hnsg: \
-            --long goto:,nodetached,full,help \
+            --long goto:,disk-space:,nodetached,full,help \
             -n 'setup' -- "$@"
     )
 
@@ -67,8 +67,7 @@ function main() {
         case "$1" in
         --full | -f)
             full=true
-            shift
-            ;;
+            shift ;;
         --goto | -g)
             galias="$2"
 
@@ -83,24 +82,19 @@ function main() {
 
             shift 2
             ;;
-        --nodetached | -n)
-            detached=false
-            shift
-            ;;
-        --help | -h)
-            usage
-            return 0
-            ;;
-        --)
-            shift
-            break
-            ;;
-        *) break ;;
+            --help | -h     ) usage; return 0 ;;
+            --              ) shift; break    ;;
+            *               )        break    ;;
         esac
     done
 
     # expand paths after parsing
     paths=("$@")
+
+    if ! hash git 2> /dev/null; then echo "Git not found" >&2; return 1; fi
+    if ! hash yq 2> /dev/null; then echo "yq not found" >&2; return 1; fi
+    if ! hash docker 2> /dev/null; then echo "Docker not found" >&2; return 1; fi
+    if ! hash minikube 2> /dev/null; then echo "Minikube not found" >&2; return 1; fi
 
     # echo "${#paths[@]}"
     # echo "${paths[@]}"
@@ -112,9 +106,6 @@ function main() {
         edit_args=()
     fi
 
-    # build_version = $(call sha,$(build_path)/build-image/Dockerfile)
-    # build_tag = agones-build:$(build_version)
-
     MINIKUBE_PROFILE=dia
     MINIKUBE_K8S_VERSION=v1.25.7
     MINIKUBE_HW_DISK_SIZE=50g
@@ -124,6 +115,8 @@ function main() {
     MINIKUBE_CERT_MOUNT=~/.minikube
     # kubectl configuration to use
     KUBECONFIG=~/.kube/config
+
+    source ./.env.local
 
     case "${paths[0]}" in
     minikube-start)
