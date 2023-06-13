@@ -233,6 +233,7 @@ function main() {
                 docker buildx build -f "build/Dockerfile-tradesBlockService" -t "diadata.tradesblockservice:latest" .
                 docker buildx build -f "build/Dockerfile-pairDiscoveryService" -t "diadata.pairdiscoveryservice:latest" .
                 docker buildx build -f "build/Dockerfile-genericCollector" -t "diadata.genericcollector:latest" .
+                docker buildx build -f "build/Dockerfile-genericCollector-Dev" -t "diadata.genericcollector.dev:latest" .
                 docker buildx build -f "build/Dockerfile-blockchainservice" -t "diadata.blockchainservice:latest" .
                 docker buildx build -f "build/Dockerfile-assetCollectionService" -t "diadata.assetcollectionservice:latest" .
                 docker buildx build -f "build/Dockerfile-liquidityScraper" -t "diadata.liquidityscraper:latest" .
@@ -240,6 +241,7 @@ function main() {
                 docker buildx build -f "build/Dockerfile-genericForeignScraper-Dev" -t "diadata.genericforeignscraper.dev:latest" .
 
                 eval "$(minikube -p ${MINIKUBE_PROFILE} docker-env --unset)"
+                echo "Build finished"
             else
                 minikube -p ${MINIKUBE_PROFILE} image build -t us.icr.io/dia-registry/devops/build:latest -f build/build/Dockerfile-DiadataBuild .
                 minikube -p ${MINIKUBE_PROFILE} image build -t us.icr.io/dia-registry/devops/build-117:latest -f build/build/Dockerfile-DiadataBuild-117 .
@@ -507,8 +509,8 @@ function main() {
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-entrypoint --from-file=deployments/config/postgres-docker-entrypoint.sh
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-schemma --from-file=deployments/config/pginit.sql
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-crondump --from-file=dump.sh
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-cronload --from-file=load.sh
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-crondump --from-file=./scripts/dump.sh
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-cronload --from-file=./scripts/load.sh
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create secret docker-registry regcred \
                 --docker-server="https://registry.hub.docker.com/v2/" \
                 --docker-username="alex1a" \

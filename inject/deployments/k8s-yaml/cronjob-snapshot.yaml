@@ -22,6 +22,11 @@ spec:
             volumeMounts:
               - name: docker-config
                 mountPath: /kaniko/.docker
+              - name: env-context
+                mountPath: /kaniko-context
+                readOnly: true
+              - name: env-workdir
+                mountPath: /mnt/env-workdir
               # - name: kaniko-context
               #   mountPath: /kaniko-context
               # - name: shared-volume-postgres
@@ -83,6 +88,11 @@ spec:
                 mountPath: /docker-entrypoint-initdb.d/02-pginitscript.sh
                 subPath: load.sh
                 readOnly: true
+              - name: env-context
+                mountPath: /mnt/env-context
+                readOnly: true
+              - name: env-workdir
+                mountPath: /mnt/env-workdir
               # - name: postgres-dump
               #   mountPath: /postgres-dump
               #   readOnly: false
@@ -109,10 +119,15 @@ spec:
             - name: postgres-cronload-volume
               configMap:
                 name: postgres-cronload
-            # - name: postgres-dump
-            #   hostPath:
-            #     path: /mnt/diadata-dumper
+            - name: env-context
+              hostPath:
+                path: /mnt/diadata
+            - name: env-workdir
+              emptyDir: {}
             # - name: kaniko-context
+            #   hostPath:
+            #     path: /mnt/diadata
+            # - name: postgres-dump
             #   hostPath:
             #     path: /mnt/diadata-dumper
             # - name: shared-volume-postgres
