@@ -12,7 +12,7 @@ unset SOURCE
 ###############################################################################
 
 function usage() {
-    echo "Usage: setup [OPTIONS] COMMAND [ARGS]..."
+    echo "Usage: env [OPTIONS] COMMAND [ARGS]..."
     echo
     echo "Options:"
     echo
@@ -28,24 +28,24 @@ function usage() {
     echo "  cluster-delete          Delete minikube"
     echo "  cluster-info            Information about cluster"
     echo
-    echo "  env-build               Build DIA images"
-    echo "  env-install             Install DIA platform"
-    echo "  env-installfull         Install DIA platform (on full mode)"
-    echo "  env-uninstall           Un-install DIA platform"
-    echo "  env-uninstallfull       Un-install DIA platform (on full mode)"
-    echo "  env-clean               Clean unused files"
-    echo "  env-info                Show detailed information"
-    echo "  env-shell               Connect to enviornment shell"
-    echo "  env-logs                Print logs"
-    echo "  env-psqlinsert          Insert exchange to PostgreSQL (will be REMOVED)"
-    echo "  env-psqlfind            Find exchange from PostgreSQL (will be REMOVED)"
-    echo "  env-psqldelete          Delete exchange from PostgreSQL (will be REMOVED)"
-    echo "  env-create              Create a new resource"
-    echo "  env-create-example      Create examples (will be REMOVED)"
-    echo "  env-create-cron         Create a cronjob for publish data on Docker registry (PRODUCTION only)"
-    echo "  env-remove              Remove a resource"
-    echo "  env-remove-example      Remove the examples (will be REMOVED)"
-    echo "  env-remove-cron         Remove the cronjob (PRODUCTION only)"
+    echo "  build                   Build DIA images"
+    echo "  install                 Install DIA platform"
+    echo "  installfull             Install DIA platform (on full mode)"
+    echo "  uninstall               Un-install DIA platform"
+    echo "  uninstallfull           Un-install DIA platform (on full mode)"
+    echo "  clean                   Clean unused files"
+    echo "  info                    Show detailed information"
+    echo "  shell                   Connect to enviornment shell"
+    echo "  logs                    Print logs"
+    echo "  psqlinsert              Insert exchange to PostgreSQL (will be REMOVED)"
+    echo "  psqlfind                Find exchange from PostgreSQL (will be REMOVED)"
+    echo "  psqldelete              Delete exchange from PostgreSQL (will be REMOVED)"
+    echo "  create                  Create a new resource"
+    echo "  create-example          Create examples (will be REMOVED)"
+    echo "  create-cron             Create a cronjob for publish data on Docker registry (PRODUCTION only)"
+    echo "  remove                  Remove a resource"
+    echo "  remove-example          Remove the examples (will be REMOVED)"
+    echo "  remove-cron             Remove the cronjob (PRODUCTION only)"
     echo
     echo "Report bugs to: <https://github.com/diadata-org/diadata/issues>"
 }
@@ -173,7 +173,7 @@ function main() {
             exit 1
         fi
         ;;
-    env-shell)
+    shell)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} ssh
         else
@@ -181,7 +181,7 @@ function main() {
             exit 1
         fi
         ;;
-    env-logs)
+    logs)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} logs -f
         else
@@ -189,7 +189,7 @@ function main() {
             exit 1
         fi
         ;;
-    env-clean)
+    clean)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} ssh -- docker image prune -a -f
             minikube -p ${MINIKUBE_PROFILE} ssh -- docker volume prune -f
@@ -202,7 +202,7 @@ function main() {
             exit 1
         fi
         ;;
-    env-build)
+    build)
         if [ "${#paths[@]}" -eq 1 ]; then
             # echo "Building minikube images ..."
             # images_needed=(
@@ -259,7 +259,7 @@ function main() {
             exit 1
         fi
         ;;
-    env-install)
+    install)
         if [ "${#paths[@]}" -eq 1 ]; then
             # TODO: Check if all images are built
             # TODO: Check if installation depends on a pre-built image or not
@@ -275,7 +275,7 @@ function main() {
             exit 1
         fi
         ;;
-    env-uninstall)
+    uninstall)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-filtersblockservice.yaml
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-tradesblockservice.yaml
@@ -288,7 +288,7 @@ function main() {
             exit 1
         fi
         ;;
-    env-installfull)
+    installfull)
         if [ "${#paths[@]}" -eq 1 ]; then
             # minikube -p ${MINIKUBE_PROFILE} mount "$(pwd):/mnt/diadata"
             # mkdir -p /tmp/postgres
@@ -307,7 +307,7 @@ function main() {
             exit 1
         fi
         ;;
-    env-uninstallfull)
+    uninstallfull)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-filtersblockservice.yaml
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-tradesblockservice.yaml
@@ -321,7 +321,7 @@ function main() {
             exit 1
         fi
         ;;
-    env-psqlinsert)
+    psqlinsert)
         inputExchangeName="Custom"
         # echo "Exchange Name:"
         # read -r inputExchangeName
@@ -382,14 +382,14 @@ function main() {
         #     echo "Success"
         # fi
         ;;
-    env-psqldelete)
+    psqldelete)
         # TODO: error handling when cannot delete row
         minikube -p ${MINIKUBE_PROFILE} kubectl -- \
             exec -it deployment/postgres -- \
             psql -U postgres -t \
             -c "DELETE FROM exchange WHERE name = 'Custom'" >/dev/null 2>&1 && echo "Row deleted." || echo "Error, a exchange does not exists and cannot be deleted." >&2
         ;;
-    env-psqlfind)
+    psqlfind)
         # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
         #     exec -it deployment/postgres -- \
         #     psql -U postgres -t \
@@ -406,7 +406,7 @@ function main() {
         # )"
         # echo $?
         ;;
-    env-create)
+    create)
         if [ "${#paths[@]}" -gt 1 ]; then
             echo "${#paths[@]}"
             case "${paths[1]}" in
@@ -423,7 +423,7 @@ function main() {
             exit 1
         fi
         ;;
-    env-remove)
+    remove)
         if [ "${#paths[@]}" -gt 1 ]; then
             echo "${#paths[@]}"
             case "${paths[1]}" in
@@ -440,7 +440,7 @@ function main() {
             exit 1
         fi
         ;;
-    env-create-example)
+    create-example)
         if [ "${#paths[@]}" -gt 1 ]; then
             case "${paths[1]}" in
             exchange)
@@ -473,7 +473,7 @@ function main() {
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
         fi
         ;;
-    env-remove-example)
+    remove-example)
         if [ "${#paths[@]}" -gt 1 ]; then
             case "${paths[1]}" in
             exchange)
@@ -505,7 +505,7 @@ function main() {
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
         fi
         ;;
-    env-create-cron)
+    create-cron)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-entrypoint --from-file=deployments/config/postgres-docker-entrypoint.sh
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-schemma --from-file=deployments/config/pginit.sql
@@ -522,7 +522,7 @@ function main() {
             exit 1
         fi
         ;;
-    env-remove-cron)
+    remove-cron)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f "deployments/k8s-yaml/cronjob-snapshot.yaml" || true
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete secret regcred || true
@@ -535,7 +535,7 @@ function main() {
             exit 1
         fi
         ;;
-    env-info)
+    info)
         if [ "${#paths[@]}" -gt 1 ]; then
             case "${paths[1]}" in
             exchange)

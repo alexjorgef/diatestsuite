@@ -11,43 +11,37 @@ Minimum hardware recommended:
 The followding systems are covered:
 
 * Architectures: x86_64
-* OSs: Arch Linux v6.3.6-arch1-1
+* OSs: Arch Linux v6.3.6
 
 Software dependencies needed:
+
+> Note: Authenticate with Docker CLI in order to increase rate limit 
+> ([Docker Hub reference](https://docs.docker.com/docker-hub/download-rate-limit/#whats-the-download-rate-limit-on-docker-hub))
 
 * *bash*, *git*, *yq*
 * *minikube*, and *docker* as main driver
 
 ## Prepare this repository
 
-Clone the DIA's repo or a fork to .testenv folder:
+* Remove env, if exists
+* Clone the DIA's repo or a fork to .testenv folder
+* Copy the modification files
+* Link script (workaround for fast development)
+* Change to temporary directory
 
 ```sh
-git clone git@github.com:diadata-org/diadata.git -b v1.4.264 --depth 1 .testenv
+if [ -d "./.testenv" ]; then rm -Rf "./.testenv"; fi
+git clone git@github.com:diadata-org/diadata.git -b v1.4.264 --depth 1 "./.testenv"
+cp -Rf ./inject/* "./.testenv"
+cp -Rf ./inject/.[^.]* "./.testenv"
+ln -s "$PWD/env" "./.testenv/env"
+cd "./.testenv/"
 ```
 
-Copy the modification files:
+## Run
+
+Run the script to manage the enviornment 🚀:
 
 ```sh
-cp -Rf inject/* .testenv/
-```
-
-Link the setup script (for fast development):
-
-```sh
-ln -s "$PWD/setup" .testenv/setup
-```
-
-After changing the directory to .testenv, a isolated test-space are ready to be run:
-
-```sh
-cd .testenv
-```
-
-## Setup
-
-Run the setup script to manage the enviornment 🚀:
-
-```sh
-./setup --help
+./env --help
 ```
