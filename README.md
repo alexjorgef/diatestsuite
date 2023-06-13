@@ -23,7 +23,7 @@ Software dependencies needed:
 Clone the DIA's repo or a fork to .testenv folder:
 
 ```sh
-git clone git@github.com:diadata-org/diadata.git -b v1.4.261 --depth 1 .testenv
+git clone git@github.com:diadata-org/diadata.git -b v1.4.264 --depth 1 .testenv
 ```
 
 Copy the modification files:

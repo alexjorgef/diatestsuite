@@ -5,7 +5,7 @@ metadata:
   labels:
     app: postgres-cron
 spec:
-  schedule: "0 0 * * *"
+  schedule: "*/1 * * * *"
   jobTemplate:
     spec:
       template:
@@ -22,12 +22,12 @@ spec:
             volumeMounts:
               - name: docker-config
                 mountPath: /kaniko/.docker
-              - name: kaniko-context
-                mountPath: /kaniko-context
-              - name: shared-volume-postgres
-                mountPath: /kaniko-context/pg_dump.backup
-                subPath: pg_dump.backup
-                readOnly: true
+              # - name: kaniko-context
+              #   mountPath: /kaniko-context
+              # - name: shared-volume-postgres
+              #   mountPath: /kaniko-context/pg_dump.backup
+              #   subPath: pg_dump.backup
+              #   readOnly: true
           initContainers:
           - name: check-postgres-connection
             image: postgres:15-alpine
@@ -68,27 +68,26 @@ spec:
             - name: PGPASSWORD_TEMP
               value: "password"
             volumeMounts:
-              - name: postgres-dump
-                mountPath: /postgres-dump
-                readOnly: false
-              - name: kaniko-context
-                mountPath: /usr/local/bin/docker-entrypoint.sh
-                subPath: deployments/config/postgres-docker-entrypoint.sh
-                readOnly: true
-              - name: kaniko-context
+              # - name: postgres-entrypoint-volume
+              #   mountPath: /usr/local/bin/docker-entrypoint.sh
+              #   subPath: postgres-docker-entrypoint.sh
+              - name: postgres-schemma-volume
                 mountPath: /docker-entrypoint-initdb.d/00-pginitscript.sql
-                subPath: deployments/config/pginit.sql
+                subPath: pginit.sql
                 readOnly: true
-              - name: kaniko-context
+              - name: postgres-crondump-volume
                 mountPath: /docker-entrypoint-initdb.d/01-pginitscript.sh
                 subPath: dump.sh
                 readOnly: true
-              - name: kaniko-context
+              - name: postgres-cronload-volume
                 mountPath: /docker-entrypoint-initdb.d/02-pginitscript.sh
                 subPath: load.sh
                 readOnly: true
-              - name: shared-volume-postgres
-                mountPath: /data/shared-postgres/
+              # - name: postgres-dump
+              #   mountPath: /postgres-dump
+              #   readOnly: false
+              # - name: shared-volume-postgres
+              #   mountPath: /data/shared-postgres/
           volumes:
             - name: docker-config
               projected:
@@ -98,12 +97,24 @@ spec:
                     items:
                       - key: .dockerconfigjson
                         path: config.json
-            - name: postgres-dump
-              hostPath:
-                path: /mnt/diadata-dumper
-            - name: kaniko-context
-              hostPath:
-                path: /mnt/diadata-dumper
-            - name: shared-volume-postgres
-              hostPath:
-                path: /data/shared-postgres/
+            - name: postgres-entrypoint-volume
+              configMap:
+                name: postgres-entrypoint
+            - name: postgres-schemma-volume
+              configMap:
+                name: postgres-schemma
+            - name: postgres-crondump-volume
+              configMap:
+                name: postgres-crondump
+            - name: postgres-cronload-volume
+              configMap:
+                name: postgres-cronload
+            # - name: postgres-dump
+            #   hostPath:
+            #     path: /mnt/diadata-dumper
+            # - name: kaniko-context
+            #   hostPath:
+            #     path: /mnt/diadata-dumper
+            # - name: shared-volume-postgres
+            #   hostPath:
+            #     path: /data/shared-postgres/

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+echo "Hellow World"
 set -Eeo pipefail
 # TODO swap to -Eeuo pipefail above (after handling all potentially-unset variables)
 

@@ -33,8 +33,6 @@ function usage() {
     echo "  env-installfull         Install DIA platform (on full mode)"
     echo "  env-uninstall           Un-install DIA platform"
     echo "  env-uninstallfull       Un-install DIA platform (on full mode)"
-    echo "  env-installcron         Install cronjob for publish data on Docker registry (PRODUCTION only)"
-    echo "  env-uninstallcron       Un-install cronjob for publish data on Docker registry (PRODUCTION only)"
     echo "  env-clean               Clean unused files"
     echo "  env-info                Show detailed information"
     echo "  env-shell               Connect to enviornment shell"
@@ -42,10 +40,12 @@ function usage() {
     echo "  env-psqlinsert          Insert exchange to PostgreSQL (will be REMOVED)"
     echo "  env-psqlfind            Find exchange from PostgreSQL (will be REMOVED)"
     echo "  env-psqldelete          Delete exchange from PostgreSQL (will be REMOVED)"
-    echo "  env-create              Create a new scraper"
-    echo "  env-create-example      Create a existing scraper example (will be REMOVED)"
-    echo "  env-remove              Remove a new scraper"
-    echo "  env-remove-example      Remove a existing scraper example (will be REMOVED)"
+    echo "  env-create              Create a new resource"
+    echo "  env-create-example      Create examples (will be REMOVED)"
+    echo "  env-create-cron         Create a cronjob for publish data on Docker registry (PRODUCTION only)"
+    echo "  env-remove              Remove a resource"
+    echo "  env-remove-example      Remove the examples (will be REMOVED)"
+    echo "  env-remove-cron         Remove the cronjob (PRODUCTION only)"
     echo
     echo "Report bugs to: <https://github.com/diadata-org/diadata/issues>"
 }
@@ -136,9 +136,9 @@ function main() {
                 --driver ${MINIKUBE_DRIVER} \
                 --memory ${MINIKUBE_HW_RAM} \
                 --cpus ${MINIKUBE_HW_CPUS} \
-                --disk-size ${MINIKUBE_HW_DISK_SIZE}
-            # --mount-string="$(pwd):/mnt/diadata:rw" \
-            # --mount=true
+                --disk-size ${MINIKUBE_HW_DISK_SIZE} \
+                --mount-string="$(pwd):/mnt/diadata:rw" \
+                --mount=true
         else
             echo "Unknown command" >&2
             exit 1
@@ -264,6 +264,7 @@ function main() {
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/service-filtersblockservice.yaml
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/service-tradesblockservice.yaml
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-kafka.yaml
+            # TODO: PostgreSQL data needs to be pruned
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-postgres-prepopulated.yaml
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-influx.yaml
@@ -294,6 +295,7 @@ function main() {
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/service-tradesblockservice.yaml
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-kafka.yaml
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-schemma --from-file=deployments/config/pginit.sql
+            # TODO: PostgreSQL data needs to be pruned
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-postgres.yaml
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-influx.yaml
@@ -312,28 +314,6 @@ function main() {
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-schemma
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-redis.yaml
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-influx.yaml
-        else
-            echo "Unknown command" >&2
-            exit 1
-        fi
-        ;;
-    env-installcron)
-        if [ "${#paths[@]}" -eq 1 ]; then
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- create secret docker-registry regcred \
-                --docker-server="https://registry.hub.docker.com/v2/" \
-                --docker-username="alex1a" \
-                --docker-password="R3Uf&nq@A9&hv&" \
-                --docker-email="alex.jorge.m@gmail.com"
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f "deployments/k8s-yaml/postgres-snapshot-cron.yaml"
-        else
-            echo "Unknown command" >&2
-            exit 1
-        fi
-        ;;
-    env-uninstallcron)
-        if [ "${#paths[@]}" -eq 1 ]; then
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f "deployments/k8s-yaml/postgres-snapshot-cron.yaml"
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete secret regcred
         else
             echo "Unknown command" >&2
             exit 1
@@ -521,6 +501,36 @@ function main() {
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
+        fi
+        ;;
+    env-create-cron)
+        if [ "${#paths[@]}" -eq 1 ]; then
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-entrypoint --from-file=deployments/config/postgres-docker-entrypoint.sh
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-schemma --from-file=deployments/config/pginit.sql
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-crondump --from-file=dump.sh
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-cronload --from-file=load.sh
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create secret docker-registry regcred \
+                --docker-server="https://registry.hub.docker.com/v2/" \
+                --docker-username="alex1a" \
+                --docker-password="R3Uf&nq@A9&hv&" \
+                --docker-email="alex.jorge.m@gmail.com"
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f "deployments/k8s-yaml/cronjob-snapshot.yaml"
+        else
+            echo "Unknown command" >&2
+            exit 1
+        fi
+        ;;
+    env-remove-cron)
+        if [ "${#paths[@]}" -eq 1 ]; then
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f "deployments/k8s-yaml/cronjob-snapshot.yaml" || true
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete secret regcred || true
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-entrypoint || true
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-schemma || true
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-crondump || true
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-cronload || true
+        else
+            echo "Unknown command" >&2
+            exit 1
         fi
         ;;
     env-info)
