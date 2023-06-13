@@ -5,7 +5,7 @@ metadata:
   labels:
     app: postgres-cron
 spec:
-  schedule: "*/1 * * * *"
+  schedule: "*/2 * * * *"
   jobTemplate:
     spec:
       template:
@@ -19,6 +19,7 @@ spec:
               - "--dockerfile=build/Dockerfile-postgres-cron"
               - "--context=dir:///kaniko-context"
               - "--destination=registry.hub.docker.com/alex1a/diadata.postgres:latest"
+              - "--verbosity=debug"
             volumeMounts:
               - name: docker-config
                 mountPath: /kaniko/.docker
@@ -26,7 +27,11 @@ spec:
                 mountPath: /kaniko-context
                 readOnly: true
               - name: env-workdir
-                mountPath: /mnt/env-workdir
+                mountPath: /workdir
+              - name: env-context
+                mountPath: /docker-entrypoint-initdb.d/00-pginitscript.sql
+                subPath: ./deployments/config/pginit.sql
+                readOnly: true
               # - name: kaniko-context
               #   mountPath: /kaniko-context
               # - name: shared-volume-postgres
@@ -48,6 +53,7 @@ spec:
             command: ["sh", "-c", "until pg_isready -h $PGHOST -U $PGUSER; do sleep 1; done"]
           - name: postgres-extract
             image: postgres:15-alpine
+            command: ["/mnt/env-context/deployments/config/postgres-docker-entrypoint.sh"]
             imagePullPolicy: IfNotPresent
             env:
             - name: POSTGRES_USER
@@ -76,6 +82,7 @@ spec:
               # - name: postgres-entrypoint-volume
               #   mountPath: /usr/local/bin/docker-entrypoint.sh
               #   subPath: postgres-docker-entrypoint.sh
+              #   readOnly: true
               - name: postgres-schemma-volume
                 mountPath: /docker-entrypoint-initdb.d/00-pginitscript.sql
                 subPath: pginit.sql
@@ -83,10 +90,6 @@ spec:
               - name: postgres-crondump-volume
                 mountPath: /docker-entrypoint-initdb.d/01-pginitscript.sh
                 subPath: dump.sh
-                readOnly: true
-              - name: postgres-cronload-volume
-                mountPath: /docker-entrypoint-initdb.d/02-pginitscript.sh
-                subPath: load.sh
                 readOnly: true
               - name: env-context
                 mountPath: /mnt/env-context
@@ -116,9 +119,6 @@ spec:
             - name: postgres-crondump-volume
               configMap:
                 name: postgres-crondump
-            - name: postgres-cronload-volume
-              configMap:
-                name: postgres-cronload
             - name: env-context
               hostPath:
                 path: /mnt/diadata

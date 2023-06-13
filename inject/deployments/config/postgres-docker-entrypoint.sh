@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
-echo "Hellow World"
+echo "Starting entrypoint script (${BASH_SOURCE[0]}) ..."
+echo "Current user: $(whoami)"
+echo "Current working directory: $(pwd)"
+echo; echo "Injected scripts /docker-entrypoint-initdb.d/:"
+ls -la /docker-entrypoint-initdb.d/
+echo; echo "Injected volumes (/mnt/):"
+ls -la /mnt/
 set -Eeo pipefail
 # TODO swap to -Eeuo pipefail above (after handling all potentially-unset variables)
 
