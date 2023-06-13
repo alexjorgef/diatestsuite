@@ -245,6 +245,7 @@ function main() {
                 docker buildx build -f "build/Dockerfile-assetCollectionService" -t "diadata.assetcollectionservice:latest" .
                 docker buildx build -f "build/Dockerfile-liquidityScraper" -t "diadata.liquidityscraper:latest" .
                 docker buildx build -f "build/Dockerfile-genericForeignScraper" -t "diadata.genericforeignscraper:latest" .
+                docker buildx build -f "build/Dockerfile-genericForeignScraper-Dev" -t "diadata.genericforeignscraper.dev:latest" .
 
                 eval "$(minikube -p ${MINIKUBE_PROFILE} docker-env --unset)"
             else

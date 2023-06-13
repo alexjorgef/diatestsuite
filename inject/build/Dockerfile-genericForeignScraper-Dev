@@ -1,0 +1,9 @@
+ARG foreignType
+FROM us.icr.io/dia-registry/devops/build-117:latest as build
+
+WORKDIR $GOPATH/src/
+
+COPY ./cmd/foreignscraper ./
+RUN go mod edit -replace github.com/diadata-org/diadata=/diadata
+
+CMD [ "tail", "-f", "/dev/null" ]
