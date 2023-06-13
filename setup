@@ -42,6 +42,11 @@ function usage() {
     echo "  env-install             Install DIA platform"
     echo "  env-uninstall           Un-Install DIA platform"
     echo
+    echo "  env-info                Show detailed information"
+    echo "  env-logs                Print logs"
+    echo "  env-create              Create a new scraper"
+    echo "  env-create-example      Create a existing scraper example"
+    echo
     echo "Report bugs to: <https://github.com/diadata-org/diadata/issues>"
 }
 
@@ -142,7 +147,7 @@ function main() {
             exit 1
         fi
         ;;
-    cluster-shell)
+    env-shell)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} ssh
         else
@@ -150,7 +155,7 @@ function main() {
             exit 1
         fi
         ;;
-    cluster-log)
+    env-logs)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} logs -f
         else
@@ -166,16 +171,6 @@ function main() {
             exit 1
         fi
         ;;
-    env-info)
-        if [ "${#paths[@]}" -eq 1 ]; then
-            minikube -p ${MINIKUBE_PROFILE} status
-            minikube -p ${MINIKUBE_PROFILE} ssh -- df -h
-            minikube -p ${MINIKUBE_PROFILE} ssh -- docker system df
-        else
-            echo "Unknown command" >&2
-            exit 1
-        fi
-        ;;
     env-clean)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p ${MINIKUBE_PROFILE} ssh -- docker image prune -a -f
@@ -184,14 +179,6 @@ function main() {
             eval "$(minikube -p ${MINIKUBE_PROFILE} docker-env)"
             docker buildx prune -a -f
             eval "$(minikube -p ${MINIKUBE_PROFILE} docker-env --unset)"
-        else
-            echo "Unknown command" >&2
-            exit 1
-        fi
-        ;;
-    cluster-image-list | cluster-image-ls)
-        if [ "${#paths[@]}" -eq 1 ]; then
-            minikube -p ${MINIKUBE_PROFILE} image ls
         else
             echo "Unknown command" >&2
             exit 1
@@ -265,50 +252,7 @@ function main() {
             exit 1
         fi
         ;;
-    minikube-ping)
-        # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-        #     exec -it deployment/influx -- \
-        #     influx -host 'influx.default.svc.cluster.local' -port '8086' -execute 'SHOW DATABASES' >/dev/null 2>&1 && echo "InfluxDB OK" || echo "InfluxDB FAILED" >&2
-        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            delete -f deployments/k8s-yaml/job-ping-redis.yaml >/dev/null 2>&1 || true
-        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            create -f deployments/k8s-yaml/job-ping-redis.yaml >/dev/null 2>&1
-        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            wait --timeout=30s --for=condition=complete job/ping-redis >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
-        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            delete -f deployments/k8s-yaml/job-ping-influx.yaml >/dev/null 2>&1 || true
-        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            create -f deployments/k8s-yaml/job-ping-influx.yaml >/dev/null 2>&1
-        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            wait --timeout=30s --for=condition=complete job/ping-influx >/dev/null 2>&1 && echo "InfluxDB OK" || echo "InfluxDB FAILED" >&2
-        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            delete -f deployments/k8s-yaml/job-ping-postgres.yaml >/dev/null 2>&1 || true
-        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            create -f deployments/k8s-yaml/job-ping-postgres.yaml >/dev/null 2>&1
-        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            wait --timeout=30s --for=condition=complete job/ping-postgres >/dev/null 2>&1 && echo "PostgreSQL OK" || echo "PostgreSQL FAILED" >&2
-        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            delete -f deployments/k8s-yaml/job-ping-kafka.yaml >/dev/null 2>&1 || true
-        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            create -f deployments/k8s-yaml/job-ping-kafka.yaml >/dev/null 2>&1
-        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            wait --timeout=30s --for=condition=complete job/ping-kafka >/dev/null 2>&1 && echo "Kafka OK" || echo "Kafka FAILED" >&2
-        # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-        #     exec -it deployment/postgres -- \
-        #     pg_isready -h 'postgres.default.svc.cluster.local' -U 'postgres' >/dev/null 2>&1 && echo "PostgreSQL OK" || echo "PostgreSQL FAILED" >&2
-        # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-        #     exec -it deployment/redis -- \
-        #     redis-cli -u 'redis://redis.default.svc.cluster.local:6379/0' ping >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
-        # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-        #     run x --image=influxdb:1.8 --restart=Never --command -- \
-        #     influx -host 'influx.default.svc.cluster.local' -port '8086' -execute 'SHOW DATABASES'
-        # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-        #     exec -it deployment/redis -- \
-        #     echo dump | nc kafka.default.svc.cluster.local 9094 | grep brokers
-        # kafkacat -b "kafka.default.svc.cluster.local:9094" -L
-        # >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
-        ;;
-    minikube-list)
+    env-info)
         if [ "${#paths[@]}" -gt 1 ]; then
             case "${paths[1]}" in
             exchange)
@@ -416,6 +360,51 @@ function main() {
                 ;;
             esac
         else
+            minikube -p ${MINIKUBE_PROFILE} image ls
+            minikube -p ${MINIKUBE_PROFILE} status
+            minikube -p ${MINIKUBE_PROFILE} ssh -- df -h
+            minikube -p ${MINIKUBE_PROFILE} ssh -- docker system df
+             # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            #     exec -it deployment/influx -- \
+            #     influx -host 'influx.default.svc.cluster.local' -port '8086' -execute 'SHOW DATABASES' >/dev/null 2>&1 && echo "InfluxDB OK" || echo "InfluxDB FAILED" >&2
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                delete -f deployments/k8s-yaml/job-ping-redis.yaml >/dev/null 2>&1 || true
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                create -f deployments/k8s-yaml/job-ping-redis.yaml >/dev/null 2>&1
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                wait --timeout=30s --for=condition=complete job/ping-redis >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                delete -f deployments/k8s-yaml/job-ping-influx.yaml >/dev/null 2>&1 || true
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                create -f deployments/k8s-yaml/job-ping-influx.yaml >/dev/null 2>&1
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                wait --timeout=30s --for=condition=complete job/ping-influx >/dev/null 2>&1 && echo "InfluxDB OK" || echo "InfluxDB FAILED" >&2
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                delete -f deployments/k8s-yaml/job-ping-postgres.yaml >/dev/null 2>&1 || true
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                create -f deployments/k8s-yaml/job-ping-postgres.yaml >/dev/null 2>&1
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                wait --timeout=30s --for=condition=complete job/ping-postgres >/dev/null 2>&1 && echo "PostgreSQL OK" || echo "PostgreSQL FAILED" >&2
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                delete -f deployments/k8s-yaml/job-ping-kafka.yaml >/dev/null 2>&1 || true
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                create -f deployments/k8s-yaml/job-ping-kafka.yaml >/dev/null 2>&1
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                wait --timeout=30s --for=condition=complete job/ping-kafka >/dev/null 2>&1 && echo "Kafka OK" || echo "Kafka FAILED" >&2
+            # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            #     exec -it deployment/postgres -- \
+            #     pg_isready -h 'postgres.default.svc.cluster.local' -U 'postgres' >/dev/null 2>&1 && echo "PostgreSQL OK" || echo "PostgreSQL FAILED" >&2
+            # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            #     exec -it deployment/redis -- \
+            #     redis-cli -u 'redis://redis.default.svc.cluster.local:6379/0' ping >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
+            # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            #     run x --image=influxdb:1.8 --restart=Never --command -- \
+            #     influx -host 'influx.default.svc.cluster.local' -port '8086' -execute 'SHOW DATABASES'
+            # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            #     exec -it deployment/redis -- \
+            #     echo dump | nc kafka.default.svc.cluster.local 9094 | grep brokers
+            # kafkacat -b "kafka.default.svc.cluster.local:9094" -L
+            # >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
             # https://stackoverflow.com/a/28353785/2042014
             uptime=$(minikube -p ${MINIKUBE_PROFILE} ssh -- uptime -p)
             echo "Uptime: $uptime"
@@ -682,8 +671,11 @@ function main() {
                 # TODO: Move pod to job
                 minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
                 ;;
-            foreignscraper)
+            foreign)
                 minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
+                ;;
+            foreign-dev)
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-foreign-example-googlefinance-dev.yaml
                 ;;
             *)
                 echo "Unknown command" >&2
@@ -691,8 +683,12 @@ function main() {
                 ;;
             esac
         else
-            echo "Unknown command" >&2
-            exit 1
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
         fi
         ;;
     env-remove-example)
@@ -707,8 +703,11 @@ function main() {
             liquidity)
                 minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
                 ;;
-            foreignscraper)
+            foreign)
                 minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
+                ;;
+            foreign-dev)
+                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-foreign-example-googlefinance-dev.yaml
                 ;;
             *)
                 echo "Unknown command" >&2
@@ -716,8 +715,12 @@ function main() {
                 ;;
             esac
         else
-            echo "Unknown command" >&2
-            exit 1
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
+            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
         fi
         ;;
     *)
