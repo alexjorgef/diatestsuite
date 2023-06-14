@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tradesblockservice
+  name: service-tradesblockservice
   labels:
-    app: tradesblockservice
+    app: service-tradesblockservice
 spec:
   selector:
     matchLabels:
-      app: tradesblockservice
+      app: service-tradesblockservice
   template:
     metadata:
       labels:
-        app: tradesblockservice
+        app: service-tradesblockservice
     spec:
       containers:
-        - name: tradesblockservice
+        - name: service-tradesblockservice
           image: dia.tradesblockservice.dev:latest
           imagePullPolicy: Never
           command: ["tradesBlockService"]

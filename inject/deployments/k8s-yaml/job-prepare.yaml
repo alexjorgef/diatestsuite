@@ -7,7 +7,7 @@ spec:
   template:
     spec:
       containers:
-      - name: blockchainservice
+      - name: job-prepare-blockchainservice
         image: dia.blockchainservice.dev:latest
         imagePullPolicy: IfNotPresent
         command: ["blockchainservice"]
@@ -23,7 +23,7 @@ spec:
             value: "password"
           - name: POSTGRES_DB
             value: "postgres"
-      - name: assetcollectionservice-ethassets
+      - name: job-prepare-assetcollectionservice-ethassets
         image: dia.assetcollectionservice.dev:latest
         imagePullPolicy: Never
         command: ["assetCollectionService"]
@@ -39,7 +39,7 @@ spec:
             value: "password"
           - name: POSTGRES_DB
             value: "postgres"
-      - name: assetcollectionservice-nonethassets
+      - name: job-prepare-assetcollectionservice-nonethassets
         image: dia.assetcollectionservice.dev:latest
         imagePullPolicy: Never
         command: ["assetCollectionService"]
@@ -56,7 +56,7 @@ spec:
             value: "password"
           - name: POSTGRES_DB
             value: "postgres"
-      - name: assetcollectionservice-fiatassets
+      - name: job-prepare-assetcollectionservice-fiatassets
         image: dia.assetcollectionservice.dev:latest
         imagePullPolicy: Never
         command: ["assetCollectionService"]

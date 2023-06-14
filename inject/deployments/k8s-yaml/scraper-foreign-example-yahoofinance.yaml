@@ -1,10 +1,10 @@
 apiVersion: "v1"
 kind: Pod
 metadata:
-  name: "scraper-foreign-yahoofinance"
+  name: scraper-foreign-example-yahoofinance
 spec:
   containers:
-  - name: scraper-foreign-yahoofinance
+  - name: scraper-foreign-example-yahoofinance
     image: dia.genericforeignscraper.dev:latest
     imagePullPolicy: Never
     command: ["foreignscraper"]

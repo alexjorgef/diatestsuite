@@ -260,6 +260,7 @@ function main() {
         ;;
     install)
         if [ "${#paths[@]}" -eq 1 ]; then
+            echo "Creating and installing DIA's services ..."
             # TODO: Check if all images are built
             # TODO: Check if installation depends on a pre-built image or not
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/service-filtersblockservice.yaml
@@ -269,9 +270,11 @@ function main() {
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-postgres-prepopulated.yaml
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-influx.yaml
+            echo "All DIA's services created with success"
         else
             if [ -n "${paths[1]:-}" ]; then
                 if [ "${paths[1]}" == "full" ]; then
+                    echo "Creating and installing DIA's services (on full mode) ..."
                     # minikube -p ${MINIKUBE_PROFILE} mount "$(pwd):/mnt/diadata"
                     # mkdir -p /tmp/postgres
                     # minikube -p ${MINIKUBE_PROFILE} mount "/tmp/postgres:/mnt/diadata/postgres" --uid 70 --gid 70
@@ -284,6 +287,7 @@ function main() {
                     minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
                     minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/data-influx.yaml
                     minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/job-prepare.yaml
+                    echo "All DIA's services created with success"
                 else
                     echo "Unknown command" >&2
                     exit 1
@@ -293,6 +297,7 @@ function main() {
         ;;
     uninstall)
         if [ "${#paths[@]}" -eq 1 ]; then
+            echo "Removing and un-installing DIA's services ..."
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-filtersblockservice.yaml || true
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/service-tradesblockservice.yaml || true
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-kafka.yaml || true
@@ -301,6 +306,7 @@ function main() {
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-influx.yaml || true
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/data-postgres.yaml || true
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-schemma || true
+            echo "All DIA's services removed with success"
         else
             echo "Unknown command" >&2
             exit 1
@@ -398,11 +404,10 @@ function main() {
                 minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-custom.yaml
                 ;;
             cronjob)
-                if [ "${#paths[@]}" -eq 1 ]; then
+                if [ "${#paths[@]}" -eq 2 ]; then
                     minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-entrypoint --from-file=deployments/config/postgres-docker-entrypoint.sh
                     # minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-schemma --from-file=deployments/config/pginit.sql
                     minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-crondump --from-file=./scripts/dump.sh
-                    # minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-cronload --from-file=./scripts/load.sh
                     minikube -p ${MINIKUBE_PROFILE} kubectl -- create secret docker-registry regcred \
                         --docker-server="https://registry.hub.docker.com/v2/" \
                         --docker-username="alex1a" \
@@ -469,13 +474,12 @@ function main() {
                 minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-custom.yaml
                 ;;
             cronjob)
-                if [ "${#paths[@]}" -eq 1 ]; then
+                if [ "${#paths[@]}" -eq 2 ]; then
                     minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f "deployments/k8s-yaml/cronjob-snapshot.yaml" || true
                     minikube -p ${MINIKUBE_PROFILE} kubectl -- delete secret regcred || true
                     minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-entrypoint || true
                     # minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-schemma || true
                     minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-crondump || true
-                    # minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-cronload || true
                 else
                     echo "Unknown command" >&2
                     exit 1
@@ -535,14 +539,14 @@ function main() {
         elif [[ "$OSTYPE" == "darwin"* ]]; then
             echo "OSTYPE: Mac OSX"
         fi
+        # TODO: uptime show the host uptime, not the minikube uptime
+        #   https://stackoverflow.com/a/28353785/2042014
         uptime=$(minikube -p ${MINIKUBE_PROFILE} ssh -- uptime -p)
         echo "Uptime: $uptime"
         echo; echo "Images:"
         minikube -p ${MINIKUBE_PROFILE} image ls
-
         echo; echo "Status:"
         minikube -p ${MINIKUBE_PROFILE} status
-        
         echo; echo "Disk available:"
         minikube -p ${MINIKUBE_PROFILE} ssh -- df -h
         if [[ "$MINIKUBE_DRIVER" == "docker" ]]; then
@@ -551,9 +555,6 @@ function main() {
         fi
         ;;
     ping)
-        # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-        #     exec -it deployment/influx -- \
-        #     influx -host 'influx.default.svc.cluster.local' -port '8086' -execute 'SHOW DATABASES' >/dev/null 2>&1 && echo "InfluxDB OK" || echo "InfluxDB FAILED" >&2
         echo "Ping tests:"
         minikube -p ${MINIKUBE_PROFILE} kubectl -- \
             delete -f deployments/k8s-yaml/job-ping-redis.yaml >/dev/null 2>&1 || true
@@ -580,20 +581,8 @@ function main() {
         minikube -p ${MINIKUBE_PROFILE} kubectl -- \
             wait --timeout=30s --for=condition=complete job/ping-kafka >/dev/null 2>&1 && echo "  Kafka OK" || echo "  Kafka FAILED" >&2
         # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-        #     exec -it deployment/postgres -- \
-        #     pg_isready -h 'postgres.default.svc.cluster.local' -U 'postgres' >/dev/null 2>&1 && echo "PostgreSQL OK" || echo "PostgreSQL FAILED" >&2
-        # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-        #     exec -it deployment/redis -- \
-        #     redis-cli -u 'redis://redis.default.svc.cluster.local:6379/0' ping >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
-        # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
         #     run x --image=influxdb:1.8 --restart=Never --command -- \
         #     influx -host 'influx.default.svc.cluster.local' -port '8086' -execute 'SHOW DATABASES'
-        # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-        #     exec -it deployment/redis -- \
-        #     echo dump | nc kafka.default.svc.cluster.local 9094 | grep brokers
-        # kafkacat -b "kafka.default.svc.cluster.local:9094" -L
-        # >/dev/null 2>&1 && echo "Redis OK" || echo "Redis FAILED" >&2
-        # https://stackoverflow.com/a/28353785/2042014
         ;;
     list)
         if [ "${#paths[@]}" -gt 1 ]; then
@@ -681,16 +670,6 @@ function main() {
                     psql -U postgres -tA \
                     -c "SELECT chain_id FROM blockchain WHERE name = '$inputBlockchainName'")
                 echo "  Chain ID: $chainid"
-                # TODO: nativetoken_id column of blockchain table is not being used
-                # native_token_name=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                #     exec -it deployment/postgres -- \
-                #     psql -U postgres -tA \
-                #     -c "SELECT name FROM asset WHERE asset_id IN (SELECT nativetoken_id FROM blockchain WHERE name = 'inputBlockchainName')")
-                # native_token_symbol=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                #     exec -it deployment/postgres -- \
-                #     psql -U postgres -tA \
-                #     -c "SELECT symbol FROM asset WHERE asset_id IN (SELECT nativetoken_id FROM blockchain WHERE name = 'inputBlockchainName')")
-                # echo "  Native token: $native_token_name ($native_token_symbol)"
                 num_blockchainassets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                     exec -it deployment/postgres -- \
                     psql -U postgres -tA \
@@ -703,18 +682,16 @@ function main() {
                 ;;
             esac
         else
+            # TODO: SELECT * of Influx data is very slow, maybe use COUNT
             echo "InfluxDB Data:"
-            # TODO: SELECT * is slow
             num_tradestmp=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 exec -it deployment/influx -- \
                 influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM tradesTmp' | wc -l)
             echo "  Num. of tradesTmp: $num_tradestmp"
-            # TODO: SELECT * is slow
             num_filters=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 exec -it deployment/influx -- \
                 influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM filters' | wc -l)
             echo "  Num. of filters: $num_filters"
-            # TODO: SELECT * is slow
             num_quotations=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 exec -it deployment/influx -- \
                 influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM assetQuotations' | wc -l)

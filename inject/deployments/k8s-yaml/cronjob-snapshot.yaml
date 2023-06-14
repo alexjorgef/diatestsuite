@@ -1,9 +1,9 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: postgres-cron
+  name: cronjob-postgresdump
   labels:
-    app: postgres-cron
+    app: cronjob-postgresdump
 spec:
   schedule: "*/2 * * * *"
   jobTemplate:
@@ -12,11 +12,11 @@ spec:
         spec:
           restartPolicy: Never
           containers:
-          - name: kaniko
+          - name: cronjob-postgresdump-kaniko
             image: gcr.io/kaniko-project/executor:v1.6.0
             imagePullPolicy: IfNotPresent
             args:
-              - "--dockerfile=build/Dockerfile-postgres-cron"
+              - "--dockerfile=build/Dockerfile-postgrescronjob-Dev"
               - "--context=dir:///kaniko-context"
               - "--destination=registry.hub.docker.com/alex1a/diadata.postgres:latest"
               - "--verbosity=debug"
@@ -33,9 +33,6 @@ spec:
               - name: env-workdir
                 mountPath: /env-workdir/01-pginitscript.sql
                 subPath: ./pg_dump.sql
-              - name: env-context
-                mountPath: /docker-entrypoint-initdb.d/02-pginitscript.sql
-                subPath: ./scripts/test-kaniko.sh
           initContainers:
           - name: check-postgres-connection
             image: public.ecr.aws/docker/library/postgres:15-alpine
@@ -49,7 +46,7 @@ spec:
             - name: PGPASSWORD
               value: "password"
             command: ["sh", "-c", "until pg_isready -h $PGHOST -U $PGUSER; do sleep 1; done"]
-          - name: postgres-extract
+          - name: cronjob-postgresdump-extract
             image: public.ecr.aws/docker/library/postgres:15-alpine
             command: ["/mnt/env-context/deployments/config/postgres-docker-entrypoint.sh"]
             args: ["postgres"]
@@ -100,9 +97,6 @@ spec:
                     items:
                       - key: .dockerconfigjson
                         path: config.json
-            - name: postgres-entrypoint-volume
-              configMap:
-                name: postgres-entrypoint
             - name: postgres-schemma-volume
               configMap:
                 name: postgres-schemma

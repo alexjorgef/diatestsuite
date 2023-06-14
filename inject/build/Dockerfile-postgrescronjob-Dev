@@ -1,0 +1,12 @@
+# FROM public.ecr.aws/docker/library/postgres:latest
+FROM public.ecr.aws/docker/library/postgres:15-alpine
+
+RUN cp /env-workdir/00-pginitscript.sql /docker-entrypoint-initdb.d/
+RUN cp /env-workdir/01-pginitscript.sql /docker-entrypoint-initdb.d/
+
+ENV POSTGRES_USER postgres
+ENV POSTGRES_PASSWORD password
+ENV POSTGRES_DB postgres
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["postgres"]

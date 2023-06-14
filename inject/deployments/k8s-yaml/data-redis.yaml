@@ -20,16 +20,6 @@ spec:
           ports:
             - name: redis-server
               containerPort: 6379
-      #     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
-      #     volumeMounts:
-      #     - name: redis-config
-      #       mountPath: /usr/local/etc/redis/redis.conf
-      #       subPath: redis.conf
-      #       readOnly: true
-      # volumes:
-      # - name: redis-config
-      #   configMap:
-      #     name: redis-configmap
 ---
 apiVersion: v1
 kind: Service

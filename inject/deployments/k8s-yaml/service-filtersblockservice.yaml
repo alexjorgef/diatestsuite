@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: filtersblockservice
+  name: service-filtersblockservice
   labels:
-    app: filtersblockservice
+    app: service-filtersblockservice
 spec:
   selector:
     matchLabels:
-      app: filtersblockservice
+      app: service-filtersblockservice
   template:
     metadata:
       labels:
-        app: filtersblockservice
+        app: service-filtersblockservice
     spec:
       containers:
-        - name: filtersblockservice
+        - name: service-filtersblockservice
           image: dia.filtersblockservice.dev:latest
           imagePullPolicy: Never
           command: ["filtersBlockService"]
