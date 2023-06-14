@@ -15,9 +15,6 @@ The followding systems are covered:
 
 Software dependencies needed:
 
-> Note: Authenticate with Docker CLI in order to increase rate limit 
-> ([Docker Hub reference](https://docs.docker.com/docker-hub/download-rate-limit/#whats-the-download-rate-limit-on-docker-hub))
-
 * *bash*, *git*, *yq*
 * *minikube*, and *docker* as main driver
 

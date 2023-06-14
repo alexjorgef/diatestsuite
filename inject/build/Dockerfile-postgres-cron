@@ -1,13 +1,16 @@
 FROM public.ecr.aws/docker/library/postgres:latest
 
-COPY /workdir/pg_dump.backup .
-
 RUN ls -la ./
 RUN ls -la /
+RUN ls -la /workdir/
+RUN ls -la /kaniko-context/
+RUN ls -la /kaniko/
 RUN ls -la /mnt/
 
-RUN pg_restore --data-only --file ./01-pginitscript.sql ./pg_dump.backup
-RUN cp ./01-pginitscript.sql /docker-entrypoint-initdb.d/
+# COPY /workdir/pg_dump.backup .
+
+# RUN pg_restore --data-only --file ./01-pginitscript.sql ./pg_dump.backup
+# RUN cp ./01-pginitscript.sql /docker-entrypoint-initdb.d/
 
 ENV POSTGRES_USER postgres
 ENV POSTGRES_PASSWORD password

@@ -140,9 +140,6 @@ function main() {
                 --disk-size ${MINIKUBE_HW_DISK_SIZE} \
                 --mount-string="$(pwd):/mnt/diadata:rw" \
                 --mount=true
-            eval "$(minikube -p ${MINIKUBE_PROFILE} docker-env)"
-            docker login --username=alex1a
-            eval "$(minikube -p ${MINIKUBE_PROFILE} docker-env --unset)"
         else
             echo "Unknown command" >&2
             exit 1
@@ -526,7 +523,7 @@ function main() {
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-entrypoint --from-file=deployments/config/postgres-docker-entrypoint.sh
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-schemma --from-file=deployments/config/pginit.sql
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-crondump --from-file=./scripts/dump.sh
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-cronload --from-file=./scripts/load.sh
+            # minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-cronload --from-file=./scripts/load.sh
             minikube -p ${MINIKUBE_PROFILE} kubectl -- create secret docker-registry regcred \
                 --docker-server="https://registry.hub.docker.com/v2/" \
                 --docker-username="alex1a" \
@@ -545,7 +542,7 @@ function main() {
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-entrypoint || true
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-schemma || true
             minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-crondump || true
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-cronload || true
+            # minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-cronload || true
         else
             echo "Unknown command" >&2
             exit 1
@@ -578,7 +575,7 @@ function main() {
         # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
         #     exec -it deployment/influx -- \
         #     influx -host 'influx.default.svc.cluster.local' -port '8086' -execute 'SHOW DATABASES' >/dev/null 2>&1 && echo "InfluxDB OK" || echo "InfluxDB FAILED" >&2
-        echo; echo "Ping tests:"
+        echo "Ping tests:"
         minikube -p ${MINIKUBE_PROFILE} kubectl -- \
             delete -f deployments/k8s-yaml/job-ping-redis.yaml >/dev/null 2>&1 || true
         minikube -p ${MINIKUBE_PROFILE} kubectl -- \
@@ -727,7 +724,7 @@ function main() {
                 ;;
             esac
         else
-            echo; echo "InfluxDB Data:"
+            echo "InfluxDB Data:"
             # TODO: SELECT * is slow
             num_tradestmp=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
                 exec -it deployment/influx -- \
