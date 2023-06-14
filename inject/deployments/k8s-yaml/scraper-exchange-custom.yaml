@@ -19,17 +19,17 @@ spec:
     - name: POSTGRES_DB
       value: "postgres"
     - name: POSTGRES_HOST
-      value: "postgres.default.svc.cluster.local"
+      value: "data-postgres.default.svc.cluster.local"
     - name: INFLUXURL
-      value: "http://influx.default.svc.cluster.local:8086"
+      value: "http://data-influx.default.svc.cluster.local:8086"
     - name: INFLUXUSER
       value: "test"
     - name: INFLUXPASSWORD
       value: "testtest"
     - name: REDISURL
-      value: "redis.default.svc.cluster.local:6379"
+      value: "data-redis.default.svc.cluster.local:6379"
     - name: KAFKAURL
-      value: "kafka.default.svc.cluster.local:9094"
+      value: "data-kafka.default.svc.cluster.local:9094"
   initContainers:
   - name: scraper-exchange-custom-pairdiscovery
     image: dia.pairdiscoveryservice.dev:latest
@@ -46,14 +46,14 @@ spec:
     - name: POSTGRES_DB
       value: "postgres"
     - name: POSTGRES_HOST
-      value: "postgres.default.svc.cluster.local"
+      value: "data-postgres.default.svc.cluster.local"
     - name: INFLUXURL
-      value: "http://influx.default.svc.cluster.local:8086"
+      value: "http://data-influx.default.svc.cluster.local:8086"
     - name: INFLUXUSER
       value: "test"
     - name: INFLUXPASSWORD
       value: "testtest"
     - name: REDISURL
-      value: "redis.default.svc.cluster.local:6379"
+      value: "data-redis.default.svc.cluster.local:6379"
     - name: KAFKAURL
-      value: "kafka.default.svc.cluster.local:9094"
+      value: "data-kafka.default.svc.cluster.local:9094"

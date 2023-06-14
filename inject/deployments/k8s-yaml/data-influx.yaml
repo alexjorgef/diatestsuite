@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: influx
+  name: data-influx
   labels:
-    app: influx
+    app: data-influx
 spec:
   selector:
     matchLabels:
-      app: influx
+      app: data-influx
   template:
     metadata:
       labels:
-        app: influx
+        app: data-influx
     spec:
       containers:
-        - name: influx
+        - name: data-influx
           image: public.ecr.aws/docker/library/influxdb:1.8
           imagePullPolicy: IfNotPresent
           ports:
@@ -43,13 +43,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: influx
+  name: data-influx
   labels:
-    app: influx
+    app: data-influx
 spec:
   ports:
     - port: 8086
       targetPort: influx-server
   selector:
-    app: influx
+    app: data-influx
   type: NodePort

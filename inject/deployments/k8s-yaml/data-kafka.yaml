@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kafka
+  name: data-kafka
   labels:
-    app: kafka
+    app: data-kafka
 spec:
   selector:
     matchLabels:
-      app: kafka
+      app: data-kafka
   template:
     metadata:
       labels:
-        app: kafka
+        app: data-kafka
     spec:
       containers:
         - name: zookeeper
@@ -41,7 +41,7 @@ spec:
           - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
             value: "INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT"
           - name: KAFKA_ADVERTISED_LISTENERS
-            value: "INSIDE://:9092,OUTSIDE://kafka.default.svc.cluster.local:9094"
+            value: "INSIDE://:9092,OUTSIDE://data-kafka.default.svc.cluster.local:9094"
           - name: KAFKA_LISTENERS
             value: "INSIDE://:9092,OUTSIDE://:9094"
           - name: KAFKA_INTER_BROKER_LISTENER_NAME
@@ -56,9 +56,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: kafka
+  name: data-kafka
   labels:
-    app: kafka
+    app: data-kafka
 spec:
   ports:
     - port: 9094
@@ -68,5 +68,5 @@ spec:
       targetPort: zookeep-server
       name: zookeep-server
   selector:
-    app: kafka
+    app: data-kafka
   type: NodePort

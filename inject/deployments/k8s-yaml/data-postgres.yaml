@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: postgres
+  name: data-postgres
   labels:
-    app: postgres
+    app: data-postgres
 spec:
   selector:
     matchLabels:
-      app: postgres
+      app: data-postgres
   template:
     metadata:
       labels:
-        app: postgres
+        app: data-postgres
     spec:
       containers:
-        - name: postgres
+        - name: data-postgres
           image: public.ecr.aws/docker/library/postgres:latest
           imagePullPolicy: IfNotPresent
           ports:
@@ -40,13 +40,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgres
+  name: data-postgres
   labels:
-    app: postgres
+    app: data-postgres
 spec:
   ports:
     - port: 5432
       targetPort: postgres-server
   selector:
-    app: postgres
+    app: data-postgres
   type: NodePort

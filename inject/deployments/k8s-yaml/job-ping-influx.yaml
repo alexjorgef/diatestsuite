@@ -11,7 +11,7 @@ spec:
         image: public.ecr.aws/docker/library/influxdb:1.8
         env:
           - name: INFLUXDB_URL
-            value: "influx.default.svc.cluster.local"
+            value: "data-influx.default.svc.cluster.local"
           - name: INFLUXDB_USERNAME
             value: "test"
           - name: INFLUXDB_PASSWORD

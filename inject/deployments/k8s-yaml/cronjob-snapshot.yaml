@@ -38,7 +38,7 @@ spec:
             image: public.ecr.aws/docker/library/postgres:15-alpine
             env:
             - name: PGHOST
-              value: "postgres.default.svc.cluster.local"
+              value: "data-postgres.default.svc.cluster.local"
             - name: PGUSER
               value: "postgres"
             - name: PGDB
@@ -59,7 +59,7 @@ spec:
             - name: POSTGRES_DB
               value: postgres
             - name: PGHOST_EXTRACT
-              value: "postgres.default.svc.cluster.local"
+              value: "data-postgres.default.svc.cluster.local"
             - name: PGUSER_EXTRACT
               value: "postgres"
             - name: PGDB_EXTRACT

@@ -19,7 +19,7 @@ spec:
     - name: POSTGRES_DB
       value: "postgres"
     - name: POSTGRES_HOST
-      value: "postgres.default.svc.cluster.local"
+      value: "data-postgres.default.svc.cluster.local"
     - name: INFLUXURL
       value: "http://influx.default.svc.cluster.local:8086"
     - name: INFLUXUSER
@@ -27,15 +27,15 @@ spec:
     - name: INFLUXPASSWORD
       value: "testtest"
     - name: REDISURL
-      value: "redis.default.svc.cluster.local:6379"
+      value: "data-redis.default.svc.cluster.local:6379"
     - name: KAFKAURL
-      value: "kafka.default.svc.cluster.local:9094"
+      value: "data-kafka.default.svc.cluster.local:9094"
   initContainers:
   - name: check-postgres-connection
     image: public.ecr.aws/docker/library/postgres:15-alpine
     env:
     - name: PGHOST
-      value: "postgres.default.svc.cluster.local"
+      value: "data-postgres.default.svc.cluster.local"
     - name: PGUSER
       value: "postgres"
     - name: PGPASSWORD
@@ -51,7 +51,7 @@ spec:
     image: public.ecr.aws/docker/library/influxdb:1.8
     env:
     - name: INFLUXDB_URL
-      value: "influx.default.svc.cluster.local"
+      value: "data-influx.default.svc.cluster.local"
     - name: INFLUXDB_USERNAME
       value: "test"
     - name: INFLUXDB_PASSWORD
@@ -61,7 +61,7 @@ spec:
     image: confluentinc/cp-kafkacat:6.2.1
     env:
     - name: KAFKA_BROKER_URL
-      value: "kafka.default.svc.cluster.local:9094"
+      value: "data-kafka.default.svc.cluster.local:9094"
     command: ["sh", "-c", "until kafkacat -b $KAFKA_BROKER_URL -L; do sleep 1; done"]
   - name: pairdiscovery-coinbase
     image: dia.pairdiscoveryservice:latest
@@ -78,7 +78,7 @@ spec:
     - name: POSTGRES_DB
       value: "postgres"
     - name: POSTGRES_HOST
-      value: "postgres.default.svc.cluster.local"
+      value: "data-postgres.default.svc.cluster.local"
     - name: INFLUXURL
       value: "http://influx.default.svc.cluster.local:8086"
     - name: INFLUXUSER
@@ -86,6 +86,6 @@ spec:
     - name: INFLUXPASSWORD
       value: "testtest"
     - name: REDISURL
-      value: "redis.default.svc.cluster.local:6379"
+      value: "data-redis.default.svc.cluster.local:6379"
     - name: KAFKAURL
-      value: "kafka.default.svc.cluster.local:9094"
+      value: "data-kafka.default.svc.cluster.local:9094"
