@@ -20,8 +20,6 @@ spec:
               - "--context=dir:///kaniko-context"
               - "--destination=registry.hub.docker.com/alex1a/diadata.postgres:latest"
               - "--verbosity=debug"
-              # - "--cache=true"
-              # - "--cache-repo=public.ecr.aws/docker/library/postgres"
               - "--registry-mirror=public.ecr.aws"
             volumeMounts:
               - name: docker-config
@@ -29,18 +27,15 @@ spec:
               - name: env-context
                 mountPath: /kaniko-context
                 readOnly: true
+              - name: env-context
+                mountPath: /env-workdir/00-pginitscript.sql
+                subPath: ./deployments/config/pginit.sql
               - name: env-workdir
                 mountPath: /env-workdir/01-pginitscript.sql
                 subPath: ./pg_dump.sql
               - name: env-context
-                mountPath: /env-workdir/00-pginitscript.sql
-                subPath: ./deployments/config/pginit.sql
-              # - name: kaniko-context
-              #   mountPath: /kaniko-context
-              # - name: shared-volume-postgres
-              #   mountPath: /kaniko-context/pg_dump.backup
-              #   subPath: pg_dump.backup
-              #   readOnly: true
+                mountPath: /docker-entrypoint-initdb.d/02-pginitscript.sql
+                subPath: ./scripts/test-kaniko.sh
           initContainers:
           - name: check-postgres-connection
             image: public.ecr.aws/docker/library/postgres:15-alpine
@@ -56,7 +51,6 @@ spec:
             command: ["sh", "-c", "until pg_isready -h $PGHOST -U $PGUSER; do sleep 1; done"]
           - name: postgres-extract
             image: public.ecr.aws/docker/library/postgres:15-alpine
-            # image: public.ecr.aws/docker/library/postgres:latest
             command: ["/mnt/env-context/deployments/config/postgres-docker-entrypoint.sh"]
             args: ["postgres"]
             imagePullPolicy: IfNotPresent
@@ -84,10 +78,6 @@ spec:
             - name: PGPASSWORD_TEMP
               value: "password"
             volumeMounts:
-              # - name: postgres-entrypoint-volume
-              #   mountPath: /usr/local/bin/docker-entrypoint.sh
-              #   subPath: postgres-docker-entrypoint.sh
-              #   readOnly: true
               - name: postgres-schemma-volume
                 mountPath: /docker-entrypoint-initdb.d/00-pginitscript.sql
                 subPath: pginit.sql
@@ -101,11 +91,6 @@ spec:
                 readOnly: true
               - name: env-workdir
                 mountPath: /mnt/env-workdir
-              # - name: postgres-dump
-              #   mountPath: /postgres-dump
-              #   readOnly: false
-              # - name: shared-volume-postgres
-              #   mountPath: /data/shared-postgres/
           volumes:
             - name: docker-config
               projected:
@@ -129,12 +114,3 @@ spec:
                 path: /mnt/diadata
             - name: env-workdir
               emptyDir: {}
-            # - name: kaniko-context
-            #   hostPath:
-            #     path: /mnt/diadata
-            # - name: postgres-dump
-            #   hostPath:
-            #     path: /mnt/diadata-dumper
-            # - name: shared-volume-postgres
-            #   hostPath:
-            #     path: /data/shared-postgres/

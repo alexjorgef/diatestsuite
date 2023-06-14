@@ -2,8 +2,8 @@
 FROM public.ecr.aws/docker/library/postgres:15-alpine
 
 RUN ls -la /docker-entrypoint-initdb.d/
-RUN whoami
-RUN id
+# RUN whoami
+# RUN id
 
 # RUN ls -la /workdir/
 # RUN chown 70:70 -R /workdir/
@@ -15,12 +15,12 @@ RUN id
 # RUN pg_restore --data-only --file ./01-pginitscript.sql ./pg_dump.backup
 # RUN cp ./01-pginitscript.sql /docker-entrypoint-initdb.d/
 
-RUN ls -la /env-workdir/
+# RUN ls -la /env-workdir/
 RUN cp /env-workdir/00-pginitscript.sql /docker-entrypoint-initdb.d/
 RUN cp /env-workdir/01-pginitscript.sql /docker-entrypoint-initdb.d/
-RUN ls -la /docker-entrypoint-initdb.d/
-RUN chown 70:70 -R /docker-entrypoint-initdb.d/
-RUN ls -la /docker-entrypoint-initdb.d/
+# RUN ls -la /docker-entrypoint-initdb.d/
+# RUN chown 70:70 -R /docker-entrypoint-initdb.d/
+# RUN ls -la /docker-entrypoint-initdb.d/
 
 ENV POSTGRES_USER postgres
 ENV POSTGRES_PASSWORD password
