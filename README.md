@@ -28,7 +28,7 @@ Software dependencies needed:
 
 ```sh
 if [ -d "./.testenv" ]; then rm -Rf "./.testenv"; fi
-git clone git@github.com:diadata-org/diadata.git -b v1.4.264 --depth 1 "./.testenv"
+git clone git@github.com:diadata-org/diadata.git -b v1.4.268 --depth 1 "./.testenv"
 cp -Rf ./inject/* "./.testenv"
 cp -Rf ./inject/.[^.]* "./.testenv"
 ln -s "$PWD/env" "./.testenv/env"
