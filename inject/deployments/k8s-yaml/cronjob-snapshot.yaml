@@ -20,6 +20,9 @@ spec:
               - "--context=dir:///kaniko-context"
               - "--destination=registry.hub.docker.com/alex1a/diadata.postgres:latest"
               - "--verbosity=debug"
+              # - "--cache=true"
+              # - "--cache-repo=public.ecr.aws/docker/library/postgres"
+              - "--registry-mirror=public.ecr.aws"
             volumeMounts:
               - name: docker-config
                 mountPath: /kaniko/.docker
@@ -27,11 +30,11 @@ spec:
                 mountPath: /kaniko-context
                 readOnly: true
               - name: env-workdir
-                mountPath: /workdir
+                mountPath: /env-workdir/01-pginitscript.sql
+                subPath: ./pg_dump.sql
               - name: env-context
-                mountPath: /docker-entrypoint-initdb.d/00-pginitscript.sql
+                mountPath: /env-workdir/00-pginitscript.sql
                 subPath: ./deployments/config/pginit.sql
-                readOnly: true
               # - name: kaniko-context
               #   mountPath: /kaniko-context
               # - name: shared-volume-postgres
@@ -53,7 +56,9 @@ spec:
             command: ["sh", "-c", "until pg_isready -h $PGHOST -U $PGUSER; do sleep 1; done"]
           - name: postgres-extract
             image: public.ecr.aws/docker/library/postgres:15-alpine
+            # image: public.ecr.aws/docker/library/postgres:latest
             command: ["/mnt/env-context/deployments/config/postgres-docker-entrypoint.sh"]
+            args: ["postgres"]
             imagePullPolicy: IfNotPresent
             env:
             - name: POSTGRES_USER

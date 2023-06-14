@@ -42,3 +42,5 @@ Run the script to manage the enviornment 🚀:
 ```sh
 ./env --help
 ```
+
+> Note: Prepare command for fast test: `./env cluster-start; ./env build; ./env installfull; ./env create-example` amd then `./env create-cron`
