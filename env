@@ -17,9 +17,6 @@ function usage() {
     echo "Options:"
     echo
     echo "  -h --help               Print help"
-    echo "  -g --goto <alias>       Goto specified alias before edit"
-    echo "  -n --nodetached         Don't try to run in a detached window"
-    echo "  -s --full               Start a full environment"
     echo
     echo "Commands:"
     echo
@@ -31,19 +28,13 @@ function usage() {
     echo "  build                   Build DIA images"
     echo "  install [full]          Install DIA platform"
     echo "  uninstall               Un-install DIA platform"
+    echo "  create                  Create a new resource"
+    echo "  remove                  Remove a resource"
     echo "  clean                   Clean unused files"
     echo "  info                    Show detailed information"
     echo "  shell                   Connect to enviornment shell"
     echo "  logs                    Print logs"
-    echo "  psqlinsert              Insert exchange to PostgreSQL (will be REMOVED)"
-    echo "  psqlfind                Find exchange from PostgreSQL (will be REMOVED)"
-    echo "  psqldelete              Delete exchange from PostgreSQL (will be REMOVED)"
-    echo "  create                  Create a new resource"
-    echo "  create-example          Create examples (will be REMOVED)"
-    echo "  create-cron             Create a cronjob for publish data on Docker registry (PRODUCTION only)"
-    echo "  remove                  Remove a resource"
-    echo "  remove-example          Remove the examples (will be REMOVED)"
-    echo "  remove-cron             Remove the cronjob (PRODUCTION only)"
+    echo "  ping                    Make ping tests"
     echo
     echo "Report bugs to: <https://github.com/diadata-org/diadata/issues>"
 }
@@ -315,97 +306,150 @@ function main() {
             exit 1
         fi
         ;;
-    psqlinsert)
-        inputExchangeName="Custom"
-        # echo "Exchange Name:"
-        # read -r inputExchangeName
-        # while true; do
-        #     echo "The exchange is decentralized in a blockchain?"
-        #     read -r inputExchangeCentralized
-        #     case $inputExchangeCentralized in
-        #         [Yy]* ) echo "You choose yes."; break;;
-        #         [Nn]* ) echo "You choose no.";;
-        #         * ) echo "Please answer yes or no.";;
-        #     esac
-        # done
-        # echo "$inputExchangeCentralized"
-        # while true; do
-        #     echo "The exchange is a bridge?"
-        #     read -r inputExchangeBridge
-        #     case $inputExchangeBridge in
-        #         [Yy]* ) echo "You choose yes."; break;;
-        #         [Nn]* ) echo "You choose no.";;
-        #         * ) echo "Please answer yes or no.";;
-        #     esac
-        # done
-        # echo "$inputExchangeBridge"
-        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            exec -it deployment/postgres -- \
-            psql -v ON_ERROR_STOP=on -U postgres \
-            -c "INSERT INTO exchange (
-                    exchange_id,
-                    name,
-                    centralized,
-                    bridge,
-                    contract,
-                    blockchain,
-                    rest_api,
-                    ws_api,
-                    pairs_api,
-                    watchdog_delay,
-                    scraper_active
-                ) VALUES(
-                    gen_random_uuid(),
-                    'Custom',
-                    true,
-                    false,
-                    '',
-                    '',
-                    '',
-                    'wss://ws-feed.pro.coinbase.com',
-                    'https://api.pro.coinbase.com/products',
-                    300,
-                    true
-                )
-                ;" >/dev/null 2>&1 && echo "Success" || echo "Error, a exchange with the name $inputExchangeName already exists." >&2
-        # set +e
-        # psqlExitCode=$?
-        # if [ $psqlExitCode -ne 0 ]; then
-        #     echo "Error, a exchange with the name $inputExchangeName already exists."
-        # else
-        #     echo "Success"
-        # fi
-        ;;
-    psqldelete)
-        # TODO: error handling when cannot delete row
-        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            exec -it deployment/postgres -- \
-            psql -U postgres -t \
-            -c "DELETE FROM exchange WHERE name = 'Custom'" >/dev/null 2>&1 && echo "Row deleted." || echo "Error, a exchange does not exists and cannot be deleted." >&2
-        ;;
-    psqlfind)
-        # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-        #     exec -it deployment/postgres -- \
-        #     psql -U postgres -t \
-        #     -c "SELECT exchange_id FROM exchange WHERE name = 'Custom'" \
-        #     -c "SELECT exchange_id FROM exchange WHERE name = 'Custom'"
-        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            exec -it deployment/postgres -- \
-            psql -U postgres -t \
-            -c "SELECT exchange_id FROM exchange WHERE name = 'Custom'" | if [[ $(wc -l) -ge 2 ]]; then echo "Found"; else echo "Not Found"; fi
-        # -c "SELECT exchange_id FROM exchange WHERE name = 'Custom';
-        #     IF NOT FOUND THEN RAISE EXCEPTION 'User not found'"
-        # "select coalesce(
-        #     (select name from exchange where name = 'CustomA'), '(none)'
-        # )"
-        # echo $?
-        ;;
+    # psqlinsert)
+    #     inputExchangeName="Custom"
+    #     # echo "Exchange Name:"
+    #     # read -r inputExchangeName
+    #     # while true; do
+    #     #     echo "The exchange is decentralized in a blockchain?"
+    #     #     read -r inputExchangeCentralized
+    #     #     case $inputExchangeCentralized in
+    #     #         [Yy]* ) echo "You choose yes."; break;;
+    #     #         [Nn]* ) echo "You choose no.";;
+    #     #         * ) echo "Please answer yes or no.";;
+    #     #     esac
+    #     # done
+    #     # echo "$inputExchangeCentralized"
+    #     # while true; do
+    #     #     echo "The exchange is a bridge?"
+    #     #     read -r inputExchangeBridge
+    #     #     case $inputExchangeBridge in
+    #     #         [Yy]* ) echo "You choose yes."; break;;
+    #     #         [Nn]* ) echo "You choose no.";;
+    #     #         * ) echo "Please answer yes or no.";;
+    #     #     esac
+    #     # done
+    #     # echo "$inputExchangeBridge"
+    #     minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+    #         exec -it deployment/postgres -- \
+    #         psql -v ON_ERROR_STOP=on -U postgres \
+    #         -c "INSERT INTO exchange (
+    #                 exchange_id,
+    #                 name,
+    #                 centralized,
+    #                 bridge,
+    #                 contract,
+    #                 blockchain,
+    #                 rest_api,
+    #                 ws_api,
+    #                 pairs_api,
+    #                 watchdog_delay,
+    #                 scraper_active
+    #             ) VALUES(
+    #                 gen_random_uuid(),
+    #                 'Custom',
+    #                 true,
+    #                 false,
+    #                 '',
+    #                 '',
+    #                 '',
+    #                 'wss://ws-feed.pro.coinbase.com',
+    #                 'https://api.pro.coinbase.com/products',
+    #                 300,
+    #                 true
+    #             )
+    #             ;" >/dev/null 2>&1 && echo "Success" || echo "Error, a exchange with the name $inputExchangeName already exists." >&2
+    #     # set +e
+    #     # psqlExitCode=$?
+    #     # if [ $psqlExitCode -ne 0 ]; then
+    #     #     echo "Error, a exchange with the name $inputExchangeName already exists."
+    #     # else
+    #     #     echo "Success"
+    #     # fi
+    #     ;;
+    # psqldelete)
+    #     # TODO: error handling when cannot delete row
+    #     minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+    #         exec -it deployment/postgres -- \
+    #         psql -U postgres -t \
+    #         -c "DELETE FROM exchange WHERE name = 'Custom'" >/dev/null 2>&1 && echo "Row deleted." || echo "Error, a exchange does not exists and cannot be deleted." >&2
+    #     ;;
+    # psqlfind)
+    #     # minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+    #     #     exec -it deployment/postgres -- \
+    #     #     psql -U postgres -t \
+    #     #     -c "SELECT exchange_id FROM exchange WHERE name = 'Custom'" \
+    #     #     -c "SELECT exchange_id FROM exchange WHERE name = 'Custom'"
+    #     minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+    #         exec -it deployment/postgres -- \
+    #         psql -U postgres -t \
+    #         -c "SELECT exchange_id FROM exchange WHERE name = 'Custom'" | if [[ $(wc -l) -ge 2 ]]; then echo "Found"; else echo "Not Found"; fi
+    #     # -c "SELECT exchange_id FROM exchange WHERE name = 'Custom';
+    #     #     IF NOT FOUND THEN RAISE EXCEPTION 'User not found'"
+    #     # "select coalesce(
+    #     #     (select name from exchange where name = 'CustomA'), '(none)'
+    #     # )"
+    #     # echo $?
+    #     ;;
     create)
         if [ "${#paths[@]}" -gt 1 ]; then
-            echo "${#paths[@]}"
             case "${paths[1]}" in
             exchange)
                 minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-custom.yaml
+                ;;
+            cronjob)
+                if [ "${#paths[@]}" -eq 1 ]; then
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-entrypoint --from-file=deployments/config/postgres-docker-entrypoint.sh
+                    # minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-schemma --from-file=deployments/config/pginit.sql
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-crondump --from-file=./scripts/dump.sh
+                    # minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-cronload --from-file=./scripts/load.sh
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- create secret docker-registry regcred \
+                        --docker-server="https://registry.hub.docker.com/v2/" \
+                        --docker-username="alex1a" \
+                        --docker-password="R3Uf&nq@A9&hv&" \
+                        --docker-email="alex.jorge.m@gmail.com"
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f "deployments/k8s-yaml/cronjob-snapshot.yaml"
+                else
+                    echo "Unknown command" >&2
+                    exit 1
+                fi
+                ;;
+            example)
+                if [ "${#paths[@]}" -gt 2 ]; then
+                    echo "Creating ${paths[2]} example ..."
+                    case "${paths[1]}" in
+                    exchange)
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
+                        ;;
+                    liquidity)
+                        # TODO: Move pod to job
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
+                        ;;
+                    foreign)
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
+                        ;;
+                    foreign-dev)
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-foreign-example-googlefinance-dev.yaml
+                        ;;
+                    *)
+                        echo "Unknown command" >&2
+                        exit 1
+                        ;;
+                    esac
+                    echo "Example ${paths[2]} created with success"
+                else
+                    echo "Creating all examples ..."
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
+                    echo "All examples created"
+                fi
                 ;;
             *)
                 echo "Unknown command" >&2
@@ -424,106 +468,60 @@ function main() {
             exchange)
                 minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-custom.yaml
                 ;;
-            *)
-                echo "Unknown command" >&2
-                exit 1
+            cronjob)
+                if [ "${#paths[@]}" -eq 1 ]; then
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f "deployments/k8s-yaml/cronjob-snapshot.yaml" || true
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- delete secret regcred || true
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-entrypoint || true
+                    # minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-schemma || true
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-crondump || true
+                    # minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-cronload || true
+                else
+                    echo "Unknown command" >&2
+                    exit 1
+                fi
                 ;;
-            esac
-        else
-            echo "Unknown command" >&2
-            exit 1
-        fi
-        ;;
-    create-example)
-        if [ "${#paths[@]}" -gt 1 ]; then
-            case "${paths[1]}" in
-            exchange)
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
-                ;;
-            liquidity)
-                # TODO: Move pod to job
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
-                ;;
-            foreign)
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
-                ;;
-            foreign-dev)
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-foreign-example-googlefinance-dev.yaml
-                ;;
-            *)
-                echo "Unknown command" >&2
-                exit 1
-                ;;
-            esac
-        else
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
-        fi
-        ;;
-    remove-example)
-        if [ "${#paths[@]}" -gt 1 ]; then
-            case "${paths[1]}" in
-            exchange)
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
-                ;;
-            liquidity)
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
-                ;;
-            foreign)
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
-                ;;
-            foreign-dev)
-                minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-foreign-example-googlefinance-dev.yaml
+            example)
+                if [ "${#paths[@]}" -gt 2 ]; then
+                    echo "Removing ${paths[2]} example ..."
+                    case "${paths[2]}" in
+                    exchange)
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
+                        ;;
+                    liquidity)
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
+                        ;;
+                    foreign)
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
+                        ;;
+                    foreign-dev)
+                        minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-foreign-example-googlefinance-dev.yaml
+                        ;;
+                    *)
+                        echo "Unknown command" >&2
+                        exit 1
+                        ;;
+                    esac
+                    echo "Example ${paths[2]} removed with success"
+                else
+                    echo "Removing all examples ..."
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
+                    minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
+                    echo "All examples removed"
+                fi
                 ;;
             *)
                 echo "Unknown command" >&2
                 exit 1
                 ;;
             esac
-        else
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
-        fi
-        ;;
-    create-cron)
-        if [ "${#paths[@]}" -eq 1 ]; then
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-entrypoint --from-file=deployments/config/postgres-docker-entrypoint.sh
-            # minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-schemma --from-file=deployments/config/pginit.sql
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-crondump --from-file=./scripts/dump.sh
-            # minikube -p ${MINIKUBE_PROFILE} kubectl -- create configmap postgres-cronload --from-file=./scripts/load.sh
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- create secret docker-registry regcred \
-                --docker-server="https://registry.hub.docker.com/v2/" \
-                --docker-username="alex1a" \
-                --docker-password="R3Uf&nq@A9&hv&" \
-                --docker-email="alex.jorge.m@gmail.com"
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f "deployments/k8s-yaml/cronjob-snapshot.yaml"
-        else
-            echo "Unknown command" >&2
-            exit 1
-        fi
-        ;;
-    remove-cron)
-        if [ "${#paths[@]}" -eq 1 ]; then
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete -f "deployments/k8s-yaml/cronjob-snapshot.yaml" || true
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete secret regcred || true
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-entrypoint || true
-            # minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-schemma || true
-            minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-crondump || true
-            # minikube -p ${MINIKUBE_PROFILE} kubectl -- delete configmap postgres-cronload || true
         else
             echo "Unknown command" >&2
             exit 1
