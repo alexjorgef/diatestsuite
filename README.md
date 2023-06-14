@@ -43,4 +43,4 @@ Run the script to manage the enviornment 🚀:
 ./env --help
 ```
 
-> Note: Prepare command for fast test: `./env cluster-start; ./env build; ./env installfull; ./env create-example` and finally `./env create-cron`
+> Note: Prepare command for fast test: `./env cluster-start; ./env build; ./env install full; ./env create example` and finally `./env create cron`
