@@ -50,7 +50,7 @@ function main() {
             -n 'env' -- "$@"
     )
 
-    echo "args: $@"
+    # echo "args: $@"
 
     # shellcheck disable=SC2181
     if [ $? != 0 ]; then
