@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: redis
-          image: redis:7
+          image: public.ecr.aws/docker/library/redis:7
           imagePullPolicy: IfNotPresent
           ports:
             - name: redis-server

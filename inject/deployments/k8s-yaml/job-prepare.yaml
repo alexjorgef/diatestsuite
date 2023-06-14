@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
       - name: blockchainservice
-        image: diadata.blockchainservice:latest
+        image: dia.blockchainservice.dev:latest
         imagePullPolicy: IfNotPresent
         command: ["blockchainservice"]
         args: []
@@ -24,7 +24,7 @@ spec:
           - name: POSTGRES_DB
             value: "postgres"
       - name: assetcollectionservice-ethassets
-        image: diadata.assetcollectionservice:latest
+        image: dia.assetcollectionservice.dev:latest
         imagePullPolicy: Never
         command: ["assetCollectionService"]
         args: ["-source=assetlists", "-secret=eth_assets", "-caching=true"]
@@ -40,7 +40,7 @@ spec:
           - name: POSTGRES_DB
             value: "postgres"
       - name: assetcollectionservice-nonethassets
-        image: diadata.assetcollectionservice:latest
+        image: dia.assetcollectionservice.dev:latest
         imagePullPolicy: Never
         command: ["assetCollectionService"]
         args:
@@ -57,7 +57,7 @@ spec:
           - name: POSTGRES_DB
             value: "postgres"
       - name: assetcollectionservice-fiatassets
-        image: diadata.assetcollectionservice:latest
+        image: dia.assetcollectionservice.dev:latest
         imagePullPolicy: Never
         command: ["assetCollectionService"]
         args: ["-source=assetlists", "-secret=fiat_assets", "-caching=true"]
@@ -74,7 +74,7 @@ spec:
             value: "postgres"
       initContainers:
         - name: check-postgres-connection
-          image: postgres:15-alpine
+          image: public.ecr.aws/docker/library/postgres:15-alpine
           env:
           - name: PGHOST
             value: "postgres.default.svc.cluster.local"
@@ -84,13 +84,13 @@ spec:
             value: "password"
           command: ["sh", "-c", "until pg_isready -h $PGHOST -U $PGUSER; do sleep 1; done"]
         - name: check-redis-connection
-          image: redis:7
+          image: public.ecr.aws/docker/library/redis:7
           env:
           - name: REDISCLI_URL
             value: "redis://redis.default.svc.cluster.local:6379/0"
           command: ["sh", "-c", "until redis-cli -u $REDISCLI_URL ping; do sleep 1; done"]
         - name: check-influxdb-connection
-          image: influxdb:1.8
+          image: public.ecr.aws/docker/library/influxdb:1.8
           env:
           - name: INFLUXDB_URL
             value: "influx.default.svc.cluster.local"

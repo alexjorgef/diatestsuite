@@ -40,7 +40,7 @@ spec:
               #   readOnly: true
           initContainers:
           - name: check-postgres-connection
-            image: postgres:15-alpine
+            image: public.ecr.aws/docker/library/postgres:15-alpine
             env:
             - name: PGHOST
               value: "postgres.default.svc.cluster.local"
@@ -52,7 +52,7 @@ spec:
               value: "password"
             command: ["sh", "-c", "until pg_isready -h $PGHOST -U $PGUSER; do sleep 1; done"]
           - name: postgres-extract
-            image: postgres:15-alpine
+            image: public.ecr.aws/docker/library/postgres:15-alpine
             command: ["/mnt/env-context/deployments/config/postgres-docker-entrypoint.sh"]
             imagePullPolicy: IfNotPresent
             env:

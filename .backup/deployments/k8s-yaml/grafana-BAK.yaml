@@ -36,7 +36,7 @@ spec:
       name: grafana-dashboard-a-configmap
   initContainers:
   - name: check-postgres-connection
-    image: postgres:latest
+    image: public.ecr.aws/docker/library/postgres:latest
     env:
     - name: PGHOST
       value: "clusterdev-db-postgres-service.default.svc.cluster.local"
@@ -46,7 +46,7 @@ spec:
       value: "diadata_psql_pass"
     command: ["sh", "-c", "until pg_isready -h $PGHOST -U $PGUSER; do sleep 1; done"]
   - name: check-influxdb-connection
-    image: influxdb:1.8
+    image: public.ecr.aws/docker/library/influxdb:1.8
     env:
     - name: INFLUXDB_URL
       value: "clusterdev-db-influx-service.default.svc.cluster.local"

@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: influx
-          image: influxdb:1.8
+          image: public.ecr.aws/docker/library/influxdb:1.8
           imagePullPolicy: IfNotPresent
           ports:
             - name: influx-server

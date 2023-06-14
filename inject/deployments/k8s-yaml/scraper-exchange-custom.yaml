@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
   - name: exchangescraper-custom
-    image: diadata.genericcollector:latest
+    image: dia.genericcollector.dev:latest
     imagePullPolicy: Never
     command: ["collector"]
     args: ["-exchange=Custom", "-mode=current", "-pairsfile=true"]
@@ -32,7 +32,7 @@ spec:
       value: "kafka.default.svc.cluster.local:9094"
   initContainers:
   - name: pairdiscovery-custom
-    image: diadata.pairdiscoveryservice:latest
+    image: dia.pairdiscoveryservice.dev:latest
     imagePullPolicy: Never
     command: ["pairDiscoveryService"]
     args: ["-exchange=Custom", "-mode=verification"]

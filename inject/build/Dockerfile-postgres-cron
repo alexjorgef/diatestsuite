@@ -1,4 +1,4 @@
-FROM postgres:latest
+FROM public.ecr.aws/docker/library/postgres:latest
 
 COPY /workdir/pg_dump.backup .
 

@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
   - name: scraper-foreign-yahoofinance
-    image: diadata.genericforeignscraper:latest
+    image: dia.genericforeignscraper.dev:latest
     imagePullPolicy: Never
     command: ["foreignscraper"]
     args: ["-foreignType=YahooFinance"]
@@ -34,7 +34,7 @@ spec:
       value: "EURGBP=X:EUR-GBP, CNY=X:USD-CNY"
   initContainers:
   - name: check-postgres-connection
-    image: postgres:15-alpine
+    image: public.ecr.aws/docker/library/postgres:15-alpine
     env:
     - name: PGHOST
       value: "postgres.default.svc.cluster.local"
@@ -44,13 +44,13 @@ spec:
       value: "password"
     command: ["sh", "-c", "until pg_isready -h $PGHOST -U $PGUSER; do sleep 1; done"]
   - name: check-redis-connection
-    image: redis:7
+    image: public.ecr.aws/docker/library/redis:7
     env:
     - name: REDISCLI_URL
       value: "redis://redis.default.svc.cluster.local:6379/0"
     command: ["sh", "-c", "until redis-cli -u $REDISCLI_URL ping; do sleep 1; done"]
   - name: check-influxdb-connection
-    image: influxdb:1.8
+    image: public.ecr.aws/docker/library/influxdb:1.8
     env:
     - name: INFLUXDB_URL
       value: "influx.default.svc.cluster.local"

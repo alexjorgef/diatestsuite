@@ -1,9 +1,26 @@
 ARG foreignType
-FROM us.icr.io/dia-registry/devops/build-117:latest as build
+FROM dia.build-117.dev:latest as build
 
 WORKDIR $GOPATH/src/
 
 COPY ./cmd/foreignscraper ./
+COPY . /diadata
 RUN go mod edit -replace github.com/diadata-org/diadata=/diadata
+RUN go mod tidy -go=1.16 && go mod tidy -go=1.17 && go install
 
-CMD [ "tail", "-f", "/dev/null" ]
+FROM gcr.io/distroless/base
+
+COPY --from=build /go/bin/foreignscraper /bin/foreignscraper
+COPY --from=build /config/ /config/
+
+CMD ["foreignscraper"]
+
+# ARG foreignType
+# FROM us.icr.io/dia-registry/devops/build-117:latest as build
+
+# WORKDIR $GOPATH/src/
+
+# COPY ./cmd/foreignscraper ./
+# RUN go mod edit -replace github.com/diadata-org/diadata=/diadata
+
+# CMD [ "tail", "-f", "/dev/null" ]

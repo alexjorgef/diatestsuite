@@ -28,7 +28,7 @@ spec:
       value: "clusterdev-db-redis-service.default.svc.cluster.local:6379"
   initContainers:
   - name: check-postgres-connection
-    image: postgres:latest
+    image: public.ecr.aws/docker/library/postgres:latest
     env:
     - name: PGHOST
       value: "clusterdev-db-postgres-service.default.svc.cluster.local"
@@ -38,13 +38,13 @@ spec:
       value: "diadata_psql_pass"
     command: ["sh", "-c", "until pg_isready -h $PGHOST -U $PGUSER; do sleep 1; done"]
   - name: check-redis-connection
-    image: redis:latest
+    image: public.ecr.aws/docker/library/redis:latest
     env:
     - name: REDISCLI_URL
       value: "redis://clusterdev-db-redis-service.default.svc.cluster.local:6379/0"
     command: ["sh", "-c", "until redis-cli -u $REDISCLI_URL ping; do sleep 1; done"]
   - name: check-influxdb-connection
-    image: influxdb:1.8
+    image: public.ecr.aws/docker/library/influxdb:1.8
     env:
     - name: INFLUXDB_URL
       value: "clusterdev-db-influx-service.default.svc.cluster.local"

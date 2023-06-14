@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:latest
+          image: public.ecr.aws/docker/library/postgres:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: postgres-server
