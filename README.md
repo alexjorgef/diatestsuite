@@ -20,6 +20,15 @@ Software dependencies needed:
 
 ## Prepare this repository
 
+First, clone this repo and change directory:
+
+```sh
+git clone git@github.com:alexjorgef/diatestsuite.git
+cd diatestsuite
+```
+
+Second:
+
 * Remove env, if exists
 * Clone the DIA's repo or a fork to .testenv folder
 * Copy the modification files
@@ -43,4 +52,10 @@ Run the script to manage the enviornment 🚀:
 ./env --help
 ```
 
-> Note: Prepare command for fast test: `./env cluster-start; ./env build; ./env install full; ./env create example` and finally `./env create cron`
+> Note: Prepare command for fast test:
+>
+> ```sh
+> ./env cluster-start && ./env build && ./env install full && ./env create example
+> ```
+> 
+> and finally `./env create cron`
