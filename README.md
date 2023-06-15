@@ -37,7 +37,7 @@ Second:
 
 ```sh
 if [ -d "./.testenv" ]; then rm -Rf "./.testenv"; fi
-git clone git@github.com:diadata-org/diadata.git -b v1.4.268 --depth 1 "./.testenv"
+git clone git@github.com:diadata-org/diadata.git -b v1.4.269 --depth 1 "./.testenv"
 cp -Rf ./inject/* "./.testenv"
 cp -Rf ./inject/.[^.]* "./.testenv"
 ln -s "$PWD/env" "./.testenv/env"
@@ -62,7 +62,7 @@ Run the script to manage the enviornment 🚀:
 
 ## Performance
 
-> Tests done with 1.4.268 version
+> Tests done with 1.4.269 version
 
 Best build time:
 

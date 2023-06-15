@@ -265,8 +265,8 @@ func customCrawlCurrenciesA() (currencies []customWebCurrency, err error) {
 
 func customCrawlCurrencies() (currencies []customWebCurrency, err error) {
 	c := colly.NewCollector(
-		// colly.UserAgent("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"),
-		colly.UserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"),
+	// colly.UserAgent("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"),
+	// colly.UserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"),
 	)
 
 	c.OnResponse(func(r *colly.Response) {
@@ -290,7 +290,7 @@ func customCrawlCurrencies() (currencies []customWebCurrency, err error) {
 				log.Error(err)
 			}
 			log.Infoln(r.StatusCode)
-			log.Infoln(string(r.Body))
+			// log.Infoln(string(r.Body))
 
 			// log.Infoln(string(r.Body))
 		} else {
@@ -304,6 +304,12 @@ func customCrawlCurrencies() (currencies []customWebCurrency, err error) {
 
 	c.OnHTML("", func(e *colly.HTMLElement) {
 		log.Infoln("FOUND")
+	})
+
+	c.OnRequest(func(r *colly.Request) {
+		r.Headers.Set("user-agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36")
+		r.Headers.Set("cookie", "PENDING+127")
+		// r.Headers.Set("cookie", "SOCS=CAESOAgSEitib3FfaWRlbnRpdHlmcm9udGVuZHVpc2VydmVyXzIwMjMwNjExLjA5X3AwGgVlbi1VUyACGgYIgKmppAY; Domain=.google.com; Expires=Sun, 14-Jul-2024 22:42:12 GMT; Path=/; Secure; SameSite=lax")
 	})
 
 	// c.OnXML("/html/body/c-wiz[2]/div/div[4]/div/main/div[2]/c-wiz/div/div[1]/div/div[1]/div/div[1]/div/span/div/div", func(e *colly.XMLElement) {
