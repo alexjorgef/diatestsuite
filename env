@@ -414,7 +414,7 @@ function main() {
             example)
                 if [ "${#paths[@]}" -gt 2 ]; then
                     echo "Creating ${paths[2]} example ..."
-                    case "${paths[1]}" in
+                    case "${paths[2]}" in
                     exchange)
                         minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
                         minikube -p ${MINIKUBE_PROFILE} kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
@@ -578,7 +578,12 @@ function main() {
         minikube -p ${MINIKUBE_PROFILE} kubectl -- \
             wait --timeout=30s --for=condition=complete job/ping-kafka >/dev/null 2>&1 && echo "  Kafka OK" || echo "  Kafka FAILED" >&2
         ;;
-    list)
+    data-reset)
+        minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+            exec -it deployment/data-influx -- \
+            influx -host 'localhost' -port '8086' -database 'dia' -execute 'DROP MEASUREMENT foreignquotation'
+        ;;
+    data-list)
         if [ "${#paths[@]}" -gt 1 ]; then
             case "${paths[1]}" in
             exchange)

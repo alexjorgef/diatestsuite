@@ -96,6 +96,7 @@ func NewCustomScraper(datastore models.Datastore) (s *CustomScraper) {
 		log.Warnf("Failed to crawl currencies, using default map: %s", err)
 		currencyMap = currencyMapDefault
 	} else {
+		log.Infoln(data)
 		for _, currency := range data {
 			currencyMap[currency.Symbol] = currency.Name
 		}
@@ -114,7 +115,7 @@ func NewCustomScraper(datastore models.Datastore) (s *CustomScraper) {
 		currenciesMap:   currencyMap,
 	}
 
-	go s.mainLoop()
+	// go s.mainLoop()
 
 	return s
 }
@@ -223,7 +224,7 @@ func (scraper *CustomScraper) getCurrencies() (quoteResp customHttpQuoteResp, er
 }
 
 // crawlCurrencies crawl Yahoo Finance currencies webpage and return a slice of currency metadata
-func customCrawlCurrencies() (currencies []customWebCurrency, err error) {
+func customCrawlCurrenciesA() (currencies []customWebCurrency, err error) {
 	c := colly.NewCollector()
 
 	c.OnResponse(func(r *colly.Response) {
@@ -258,6 +259,84 @@ func customCrawlCurrencies() (currencies []customWebCurrency, err error) {
 	if err != nil {
 		return currencies, err
 	}
+
+	return currencies, nil
+}
+
+func customCrawlCurrencies() (currencies []customWebCurrency, err error) {
+	c := colly.NewCollector(
+		// colly.UserAgent("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"),
+		colly.UserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"),
+	)
+
+	c.OnResponse(func(r *colly.Response) {
+		if r.StatusCode == 200 {
+			log.Infof("%d from %s", r.StatusCode, r.Request.URL)
+			log.Infoln(r.Headers)
+			log.Infoln(r.Request)
+			err := r.Request.Post("https://consent.google.com/save", map[string]string{
+				"bl":       "boq_identityfrontenduiserver_20230611.09_p0",
+				"x":        "8",
+				"gl":       "PT",
+				"m":        "0",
+				"app":      "0",
+				"pc":       "fgc",
+				"continue": "https%3A%2F%2Fwww.google.com%2Ffinance%2Fquote%2FTWD-USD",
+				"hl":       "en-US",
+				"cm":       "2",
+				"set_eom":  "true",
+			})
+			if err != nil {
+				log.Error(err)
+			}
+			log.Infoln(r.StatusCode)
+			log.Infoln(string(r.Body))
+
+			// log.Infoln(string(r.Body))
+		} else {
+			log.Infof("URL '%s' %d", r.Request.URL, r.StatusCode)
+		}
+	})
+
+	c.OnError(func(r *colly.Response, err error) {
+		log.Errorln(err)
+	})
+
+	c.OnHTML("", func(e *colly.HTMLElement) {
+		log.Infoln("FOUND")
+	})
+
+	// c.OnXML("/html/body/c-wiz[2]/div/div[4]/div/main/div[2]/c-wiz/div/div[1]/div/div[1]/div/div[1]/div/span/div/div", func(e *colly.XMLElement) {
+	// 	log.Infoln("FOUND FOUND")
+	// 	log.Infoln("FOUND FOUND")
+	// 	log.Infoln("FOUND FOUND")
+	// })
+
+	// c.OnXML("/html/", func(e *colly.XMLElement) {
+	// 	log.Infoln("FOUND")
+	// })
+
+	// c.OnHTML("#list-res-table > div > table > tbody", func(e *colly.HTMLElement) {
+	// 	e.ForEach("tr", func(_ int, el *colly.HTMLElement) {
+	// 		symbol := el.ChildText("td:nth-child(1)")
+	// 		name := el.ChildText("td:nth-child(2)")
+	// 		if nameSplit := strings.Split(name, "/"); len(nameSplit) != 2 {
+	// 			log.Errorf("Cannot parse name %s", name)
+	// 			return
+	// 		}
+	// 		currency := customWebCurrency{
+	// 			Symbol: symbol,
+	// 			Name:   strings.Split(name, "/")[0] + "-" + strings.Split(name, "/")[1],
+	// 		}
+	// 		currencies = append(currencies, currency)
+	// 	})
+	// })
+
+	err = c.Visit("https://www.google.com/finance/quote/TWD-USD")
+	if err != nil {
+		return currencies, err
+	}
+	log.Printf("Scraping finished\n")
 
 	return currencies, nil
 }

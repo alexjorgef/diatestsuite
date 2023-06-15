@@ -32,7 +32,7 @@ spec:
       value: "data-redis.default.svc.cluster.local:6379"
     - name: KAFKAURL
       value: "data-kafka.default.svc.cluster.local:9094"
-    # TODO: temporary solution, should be removed
+    # From yahoo, remove asap, or use for dummy example
     - name: CURRENCIES_LIST_YAHOO
       value: "EURGBP=X:EUR-GBP, CNY=X:USD-CNY"
     volumeMounts:
