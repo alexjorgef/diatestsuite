@@ -33,6 +33,10 @@ spec:
       value: "data-redis.default.svc.cluster.local:6379"
     - name: KAFKAURL
       value: "data-kafka.default.svc.cluster.local:9094"
+    volumeMounts:
+    - name: env-context
+      mountPath: /mnt/env-context
+      readOnly: true
   initContainers:
   - name: check-postgres-connection
     image: public.ecr.aws/docker/library/postgres:15-alpine
@@ -84,3 +88,7 @@ spec:
         value: "postgres"
       - name: REDISURL
         value: "data-redis.default.svc.cluster.local:6379"
+  volumes:
+  - name: env-context
+    hostPath:
+      path: /mnt/diadata
