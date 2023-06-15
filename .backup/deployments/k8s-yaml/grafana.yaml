@@ -7,7 +7,7 @@ metadata:
 spec:
   containers:
   - name: grafana
-    image: grafana/grafana:8.2.2
+    image: grafana/grafana:9.3.11
     ports:
     - containerPort: 3000
     volumeMounts:
@@ -16,12 +16,24 @@ spec:
     - name: grafana-datasources-config
       mountPath: /etc/grafana/provisioning/datasources
       readOnly: true
+    - name: grafana-dashboards-config
+      mountPath: /etc/grafana/provisioning/dashboards
+      readOnly: true
+    - name: grafana-dashboard-a-config
+      mountPath: /var/lib/grafana/dashboards
+      readOnly: true
   volumes:
   - name: grafana-storage
     emptyDir: {}
   - name: grafana-datasources-config
     configMap:
       name: grafana-datasources-configmap
+  - name: grafana-dashboards-config
+    configMap:
+      name: grafana-dashboards-configmap
+  - name: grafana-dashboard-a-config
+    configMap:
+      name: grafana-dashboard-a-configmap
   initContainers:
   - name: check-postgres-connection
     image: public.ecr.aws/docker/library/postgres:latest

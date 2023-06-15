@@ -15,8 +15,6 @@ The routes available after forward:
 * Kafka: port 8080, and [AKHQ Web UI](http://localhost:8080/)
 * Grafana: port 3000, and [Web UI](http://localhost:3000/)
 
----
-
 ## Add a new foreign scraper
 
 Implement `ForeignScrapperer` interface at `pkg/dia/scraper/foreign-scrapers/Scrapper.go` file

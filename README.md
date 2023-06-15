@@ -59,3 +59,11 @@ Run the script to manage the enviornment 🚀:
 > ```
 > 
 > and finally `./env create cron`
+
+## Performance
+
+> Tests done with 1.4.268 version
+
+Best build time:
+
+* All container images: 14 minutes 42 seconds (Docker)
