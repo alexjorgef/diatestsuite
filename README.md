@@ -62,7 +62,7 @@ Run the script to manage the enviornment 🚀:
 
 ## Performance
 
-> Tests done with 1.4.269 version
+> Tests done with 1.4.268 version
 
 Best build time:
 

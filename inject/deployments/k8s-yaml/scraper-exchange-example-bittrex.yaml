@@ -7,8 +7,10 @@ spec:
   - name: scraper-exchange-example-bittrex
     image: dia.genericcollector.dev:latest
     imagePullPolicy: Never
-    command: ["collector"]
-    args: ["-exchange=Bittrex", "-mode=current", "-pairsfile=true"]
+    # command: ["collector"]
+    # args: ["-exchange=Bittrex", "-mode=current", "-pairsfile=true"]
+    command: ["tail"]
+    args: [ "-f", "/dev/null" ]
     env:
     - name: USE_ENV
       value: "true"

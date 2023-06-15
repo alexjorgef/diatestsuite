@@ -7,11 +7,7 @@ COPY ./cmd/exchange-scrapers/collector ./
 COPY . /diadata
 RUN go mod edit -replace github.com/diadata-org/diadata=/diadata
 RUN go mod tidy -go=1.16 && go mod tidy -go=1.17 && go install
-
-FROM gcr.io/distroless/base
-
-COPY --from=build /go/bin/collector /bin/collector
-COPY --from=build /config/ /config/
+RUN go mod edit -replace github.com/diadata-org/diadata=/mnt/env-context
 
 CMD ["collector"]
 

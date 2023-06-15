@@ -8,8 +8,10 @@ spec:
   - name: scraper-liquidity-example-platypus
     image: dia.liquidityscraper.dev:latest
     imagePullPolicy: Never
-    command: ["liquidityScraper"]
-    args: ["-exchange=PlatypusFinance"]
+    # command: ["liquidityScraper"]
+    # args: ["-exchange=PlatypusFinance"]
+    command: ["tail"]
+    args: [ "-f", "/dev/null" ]
     env:
     - name: USE_ENV
       value: "true"
