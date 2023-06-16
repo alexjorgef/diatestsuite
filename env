@@ -122,6 +122,14 @@ function main() {
         exit 1
     fi
     case "${paths[0]}" in
+    test-docker-images)
+        if [[ "$(minikube -p "${MINIKUBE_PROFILE}" ssh -- "docker images -q dia.build-117.dev:latest" 2> /dev/null)" != "" ]]; then
+            echo "YES"
+        fi
+        if [[ "$(minikube -p "${MINIKUBE_PROFILE}" ssh -- "docker images -q dia.build-119.dev:latest" 2> /dev/null)" == "" ]]; then
+            echo "NO"
+        fi
+        ;;
     start)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p "${MINIKUBE_PROFILE}" start \
@@ -163,9 +171,9 @@ function main() {
                     # echo "Service image build successfully [5/8]"
                     # docker buildx build -f "build/Dockerfile-liquidityScraper-Dev" -t "dia.liquidityscraper.dev:latest" .
                     # echo "Service image build successfully [6/8]"
-                    # docker buildx build -f "build/Dockerfile-genericCollector-Dev" -t "dia.genericcollector.dev:latest" .
+                    docker buildx build -f "build/Dockerfile-genericCollector-Dev" -t "dia.genericcollector.dev:latest" .
                     # echo "Service image build successfully [7/8]"
-                    # docker buildx build -f "build/Dockerfile-genericForeignScraper-Dev" -t "dia.genericforeignscraper.dev:latest" .
+                    docker buildx build -f "build/Dockerfile-genericForeignScraper-Dev" -t "dia.genericforeignscraper.dev:latest" .
                     # echo "Service image build successfully [8/8]"
                     echo "All DIA's images build successfully"
 

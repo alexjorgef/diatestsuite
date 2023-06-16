@@ -6,8 +6,9 @@ COPY ./config/ /config/
 COPY --link . /diadata
 
 WORKDIR $GOPATH/src/
-ENV GO111MODULE="on"
 COPY ./go.mod ./
+
+ENV GO111MODULE="on"
 RUN go mod edit -replace github.com/diadata-org/diadata=/diadata
 RUN go mod download
 
