@@ -62,8 +62,8 @@ Run the script to manage the enviornment 🚀:
 
 ## Performance
 
-> Tests done with 1.4.268 version
+> Tests done with 1.4.269 version
 
 Best build time:
 
-* All container images: 14 minutes 42 seconds (Docker)
+* All container images: 15 minutes 17 seconds (Docker)

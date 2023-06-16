@@ -684,47 +684,48 @@ function main() {
             # TODO: SELECT * of Influx data is very slow, maybe use COUNT
             echo "InfluxDB Data:"
             num_tradestmp=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                exec -it deployment/data-influx -- \
+                exec deployment/data-influx -- \
                 influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM tradesTmp' | wc -l)
             echo "  Num. of tradesTmp: $num_tradestmp"
             num_filters=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                exec -it deployment/data-influx -- \
+                exec deployment/data-influx -- \
                 influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM filters' | wc -l)
             echo "  Num. of filters: $num_filters"
             num_quotations=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                exec -it deployment/data-influx -- \
+                exec deployment/data-influx -- \
                 influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM assetQuotations' | wc -l)
             echo "  Num. of quotations: $num_quotations"
             num_foreignquotation=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-                exec -it deployment/data-influx -- \
+                exec deployment/data-influx -- \
                 influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM foreignquotation' | wc -l)
             echo "  Num. of foreign quotations: $num_foreignquotation"
             # TODO: not working, getting stuck
-            # echo "PostgreSQL Data:"
-            # num_exchanges=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            #     exec -it deployment/data-postgres -- \
-            #     psql -U postgres -tA -c "SELECT COUNT(*) FROM exchange")
-            # echo "  Num. of exchanges: $num_exchanges"
-            # num_pools=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            #     exec -it deployment/data-postgres -- \
-            #     psql -U postgres -tA -c "SELECT COUNT(*) FROM pool")
-            # echo "  Num. of pools: $num_pools"
-            # num_poolassets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            #     exec -it deployment/data-postgres -- \
-            #     psql -U postgres -tA -c "SELECT COUNT(*) FROM poolasset")
-            # echo "  Num. of pool assets: $num_poolassets"
-            # num_assets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            #     exec -it deployment/data-postgres -- \
-            #     psql -U postgres -tA -c "SELECT COUNT(*) FROM asset")
-            # echo "  Num. of assets: $num_assets"
-            # num_exchangepairs=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            #     exec -it deployment/data-postgres -- \
-            #     psql -U postgres -tA -c "SELECT COUNT(*) FROM exchangepair")
-            # echo "  Num. of exchange pairs: $num_exchangepairs"
-            # num_exchangesymbols=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
-            #     exec -it deployment/data-postgres -- \
-            #     psql -U postgres -tA -c "SELECT COUNT(*) FROM exchangesymbol")
-            # echo "  Num. of exchange symbols: $num_exchangesymbols"
+            echo "PostgreSQL Data:"
+            local num_exchanges=
+            num_exchanges="$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                exec deployment/data-postgres -- \
+                psql -U postgres -tA -c "SELECT COUNT(*) FROM exchange")"
+            echo "  Num. of exchanges: $num_exchanges"
+            num_pools=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec deployment/data-postgres -- \
+                psql -U postgres -tA -c "SELECT COUNT(*) FROM pool")
+            echo "  Num. of pools: $num_pools"
+            num_poolassets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec deployment/data-postgres -- \
+                psql -U postgres -tA -c "SELECT COUNT(*) FROM poolasset")
+            echo "  Num. of pool assets: $num_poolassets"
+            num_assets=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec deployment/data-postgres -- \
+                psql -U postgres -tA -c "SELECT COUNT(*) FROM asset")
+            echo "  Num. of assets: $num_assets"
+            num_exchangepairs=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec deployment/data-postgres -- \
+                psql -U postgres -tA -c "SELECT COUNT(*) FROM exchangepair")
+            echo "  Num. of exchange pairs: $num_exchangepairs"
+            num_exchangesymbols=$(minikube -p ${MINIKUBE_PROFILE} kubectl -- \
+                exec deployment/data-postgres -- \
+                psql -U postgres -tA -c "SELECT COUNT(*) FROM exchangesymbol")
+            echo "  Num. of exchange symbols: $num_exchangesymbols"
         fi
         ;;
     *)
