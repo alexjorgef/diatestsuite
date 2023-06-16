@@ -327,7 +327,7 @@ function main() {
         # done
         # echo "$inputExchangeBridge"
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-            exec -it deployment/postgres -- \
+            exec deployment/postgres -- \
             psql -v ON_ERROR_STOP=on -U postgres \
             -c "INSERT INTO exchange (
                     exchange_id,
@@ -366,18 +366,18 @@ function main() {
     psqldelete)
         # TODO: error handling when cannot delete row
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-            exec -it deployment/postgres -- \
+            exec deployment/postgres -- \
             psql -U postgres -t \
             -c "DELETE FROM exchange WHERE name = 'Custom'" >/dev/null 2>&1 && echo "Row deleted." || echo "Error, a exchange does not exists and cannot be deleted." >&2
         ;;
     psqlfind)
         # minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-        #     exec -it deployment/postgres -- \
+        #     exec deployment/postgres -- \
         #     psql -U postgres -t \
         #     -c "SELECT exchange_id FROM exchange WHERE name = 'Custom'" \
         #     -c "SELECT exchange_id FROM exchange WHERE name = 'Custom'"
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-            exec -it deployment/postgres -- \
+            exec deployment/postgres -- \
             psql -U postgres -t \
             -c "SELECT exchange_id FROM exchange WHERE name = 'Custom'" | if [[ $(wc -l) -ge 2 ]]; then echo "Found"; else echo "Not Found"; fi
         # -c "SELECT exchange_id FROM exchange WHERE name = 'Custom';
@@ -580,7 +580,7 @@ function main() {
         ;;
     data-reset)
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-            exec -it deployment/data-influx -- \
+            exec deployment/data-influx -- \
             influx -host 'localhost' -port '8086' -database 'dia' -execute 'DROP MEASUREMENT foreignquotation'
         ;;
     data-list)
@@ -592,59 +592,59 @@ function main() {
                 echo "PostgreSQL Data:"
                 echo "  Name: $inputExchangeName"
                 is_centralized=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                    exec -it deployment/postgres -- \
+                    exec deployment/postgres -- \
                     psql -U postgres -AXqt \
                     -c "SELECT centralized FROM exchange WHERE name = '$inputExchangeName'" | sed 's/\r$//')
                 echo "  Centralized: $is_centralized"
                 is_bridge=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                    exec -it deployment/postgres -- \
+                    exec deployment/postgres -- \
                     psql -U postgres -tA \
                     -c "SELECT bridge FROM exchange WHERE name = '$inputExchangeName'")
                 echo "  Bridge: $is_bridge"
                 is_active=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                    exec -it deployment/postgres -- \
+                    exec deployment/postgres -- \
                     psql -U postgres -tA \
                     -c "SELECT scraper_active FROM exchange WHERE name = '$inputExchangeName'")
                 echo "  Active: $is_active"
                 if [[ "$is_centralized" == "t" ]]; then
                     num_exchangepairs=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        exec -it deployment/postgres -- \
+                        exec deployment/postgres -- \
                         psql -U postgres -tA \
                         -c "SELECT COUNT(*) FROM exchangepair WHERE exchange = '$inputExchangeName'")
                     echo "  Num. of exchange pairs: $num_exchangepairs"
                     num_exchangepairassets=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        exec -it deployment/postgres -- \
+                        exec deployment/postgres -- \
                         psql -U postgres -tA \
                         -c "SELECT COUNT(*) FROM asset WHERE asset_id IN (SELECT id_quotetoken FROM exchangepair WHERE exchange = '$inputExchangeName') OR asset_id IN (SELECT id_basetoken FROM exchangepair WHERE exchange = '$inputExchangeName')")
                     echo "    Num. of assets: $num_exchangepairassets"
                     num_exchangesymbols=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        exec -it deployment/postgres -- \
+                        exec deployment/postgres -- \
                         psql -U postgres -tA \
                         -c "SELECT COUNT(*) FROM exchangesymbol WHERE exchange = '$inputExchangeName'")
                     echo "  Num. of exchange symbols: $num_exchangesymbols"
                     num_exchangesymbolsassets=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        exec -it deployment/postgres -- \
+                        exec deployment/postgres -- \
                         psql -U postgres -tA \
                         -c "SELECT COUNT(*) FROM asset WHERE asset_id IN (SELECT asset_id FROM exchangesymbol WHERE exchange = '$inputExchangeName')")
                     echo "    Num. of assets: $num_exchangesymbolsassets"
                 else
                     blockchain=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        exec -it deployment/postgres -- \
+                        exec deployment/postgres -- \
                         psql -U postgres -tA \
                         -c "SELECT blockchain FROM exchange WHERE name = '$inputExchangeName'")
                     echo "  Blockchain: $blockchain"
                     num_pools=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        exec -it deployment/postgres -- \
+                        exec deployment/postgres -- \
                         psql -U postgres -tA \
                         -c "SELECT COUNT(*) FROM pool WHERE exchange = '$inputExchangeName'")
                     echo "  Num. of pools: $num_pools"
                     num_poolassets=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        exec -it deployment/postgres -- \
+                        exec deployment/postgres -- \
                         psql -U postgres -tA \
                         -c "SELECT COUNT(*) FROM poolasset WHERE pool_id IN (SELECT pool_id FROM pool WHERE exchange = '$inputExchangeName')")
                     echo "    Num. of pool assets: $num_poolassets"
                     num_poolassetsassets=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        exec -it deployment/postgres -- \
+                        exec deployment/postgres -- \
                         psql -U postgres -tA \
                         -c "SELECT COUNT(*) FROM asset WHERE asset_id IN (SELECT asset_id FROM poolasset WHERE pool_id IN (SELECT pool_id FROM pool WHERE exchange = '$inputExchangeName'))")
                     echo "      Num. of assets: $num_poolassetsassets"
@@ -655,22 +655,22 @@ function main() {
                 read -r inputBlockchainName
                 echo "PostgreSQL Data:"
                 verificationmechanism=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                    exec -it deployment/postgres -- \
+                    exec deployment/postgres -- \
                     psql -U postgres -tA \
                     -c "SELECT verificationmechanism FROM blockchain WHERE name = '$inputBlockchainName'")
                 echo "  Consensus: $verificationmechanism"
                 genesisdate=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                    exec -it deployment/postgres -- \
+                    exec deployment/postgres -- \
                     psql -U postgres -tA \
                     -c "SELECT genesisdate FROM blockchain WHERE name = '$inputBlockchainName'")
                 echo "  Genesis Date: $genesisdate"
                 chainid=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                    exec -it deployment/postgres -- \
+                    exec deployment/postgres -- \
                     psql -U postgres -tA \
                     -c "SELECT chain_id FROM blockchain WHERE name = '$inputBlockchainName'")
                 echo "  Chain ID: $chainid"
                 num_blockchainassets=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                    exec -it deployment/postgres -- \
+                    exec deployment/postgres -- \
                     psql -U postgres -tA \
                     -c "SELECT COUNT(*) FROM asset WHERE blockchain = '$inputBlockchainName'")
                 echo "  Num. of blockchain assets: $num_blockchainassets"
