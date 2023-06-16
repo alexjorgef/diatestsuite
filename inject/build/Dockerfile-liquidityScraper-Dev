@@ -1,26 +1,10 @@
-FROM public.ecr.aws/docker/library/golang:1.17 as mod
+FROM dia.build-117.dev:latest as build
 
-RUN apt update && apt upgrade -y
-
-COPY --link ./config/ /config/
-COPY --link . /diadata
-
-WORKDIR $GOPATH/src/
-COPY --link ./go.mod ./
-
-ENV GO111MODULE="on"
-RUN go mod download
-RUN go get github.com/karalabe/usb@v0.0.0-20210518091819-4ea20957c210
-
-# FROM dia.build-117.dev:latest as build
-FROM public.ecr.aws/docker/library/golang:1.17 AS build
-
-# COPY --from=mod $GOCACHE $GOCACHE
-COPY --from=mod $GOPATH/pkg/mod $GOPATH/pkg/mod
 COPY --link . /diadata
 
 WORKDIR $GOPATH/src/
 COPY ./cmd/liquidityScraper ./
+
 RUN go mod edit -replace github.com/diadata-org/diadata=/diadata
 RUN go mod tidy -go=1.16 && go mod tidy -go=1.17 && go install
 RUN go mod edit -replace github.com/diadata-org/diadata=/mnt/env-context

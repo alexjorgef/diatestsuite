@@ -373,19 +373,27 @@ function main() {
             #     echo "YES"
             # fi
             if [[ "$(minikube -p "${MINIKUBE_PROFILE}" ssh -- "docker images -q dia.pairdiscoveryservice.dev:latest" 2> /dev/null)" == "" ]]; then
+                eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
                 docker buildx build -f "build/Dockerfile-pairDiscoveryService-Dev" -t "dia.pairdiscoveryservice.dev:latest" .
+                eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
             fi
             echo "Service image present [1/4]"
             if [[ "$(minikube -p "${MINIKUBE_PROFILE}" ssh -- "docker images -q dia.genericcollector.dev:latest" 2> /dev/null)" == "" ]]; then
+                eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
                 docker buildx build -f "build/Dockerfile-genericCollector-Dev" -t "dia.genericcollector.dev:latest" .
+                eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
             fi
             echo "Service image present [2/4]"
             if [[ "$(minikube -p "${MINIKUBE_PROFILE}" ssh -- "docker images -q dia.genericforeignscraper.dev:latest" 2> /dev/null)" == "" ]]; then
+                eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
                 docker buildx build -f "build/Dockerfile-genericForeignScraper-Dev" -t "dia.genericforeignscraper.dev:latest" .
+                eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
             fi
             echo "Service image present [3/4]"
             if [[ "$(minikube -p "${MINIKUBE_PROFILE}" ssh -- "docker images -q dia.liquidityscraper.dev:latest" 2> /dev/null)" == "" ]]; then
+                eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
                 docker buildx build -f "build/Dockerfile-liquidityScraper-Dev" -t "dia.liquidityscraper.dev:latest" .
+                eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
             fi
             echo "Service image present [4/4]"
 
