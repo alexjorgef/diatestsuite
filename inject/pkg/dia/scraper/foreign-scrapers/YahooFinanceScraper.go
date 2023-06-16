@@ -138,15 +138,14 @@ func NewYahooFinScraper(datastore models.Datastore) (s *YahooFinScraper) {
 	currencyMap := make(map[string]string)
 
 	// Read env variables and override defaults if needed
+	// TODO: validate range and interval formats (1m, 1h, 1d, 1w, 1mo, 1y)
 	yahooFinUpdateRange := utils.Getenv(yahooFinUpdateRangeEnv, "")
 	if yahooFinUpdateRange != "" {
-		// TODO: validate range format before
 		updateRange = yahooFinUpdateRange
 		log.Infof("Config set update range to %s\n", updateRange)
 	}
 	yahooFinUpdateInterval := utils.Getenv(yahooFinUpdateIntervalEnv, "")
 	if yahooFinUpdateInterval != "" {
-		// TODO: validate interval format before
 		updateInterval = yahooFinUpdateInterval
 		log.Infof("Config set update interval to %s\n", updateInterval)
 	}
@@ -234,9 +233,7 @@ func (scraper *YahooFinScraper) GetQuoteChannel() chan *models.ForeignQuotation 
 
 // Retrieves new coin information from the Yahoo Finance API and stores it to influx
 func (scraper *YahooFinScraper) UpdateQuotation() error {
-	log.Infof("Updating quotes")
 	updateStartTime := time.Now()
-	num_quotes := 0
 
 	for k := range scraper.currenciesMap {
 		chartDataRes, err := scraper.fetchChartData(k)
@@ -250,9 +247,6 @@ func (scraper *YahooFinScraper) UpdateQuotation() error {
 				if _, ok := scraper.currenciesMap[symbol]; !ok {
 					if len(symbol) == 5 {
 						symbol = "USD" + symbol[len(symbol)-5:]
-						if _, ok := scraper.currenciesMap[symbol]; !ok {
-							log.Warnf("Warning, the received symbol %s was not found in currencies map", symbol)
-						}
 					}
 				}
 
@@ -276,7 +270,6 @@ func (scraper *YahooFinScraper) UpdateQuotation() error {
 							Time:               quoteDateTime,
 						}
 						scraper.foreignScrapper.chanQuotation <- &quote
-						num_quotes++
 					}
 				}
 			} else {
@@ -286,7 +279,7 @@ func (scraper *YahooFinScraper) UpdateQuotation() error {
 	}
 
 	updateElapsedTime := time.Since(updateStartTime)
-	log.Infof("Quotes updated for %d currencies, %d in %f seconds", len(scraper.currenciesMap), num_quotes, updateElapsedTime.Seconds())
+	log.Infof("Quotes updated in %f seconds", updateElapsedTime.Seconds())
 	return nil
 }
 
@@ -294,7 +287,7 @@ func (scraper *YahooFinScraper) UpdateQuotation() error {
 func (scraper *YahooFinScraper) mainLoop() {
 
 	// Update quotes on startup
-	log.Infof("Initializing scraper")
+	log.Infof("Initializing scraper with %d currencies", len(scraper.currenciesMap))
 	err := scraper.UpdateQuotation()
 	if err != nil {
 		log.Error(err)

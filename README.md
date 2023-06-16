@@ -60,4 +60,4 @@ Run the script to manage the enviornment 🚀:
 
 Best start time:
 
-* All container images: 4 minutes 6 seconds (Docker)
+* All container images: 4 minutes 4 seconds (Docker)

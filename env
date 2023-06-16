@@ -600,13 +600,45 @@ function main() {
             wait --timeout=30s --for=condition=complete job/ping-kafka >/dev/null 2>&1 && echo "  Kafka OK" || echo "  Kafka FAILED" >&2
         ;;
     data-reset)
-        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-            exec deployment/data-influx -- \
-            influx -host 'localhost' -port '8086' -database 'dia' -execute 'DROP MEASUREMENT foreignquotation'
+        if [ "${#paths[@]}" -gt 1 ]; then
+            case "${paths[1]}" in
+                foreign)
+                    # echo "Exchange:"
+                    # read -r inputExchangeName
+                    echo "WIP ..."
+                    # inputExchangeName="YahooFinanceA"
+                    # echo "Removing InfluxDB data for $inputExchangeName exchange ..."
+                    # TODO: not implemented in influxdb 1.8, DELETE does not support fields in the WHERE clause. (https://archive.docs.influxdata.com/influxdb/v1.1/query_language/database_management/#delete-series-with-delete)
+                    # minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                    #     exec deployment/data-influx -- \
+                    #     influx -host 'localhost' -port '8086' -database 'dia' -execute "DELETE FROM foreignquotation WHERE source = '$inputExchangeName'"
+                    ;;
+                *)
+                echo "Unknown command" >&2
+                exit 1
+                ;;
+            esac
+        else
+            echo "Resetting InfluxDB data ..."
+            minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                exec deployment/data-influx -- \
+                influx -host 'localhost' -port '8086' -database 'dia' -execute 'DROP MEASUREMENT foreignquotation'
+        fi
         ;;
     data-list)
         if [ "${#paths[@]}" -gt 1 ]; then
             case "${paths[1]}" in
+            foreign)
+                echo "Exchange:"
+                read -r inputExchangeName
+                num_foreignquotation=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                    exec deployment/data-influx -- \
+                    influx -host 'localhost' -port '8086' -database 'dia' -execute "SELECT * FROM foreignquotation WHERE source = '$inputExchangeName'" | wc -l)
+                echo "Num. of foreign quotations: $num_foreignquotation"
+                minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                    exec deployment/data-influx -- \
+                    influx -host 'localhost' -port '8086' -database 'dia' -execute "SELECT * FROM foreignquotation WHERE source = '$inputExchangeName' ORDER BY time DESC LIMIT 10"
+                ;;
             exchange)
                 echo "Exchange:"
                 read -r inputExchangeName
