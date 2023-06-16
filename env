@@ -122,14 +122,6 @@ function main() {
         exit 1
     fi
     case "${paths[0]}" in
-    test-docker-images)
-        if [[ "$(minikube -p "${MINIKUBE_PROFILE}" ssh -- "docker images -q dia.build-117.dev:latest" 2> /dev/null)" != "" ]]; then
-            echo "YES"
-        fi
-        if [[ "$(minikube -p "${MINIKUBE_PROFILE}" ssh -- "docker images -q dia.build-119.dev:latest" 2> /dev/null)" == "" ]]; then
-            echo "NO"
-        fi
-        ;;
     start)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p "${MINIKUBE_PROFILE}" start \
@@ -160,21 +152,14 @@ function main() {
                     
                     echo "Building service images ..."
                     docker buildx build -f "build/Dockerfile-filtersBlockService-Dev" -t "dia.filtersblockservice.dev:latest" .
-                    echo "Service image build successfully [1/3]"
+                    echo "Service image build successfully [1/4]"
                     docker buildx build -f "build/Dockerfile-tradesBlockService-Dev" -t "dia.tradesblockservice.dev:latest" .
-                    echo "Service image build successfully [2/3]"
-                    # docker buildx build -f "build/Dockerfile-pairDiscoveryService-Dev" -t "dia.pairdiscoveryservice.dev:latest" .
-                    # echo "Service image build successfully [3/8]"
+                    echo "Service image build successfully [2/4]"
                     docker buildx build -f "build/Dockerfile-blockchainservice-Dev" -t "dia.blockchainservice.dev:latest" .
-                    echo "Service image build successfully [3/3]"
-                    # docker buildx build -f "build/Dockerfile-assetCollectionService-Dev" -t "dia.assetcollectionservice.dev:latest" .
-                    # echo "Service image build successfully [5/8]"
-                    # docker buildx build -f "build/Dockerfile-liquidityScraper-Dev" -t "dia.liquidityscraper.dev:latest" .
-                    # echo "Service image build successfully [6/8]"
-                    docker buildx build -f "build/Dockerfile-genericCollector-Dev" -t "dia.genericcollector.dev:latest" .
-                    # echo "Service image build successfully [7/8]"
-                    docker buildx build -f "build/Dockerfile-genericForeignScraper-Dev" -t "dia.genericforeignscraper.dev:latest" .
-                    # echo "Service image build successfully [8/8]"
+                    echo "Service image build successfully [3/4]"
+                    docker buildx build -f "build/Dockerfile-assetCollectionService-Dev" -t "dia.assetcollectionservice.dev:latest" .
+                    echo "Service image build successfully [4/4]"
+                    
                     echo "All DIA's images build successfully"
 
                     eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
@@ -382,6 +367,28 @@ function main() {
         ;;
     create)
         if [ "${#paths[@]}" -gt 1 ]; then
+
+            echo "Checking if services images are present ..."
+            # if [[ "$(minikube -p "${MINIKUBE_PROFILE}" ssh -- "docker images -q dia.build-117.dev:latest" 2> /dev/null)" != "" ]]; then
+            #     echo "YES"
+            # fi
+            if [[ "$(minikube -p "${MINIKUBE_PROFILE}" ssh -- "docker images -q dia.pairdiscoveryservice.dev:latest" 2> /dev/null)" == "" ]]; then
+                docker buildx build -f "build/Dockerfile-pairDiscoveryService-Dev" -t "dia.pairdiscoveryservice.dev:latest" .
+            fi
+            echo "Service image present [1/4]"
+            if [[ "$(minikube -p "${MINIKUBE_PROFILE}" ssh -- "docker images -q dia.genericcollector.dev:latest" 2> /dev/null)" == "" ]]; then
+                docker buildx build -f "build/Dockerfile-genericCollector-Dev" -t "dia.genericcollector.dev:latest" .
+            fi
+            echo "Service image present [2/4]"
+            if [[ "$(minikube -p "${MINIKUBE_PROFILE}" ssh -- "docker images -q dia.genericforeignscraper.dev:latest" 2> /dev/null)" == "" ]]; then
+                docker buildx build -f "build/Dockerfile-genericForeignScraper-Dev" -t "dia.genericforeignscraper.dev:latest" .
+            fi
+            echo "Service image present [3/4]"
+            if [[ "$(minikube -p "${MINIKUBE_PROFILE}" ssh -- "docker images -q dia.liquidityscraper.dev:latest" 2> /dev/null)" == "" ]]; then
+                docker buildx build -f "build/Dockerfile-liquidityScraper-Dev" -t "dia.liquidityscraper.dev:latest" .
+            fi
+            echo "Service image present [4/4]"
+
             case "${paths[1]}" in
             exchange)
                 minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/scraper-exchange-custom.yaml

@@ -58,6 +58,6 @@ Run the script to manage the enviornment 🚀:
 
 > Tests done with 1.4.270 version
 
-Best build time:
+Best start time:
 
-* All container images: 5 minutes 58 seconds (Docker)
+* All container images: 3 minutes 36 seconds (Docker)
