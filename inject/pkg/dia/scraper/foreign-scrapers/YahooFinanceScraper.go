@@ -234,7 +234,7 @@ func (scraper *YahooFinScraper) GetQuoteChannel() chan *models.ForeignQuotation 
 
 // Retrieves new coin information from the Yahoo Finance API and stores it to influx
 func (scraper *YahooFinScraper) UpdateQuotation() error {
-	log.Infof("Updating %d quotes", len(scraper.currenciesMap))
+	log.Infof("Updating quotes")
 	updateStartTime := time.Now()
 	num_quotes := 0
 
@@ -286,7 +286,7 @@ func (scraper *YahooFinScraper) UpdateQuotation() error {
 	}
 
 	updateElapsedTime := time.Since(updateStartTime)
-	log.Infof("Quotes updated, %d in %f seconds", num_quotes, updateElapsedTime.Seconds())
+	log.Infof("Quotes updated for %d currencies, %d in %f seconds", len(scraper.currenciesMap), num_quotes, updateElapsedTime.Seconds())
 	return nil
 }
 

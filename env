@@ -14,26 +14,24 @@ function usage() {
     echo
     echo "Options:"
     echo
-    echo "  -h --help               Print help"
+    echo "  -h --help             Print help"
     echo
     echo "Commands:"
     echo
-    echo "  cluster-start           Start minikube"
-    echo "  cluster-stop            Stop minikube"
-    echo "  cluster-delete          Delete minikube"
-    echo "  cluster-info            Information about cluster"
-    echo
-    echo "  build                   Build DIA images"
-    echo "  install [full]          Install DIA platform"
-    echo "  uninstall               Un-install DIA platform"
-    echo "  create                  Create a new resource"
-    echo "  remove                  Remove a resource"
-    echo "  lint                    Lint code"
-    echo "  clean                   Clean unused files"
-    echo "  info                    Show detailed information"
-    echo "  shell                   Connect to enviornment shell"
-    echo "  logs                    Print logs"
-    echo "  ping                    Make ping tests"
+    echo "  start                 Start minikube"
+    echo "  stop                  Stop minikube"
+    echo "  delete                Delete minikube"
+    echo "  build                 Build DIA images"
+    echo "  install [full]        Install DIA platform"
+    echo "  uninstall             Un-install DIA platform"
+    echo "  create                Create a new resource"
+    echo "  remove                Remove a resource"
+    echo "  lint                  Lint code"
+    echo "  clean                 Clean unused files"
+    echo "  info                  Show detailed information"
+    echo "  shell                 Connect to enviornment shell"
+    echo "  logs                  Print logs"
+    echo "  ping                  Make ping tests"
     echo
     echo "Report bugs to: <https://github.com/diadata-org/diadata/issues>"
 }
@@ -124,7 +122,7 @@ function main() {
         exit 1
     fi
     case "${paths[0]}" in
-    cluster-start)
+    start)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p "${MINIKUBE_PROFILE}" start \
                 --kubernetes-version ${MINIKUBE_K8S_VERSION} \
@@ -134,12 +132,63 @@ function main() {
                 --disk-size ${MINIKUBE_HW_DISK_SIZE} \
                 --mount-string="$(pwd):/mnt/diadata:rw" \
                 --mount=true
+            time (
+                # TODO: this is only needed because minikube image build font return error exit code
+                #   see https://github.com/kubernetes/minikube/issues/16576
+                if [[ "$MINIKUBE_DRIVER" == "docker" ]]; then
+                    eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
+
+                    # TODO: Use a dev specific image for development, instead of normal build image
+                    # source ./baseimage.sh --notpush
+                    # docker buildx build -f "build/Dockerfile-filtersBlockService" -t "diadata.filtersblockservice:latest" .
+
+                    echo "Building base images ..."
+                    # docker buildx build -f "build/build/Dockerfile-DiadataBuild-114-Dev" -t "dia.build-114.dev:latest" .
+                    # echo "Base image build successfully [1/3]"
+                    docker buildx build -f "build/build/Dockerfile-DiadataBuild-117-Dev" -t "dia.build-117.dev:latest" .
+                    echo "Base image build successfully [1/1]"
+                    # docker buildx build -f "build/build/Dockerfile-DiadataBuild-119-Dev" -t "dia.build-119.dev:latest" .
+                    # echo "Base image build successfully [3/3]"
+                    
+                    echo "Building service images ..."
+                    docker buildx build -f "build/Dockerfile-filtersBlockService-Dev" -t "dia.filtersblockservice.dev:latest" .
+                    echo "Service image build successfully [1/3]"
+                    docker buildx build -f "build/Dockerfile-tradesBlockService-Dev" -t "dia.tradesblockservice.dev:latest" .
+                    echo "Service image build successfully [2/3]"
+                    # docker buildx build -f "build/Dockerfile-pairDiscoveryService-Dev" -t "dia.pairdiscoveryservice.dev:latest" .
+                    # echo "Service image build successfully [3/8]"
+                    docker buildx build -f "build/Dockerfile-blockchainservice-Dev" -t "dia.blockchainservice.dev:latest" .
+                    echo "Service image build successfully [3/3]"
+                    # docker buildx build -f "build/Dockerfile-assetCollectionService-Dev" -t "dia.assetcollectionservice.dev:latest" .
+                    # echo "Service image build successfully [5/8]"
+                    # docker buildx build -f "build/Dockerfile-liquidityScraper-Dev" -t "dia.liquidityscraper.dev:latest" .
+                    # echo "Service image build successfully [6/8]"
+                    # docker buildx build -f "build/Dockerfile-genericCollector-Dev" -t "dia.genericcollector.dev:latest" .
+                    # echo "Service image build successfully [7/8]"
+                    # docker buildx build -f "build/Dockerfile-genericForeignScraper-Dev" -t "dia.genericforeignscraper.dev:latest" .
+                    # echo "Service image build successfully [8/8]"
+                    echo "All DIA's images build successfully"
+
+                    eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
+                else
+                    minikube -p "${MINIKUBE_PROFILE}" image build -t us.icr.io/dia-registry/devops/build:latest -f build/build/Dockerfile-DiadataBuild .
+                    minikube -p "${MINIKUBE_PROFILE}" image build -t us.icr.io/dia-registry/devops/build-117:latest -f build/build/Dockerfile-DiadataBuild-117 .
+                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.filtersblockservice:latest -f build/Dockerfile-filtersBlockService .
+                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService .
+                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService .
+                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.genericcollector:latest -f build/Dockerfile-genericCollector .
+                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.blockchainservice:latest -f build/Dockerfile-blockchainservice .
+                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.assetcollectionservice:latest -f build/Dockerfile-assetCollectionService .
+                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.liquidityscraper:latest -f build/Dockerfile-liquidityScraper .
+                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.genericforeignscraper:latest -f build/Dockerfile-genericForeignScraper .
+                fi
+            )
         else
             echo "Unknown command" >&2
             exit 1
         fi
         ;;
-    cluster-stop)
+    stop)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube -p "${MINIKUBE_PROFILE}" stop
         else
@@ -147,20 +196,12 @@ function main() {
             exit 1
         fi
         ;;
-    cluster-delete)
+    delete)
         if [ "${#paths[@]}" -eq 1 ]; then
             minikube delete -p "${MINIKUBE_PROFILE}"
             docker image prune -a -f
             docker volume prune -a -f
             docker network prune -f
-        else
-            echo "Unknown command" >&2
-            exit 1
-        fi
-        ;;
-    cluster-info)
-        if [ "${#paths[@]}" -eq 1 ]; then
-            minikube profile list
         else
             echo "Unknown command" >&2
             exit 1
@@ -190,64 +231,6 @@ function main() {
             eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
             docker buildx prune -a -f
             eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
-        else
-            echo "Unknown command" >&2
-            exit 1
-        fi
-        ;;
-    build)
-        if [ "${#paths[@]}" -eq 1 ]; then
-            time (
-                # TODO: this is only needed because minikube image build font return error exit code
-                #   see https://github.com/kubernetes/minikube/issues/16576
-                if [[ "$MINIKUBE_DRIVER" == "docker" ]]; then
-                    eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
-
-                    # TODO: Use a dev specific image for development, instead of normal build image
-                    # source ./baseimage.sh --notpush
-                    # docker buildx build -f "build/Dockerfile-filtersBlockService" -t "diadata.filtersblockservice:latest" .
-
-                    echo "Building base images ..."
-                    docker buildx build -f "build/build/Dockerfile-DiadataBuild-114-Dev" -t "dia.build-114.dev:latest" .
-                    echo "Base image build successfully [1/3]"
-                    docker buildx build -f "build/build/Dockerfile-DiadataBuild-117-Dev" -t "dia.build-117.dev:latest" .
-                    echo "Base image build successfully [2/3]"
-                    docker buildx build -f "build/build/Dockerfile-DiadataBuild-119-Dev" -t "dia.build-119.dev:latest" .
-                    echo "Base image build successfully [3/3]"
-                    
-                    echo "Building service images ..."
-                    docker buildx build -f "build/Dockerfile-filtersBlockService-Dev" -t "dia.filtersblockservice.dev:latest" .
-                    echo "Service image build successfully [1/8]"
-                    docker buildx build -f "build/Dockerfile-tradesBlockService-Dev" -t "dia.tradesblockservice.dev:latest" .
-                    echo "Service image build successfully [2/8]"
-                    docker buildx build -f "build/Dockerfile-pairDiscoveryService-Dev" -t "dia.pairdiscoveryservice.dev:latest" .
-                    echo "Service image build successfully [3/8]"
-                    docker buildx build -f "build/Dockerfile-blockchainservice-Dev" -t "dia.blockchainservice.dev:latest" .
-                    echo "Service image build successfully [4/8]"
-                    docker buildx build -f "build/Dockerfile-assetCollectionService-Dev" -t "dia.assetcollectionservice.dev:latest" .
-                    echo "Service image build successfully [5/8]"
-                    docker buildx build -f "build/Dockerfile-liquidityScraper-Dev" -t "dia.liquidityscraper.dev:latest" .
-                    echo "Service image build successfully [6/8]"
-                    docker buildx build -f "build/Dockerfile-genericCollector-Dev" -t "dia.genericcollector.dev:latest" .
-                    echo "Service image build successfully [7/8]"
-                    docker buildx build -f "build/Dockerfile-genericForeignScraper-Dev" -t "dia.genericforeignscraper.dev:latest" .
-                    echo "Service image build successfully [8/8]"
-                    echo "All DIA's images build successfully"
-
-                    eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
-                else
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t us.icr.io/dia-registry/devops/build:latest -f build/build/Dockerfile-DiadataBuild .
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t us.icr.io/dia-registry/devops/build-117:latest -f build/build/Dockerfile-DiadataBuild-117 .
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.filtersblockservice:latest -f build/Dockerfile-filtersBlockService .
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService .
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService .
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.genericcollector:latest -f build/Dockerfile-genericCollector .
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.blockchainservice:latest -f build/Dockerfile-blockchainservice .
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.assetcollectionservice:latest -f build/Dockerfile-assetCollectionService .
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.liquidityscraper:latest -f build/Dockerfile-liquidityScraper .
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.genericforeignscraper:latest -f build/Dockerfile-genericForeignScraper .
-                fi
-            )
         else
             echo "Unknown command" >&2
             exit 1
@@ -539,6 +522,7 @@ function main() {
         go build -v ./...
         ;;
     info)
+        minikube profile list
         echo "PWD: $PWD"
         echo "SCRIPT_FOLDER: $SCRIPT_FOLDER"
         if [[ "$OSTYPE" == "linux-gnu"* ]]; then

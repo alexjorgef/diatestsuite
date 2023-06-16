@@ -49,16 +49,10 @@ cd "./.testenv/"
 Run the script to manage the enviornment 🚀:
 
 ```sh
+./env start
+./env install full
 ./env --help
 ```
-
-> Note: Prepare command for fast test:
->
-> ```sh
-> ./env cluster-start && ./env build && ./env install full && ./env create example
-> ```
-> 
-> and finally `./env create cron`
 
 ## Performance
 
