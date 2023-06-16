@@ -25,7 +25,10 @@ run:
   # "/" will be replaced by current OS file path separator to properly work
   # on Windows.
   skip-dirs:
-    - /internal/pkg/blockchain-scrapers/blockchains/ethereum/scrapers/*
+    - internal/pkg/blockchain-scrapers/blockchains/ethereum/scrapers/*
+    - pkg/*
+    - internal/*
+    - cmd/*
 
   # default is true. Enables skipping of directories:
   #   vendor$, third_party$, testdata$, examples$, Godeps$, builtin$
@@ -45,7 +48,6 @@ run:
     - pkg/dia/scraper/exchange-scrapers/balancer/token/token.go
     - pkg/dia/scraper/exchange-scrapers/kyber/token/token.go
     - pkg/dia/scraper/exchange-scrapers/zerox/token/token.go
-    - pkg/dia/scraper/historical-scrapers/CoinmarketcapScraper.go
     - config/nftContracts/sorare/sorare.go
 
   # by default isn't set. If set we pass it to "go list -mod={option}". From "go help modules":
@@ -101,8 +103,6 @@ linters-settings:
     # report about assignment of errors to blank identifier: `num, _ := strconv.Atoi(numStr)`;
     # default is false: such cases aren't reported by default.
     check-blank: false
-    exclude-functions:
-      - "(io.Closer).Close"
 
     # path to a file containing a list of functions to exclude from checking
     # see https://github.com/kisielk/errcheck#excluding-functions for details

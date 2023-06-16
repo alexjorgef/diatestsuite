@@ -3,6 +3,7 @@ package scrapers
 import (
 	"context"
 	"errors"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -14,6 +15,7 @@ import (
 	"github.com/diadata-org/diadata/pkg/dia"
 	models "github.com/diadata-org/diadata/pkg/model"
 	utils "github.com/diadata-org/diadata/pkg/utils"
+	"github.com/op/go-logging"
 	"github.com/zekroTJA/timedmap"
 )
 
@@ -51,6 +53,14 @@ func NewBitfinexScraper(key string, secret string, exchange dia.Exchange, scrape
 	params := websocket.NewDefaultParameters()
 	//TODO: Set to false again because now we can have holes in our data stream
 	params.AutoReconnect = true
+	params.LogTransport = false
+	loggg := logging.MustGetLogger("scrapers")
+	logggb := logging.NewLogBackend(os.Stderr, "", 0)
+	// Only errors and more severe messages should be sent to backend1
+	backend1Leveled := logging.AddModuleLevel(logggb)
+	backend1Leveled.SetLevel(logging.ERROR, "")
+	loggg.SetBackend(backend1Leveled)
+	params.Logger = loggg
 	// params.HeartbeatTimeout = 5 * time.Second // used for testing
 
 	s := &BitfinexScraper{
@@ -206,17 +216,16 @@ func (s *BitfinexScraper) ScrapePair(pair dia.ExchangePair) (PairScraper, error)
 	// subscribe to trading pair if we are the first scraper for this pair
 	if _, ok := s.pairSubscriptions.Load(pair.ForeignName); !ok {
 		// ctx1, ctx1cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		_, ctx1cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx1, ctx1cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer ctx1cancel()
-		// id, err := s.wsClient.SubscribeTrades(ctx1, pair.ForeignName)
-		// if err != nil {
-		// 	// well that didn't work -> cleanup and return error
-		// 	delete(pairScrapers.(pairScraperSet), ps)
-		// 	return nil, err
-		// }
-		// s.pairSubscriptions.Store(pair.ForeignName, id)
+		id, err := s.wsClient.SubscribeTrades(ctx1, pair.ForeignName)
+		if err != nil {
+			// well that didn't work -> cleanup and return error
+			delete(pairScrapers.(pairScraperSet), ps)
+			return nil, err
+		}
+		s.pairSubscriptions.Store(pair.ForeignName, id)
 	}
-	log.Infoln("B")
 	return ps, nil
 }
 func (s *BitfinexScraper) NormalizePair(pair dia.ExchangePair) (dia.ExchangePair, error) {

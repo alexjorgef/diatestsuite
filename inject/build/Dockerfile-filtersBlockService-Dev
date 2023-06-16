@@ -2,14 +2,9 @@ FROM dia.build-117.dev:latest as build
 
 WORKDIR $GOPATH/src/
 
+COPY --link . /diadata
 COPY ./cmd/services/filtersBlockService ./
-COPY . /diadata
 RUN go mod edit -replace github.com/diadata-org/diadata=/diadata
 RUN go mod tidy && go install
-
-FROM gcr.io/distroless/base
-
-COPY --from=build /go/bin/filtersBlockService /bin/filtersBlockService
-COPY --from=build /config/ /config/
 
 CMD ["filtersBlockService"]

@@ -526,9 +526,17 @@ function main() {
             exit 1
         fi
         ;;
-    lint)
+    code-lint)
         echo "Linting ..."
         golangci-lint run --config=./.golangci.yml --out-format=tab
+        ;;
+    code-test)
+        echo "Testing ..."
+        gotestsum --format pkgname
+        ;;
+    code-build)
+        echo "Building ..."
+        go build -v ./...
         ;;
     info)
         echo "PWD: $PWD"

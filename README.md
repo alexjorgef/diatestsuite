@@ -37,7 +37,7 @@ Second:
 
 ```sh
 if [ -d "./.testenv" ]; then rm -Rf "./.testenv"; fi
-git clone git@github.com:diadata-org/diadata.git -b v1.4.269 --depth 1 "./.testenv"
+git clone git@github.com:diadata-org/diadata.git -b v1.4.269 "./.testenv"
 cp -Rf ./inject/* "./.testenv"
 cp -Rf ./inject/.[^.]* "./.testenv"
 ln -s "$PWD/env" "./.testenv/env"
