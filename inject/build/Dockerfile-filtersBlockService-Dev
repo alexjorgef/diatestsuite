@@ -6,5 +6,6 @@ COPY --link . /diadata
 COPY ./cmd/services/filtersBlockService ./
 RUN go mod edit -replace github.com/diadata-org/diadata=/diadata
 RUN go mod tidy && go install
+RUN go mod edit -replace github.com/diadata-org/diadata=/mnt/env-context
 
 CMD ["filtersBlockService"]

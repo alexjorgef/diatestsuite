@@ -6,5 +6,6 @@ COPY --link . /diadata
 COPY ./cmd/services/tradesBlockService ./
 RUN go mod edit -replace github.com/diadata-org/diadata=/diadata
 RUN go mod tidy -go=1.16 && go mod tidy -go=1.17 && go install
+RUN go mod edit -replace github.com/diadata-org/diadata=/mnt/env-context
 
 CMD ["tradesBlockService"]
