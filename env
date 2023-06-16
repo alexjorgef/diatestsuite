@@ -28,6 +28,7 @@ function usage() {
     echo "  uninstall               Un-install DIA platform"
     echo "  create                  Create a new resource"
     echo "  remove                  Remove a resource"
+    echo "  lint                    Lint code"
     echo "  clean                   Clean unused files"
     echo "  info                    Show detailed information"
     echo "  shell                   Connect to enviornment shell"
@@ -90,6 +91,7 @@ function main() {
     if ! hash yq 2> /dev/null; then echo "yq not found" >&2; return 1; fi
     if ! hash docker 2> /dev/null; then echo "Docker not found" >&2; return 1; fi
     if ! hash minikube 2> /dev/null; then echo "Minikube not found" >&2; return 1; fi
+    if ! hash golangci-lint 2> /dev/null; then echo "golangci-lint not found" >&2; return 1; fi
 
     # echo "${#paths[@]}"
     # echo "${paths[@]}"
@@ -523,6 +525,10 @@ function main() {
             echo "Unknown command" >&2
             exit 1
         fi
+        ;;
+    lint)
+        echo "Linting ..."
+        golangci-lint run --config=./.golangci.yml --out-format=tab
         ;;
     info)
         echo "PWD: $PWD"
