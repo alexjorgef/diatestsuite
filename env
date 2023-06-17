@@ -630,6 +630,26 @@ function main() {
     data-list)
         if [ "${#paths[@]}" -gt 1 ]; then
             case "${paths[1]}" in
+            liquidity)
+                echo "Enter the name of exchange to query:"
+                echo "PostgreSQL Data:"
+                echo "  Name: $inputExchangeName"
+                is_centralized=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                    exec deployment/data-postgres -- \
+                    psql -U postgres -AXqt \
+                    -c "SELECT centralized FROM exchange WHERE name = '$inputExchangeName'" | sed 's/\r$//')
+                echo "  Centralized: $is_centralized"
+                is_bridge=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                    exec deployment/data-postgres -- \
+                    psql -U postgres -tA \
+                    -c "SELECT bridge FROM exchange WHERE name = '$inputExchangeName'")
+                echo "  Bridge: $is_bridge"
+                is_active=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                    exec deployment/data-postgres -- \
+                    psql -U postgres -tA \
+                    -c "SELECT scraper_active FROM exchange WHERE name = '$inputExchangeName'")
+                echo "  Active: $is_active"
+                ;;
             foreign)
                 echo "Enter the name of exchange to query:"
                 read -r inputExchangeName
@@ -699,11 +719,15 @@ function main() {
                         psql -U postgres -tA \
                         -c "SELECT COUNT(*) FROM pool WHERE exchange = '$inputExchangeName'")
                     echo "  Num. of pools: $num_pools"
+                    last_liquidityupdate=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        exec deployment/data-postgres -- \
+                        psql -U postgres -tA \
+                        -c "SELECT time_stamp FROM poolasset WHERE pool_id IN (SELECT pool_id FROM pool WHERE exchange = '$inputExchangeName') ORDER BY time_stamp DESC LIMIT 1")
                     num_poolassets=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                         exec deployment/data-postgres -- \
                         psql -U postgres -tA \
                         -c "SELECT COUNT(*) FROM poolasset WHERE pool_id IN (SELECT pool_id FROM pool WHERE exchange = '$inputExchangeName')")
-                    echo "    Num. of pool assets: $num_poolassets"
+                    echo "    Num. of pool assets: $num_poolassets (Last update at $last_liquidityupdate)"
                     num_poolassetsassets=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                         exec deployment/data-postgres -- \
                         psql -U postgres -tA \
