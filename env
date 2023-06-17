@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# This script is used to manage the DIA development environment
+# It is used to start, stop, build, install, uninstall, etc. the DIA platform
+# It is also used to manage the DIA platform resources
+
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do
     SCRIPT_FOLDER="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
@@ -8,6 +12,8 @@ while [ -h "$SOURCE" ]; do
 done
 SCRIPT_FOLDER="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
 unset SOURCE
+
+###############################################################################
 
 function usage() {
     echo "The DIA enviorment manager"
@@ -25,15 +31,16 @@ function usage() {
     echo "  -h --help             Print help"
     echo
     echo "Available commands:"
+    echo "  code-build            Build platform code"
+    echo "  code-lint             Lint code"
+    echo "  code-test             Run tests"
     echo "  start                 Start cluster"
     echo "  stop                  Stop the cluster"
     echo "  delete                Delete all cluster resources"
-    echo "  build                 Build DIA images"
     echo "  install [full]        Install DIA platform"
     echo "  uninstall             Un-install DIA platform"
     echo "  create                Create a new resource"
     echo "  remove                Remove a resource"
-    echo "  lint                  Lint code"
     echo "  clean                 Clean unused files"
     echo "  info                  Show detailed information"
     echo "  shell                 Connect to enviornment shell"
@@ -51,8 +58,8 @@ function main() {
     local paths=()
     local args=
     args=$(
-        getopt -o hnsg: \
-            --long goto:,disk-space:,nodetached,full,help \
+        getopt -o hnsp: \
+            --long parameter:,disk-space:,nodetached,full,help \
             -n 'env' -- "$@"
     )
 
@@ -71,19 +78,15 @@ function main() {
         --full | -f)
             full=true
             shift ;;
-        --goto | -g)
-            galias="$2"
-
-            # shellcheck disable=SC1090
-            source "$HOME/.oh-luis-bash/goto-command.sh"
-
-            gpath="$(goto -x "$galias" 2>/dev/null)"
-            if [ "$gpath" = "" ]; then
-                echo "Invalid foto alias!" >&2
+        # TODO: this serve as example
+        --parameter | -p)
+            parameter="$2"
+            if [ "$parameter" = "" ]; then
+                echo "Invalid parameter!" >&2
                 return 1
             fi
+            echo "Parameter: $parameter"
 
-            shift 2
             ;;
             --help | -h     ) usage; return 0 ;;
             --              ) shift; break    ;;
@@ -121,7 +124,9 @@ function main() {
     MINIKUBE_HW_CPUS=4
     MINIKUBE_HW_RAM=8g
     MINIKUBE_DRIVER=docker
+    # TODO: Cert manager will work with this
     MINIKUBE_CERT_MOUNT=~/.minikube
+    # TODO: This will be needed when managing multiple clusters
     KUBECONFIG=~/.kube/config
 
     if [ -f "./.env.local" ]; then source ./.env.local; fi
@@ -146,7 +151,8 @@ function main() {
             # Installing DIA Helm chart
             kubectl create namespace "dia"
             helm repo update
-            helm upgrade "dia-release" --namespace "dia-system" --create-namespace --install --set "exchangescrapers.namespaces={default,dia}" "./deployments/helm/dia"
+            helm upgrade "dia-release" --namespace "dia-system" --create-namespace --install \
+                --set "exchangescrapers.namespaces={default,dia}" "./deployments/helm/dia"
 
             # Build and tag dev images
             time (
@@ -162,35 +168,61 @@ function main() {
                     echo "Building base images ..."
                     # docker buildx build -f "build/build/Dockerfile-DiadataBuild-114-Dev" -t "dia.build-114.dev:latest" .
                     # echo "Base image build successfully [1/3]"
-                    docker buildx build -f "build/build/Dockerfile-DiadataBuild-117-Dev" -t "dia.build-117.dev:latest" .
+                    docker buildx build -f "build/build/Dockerfile-DiadataBuild-117-Dev" \
+                        -t "dia.build-117.dev:latest" .
                     echo "Base image build successfully [1/1]"
-                    # docker buildx build -f "build/build/Dockerfile-DiadataBuild-119-Dev" -t "dia.build-119.dev:latest" .
+                    # docker buildx build -f "build/build/Dockerfile-DiadataBuild-119-Dev" \
+                    #     -t "dia.build-119.dev:latest" .
                     # echo "Base image build successfully [3/3]"
                     
                     echo "Building service images ..."
-                    docker buildx build -f "build/Dockerfile-filtersBlockService-Dev" -t "dia.filtersblockservice.dev:latest" .
+                    docker buildx build -f "build/Dockerfile-filtersBlockService-Dev" \
+                        -t "dia.filtersblockservice.dev:latest" .
                     echo "Service image build successfully [1/4]"
-                    docker buildx build -f "build/Dockerfile-tradesBlockService-Dev" -t "dia.tradesblockservice.dev:latest" .
+                    docker buildx build -f "build/Dockerfile-tradesBlockService-Dev" \
+                        -t "dia.tradesblockservice.dev:latest" .
                     echo "Service image build successfully [2/4]"
-                    docker buildx build -f "build/Dockerfile-blockchainservice-Dev" -t "dia.blockchainservice.dev:latest" .
+                    docker buildx build -f "build/Dockerfile-blockchainservice-Dev" \
+                        -t "dia.blockchainservice.dev:latest" .
                     echo "Service image build successfully [3/4]"
-                    docker buildx build -f "build/Dockerfile-assetCollectionService-Dev" -t "dia.assetcollectionservice.dev:latest" .
+                    docker buildx build -f "build/Dockerfile-assetCollectionService-Dev" \
+                        -t "dia.assetcollectionservice.dev:latest" .
                     echo "Service image build successfully [4/4]"
                     
                     echo "All DIA's images build successfully"
 
                     eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
                 else
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t us.icr.io/dia-registry/devops/build:latest -f build/build/Dockerfile-DiadataBuild .
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t us.icr.io/dia-registry/devops/build-117:latest -f build/build/Dockerfile-DiadataBuild-117 .
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.filtersblockservice:latest -f build/Dockerfile-filtersBlockService .
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.tradesblockservice:latest -f build/Dockerfile-tradesBlockService .
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.pairdiscoveryservice:latest -f build/Dockerfile-pairDiscoveryService .
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.genericcollector:latest -f build/Dockerfile-genericCollector .
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.blockchainservice:latest -f build/Dockerfile-blockchainservice .
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.assetcollectionservice:latest -f build/Dockerfile-assetCollectionService .
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.liquidityscraper:latest -f build/Dockerfile-liquidityScraper .
-                    minikube -p "${MINIKUBE_PROFILE}" image build -t diadata.genericforeignscraper:latest -f build/Dockerfile-genericForeignScraper .
+                    minikube -p "${MINIKUBE_PROFILE}" \
+                        image build -t us.icr.io/dia-registry/devops/build:latest \
+                        -f build/build/Dockerfile-DiadataBuild .
+                    minikube -p "${MINIKUBE_PROFILE}" \
+                        image build -t us.icr.io/dia-registry/devops/build-117:latest \
+                        -f build/build/Dockerfile-DiadataBuild-117 .
+                    minikube -p "${MINIKUBE_PROFILE}" \
+                        image build -t diadata.filtersblockservice:latest \
+                        -f build/Dockerfile-filtersBlockService .
+                    minikube -p "${MINIKUBE_PROFILE}" \
+                        image build -t diadata.tradesblockservice:latest \
+                        -f build/Dockerfile-tradesBlockService .
+                    minikube -p "${MINIKUBE_PROFILE}" \
+                        image build -t diadata.pairdiscoveryservice:latest \
+                        -f build/Dockerfile-pairDiscoveryService .
+                    minikube -p "${MINIKUBE_PROFILE}" \
+                        image build -t diadata.genericcollector:latest \
+                        -f build/Dockerfile-genericCollector .
+                    minikube -p "${MINIKUBE_PROFILE}" \
+                        image build -t diadata.blockchainservice:latest \
+                        -f build/Dockerfile-blockchainservice .
+                    minikube -p "${MINIKUBE_PROFILE}" \
+                        image build -t diadata.assetcollectionservice:latest \
+                        -f build/Dockerfile-assetCollectionService .
+                    minikube -p "${MINIKUBE_PROFILE}" \
+                        image build -t diadata.liquidityscraper:latest \
+                        -f build/Dockerfile-liquidityScraper .
+                    minikube -p "${MINIKUBE_PROFILE}" \
+                        image build -t diadata.genericforeignscraper:latest \
+                        -f build/Dockerfile-genericForeignScraper .
                 fi
             )
         else
@@ -200,6 +232,7 @@ function main() {
         ;;
     stop)
         if [ "${#paths[@]}" -eq 1 ]; then
+            echo "Stopping cluster to ${MINIKUBE_PROFILE} profile ..."
             minikube -p "${MINIKUBE_PROFILE}" stop
         else
             echo "Unknown command" >&2
@@ -208,6 +241,7 @@ function main() {
         ;;
     delete)
         if [ "${#paths[@]}" -eq 1 ]; then
+            echo "Deleting cluster to ${MINIKUBE_PROFILE} profile ..."
             minikube delete -p "${MINIKUBE_PROFILE}"
             docker image prune -a -f
             docker volume prune -a -f
@@ -253,25 +287,31 @@ function main() {
             echo "Creating and installing DIA's services ..."
 
             # Install DIA's services
-            minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/service-filtersblockservice.yaml
-            minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/service-tradesblockservice.yaml
+            minikube -p "${MINIKUBE_PROFILE}" \
+                kubectl -- create -f deployments/k8s-yaml/service-filtersblockservice.yaml
+            minikube -p "${MINIKUBE_PROFILE}" \
+                kubectl -- create -f deployments/k8s-yaml/service-tradesblockservice.yaml
 
             # Install Kafka and Zookeeper
-            minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/data-kafka.yaml
+            minikube -p "${MINIKUBE_PROFILE}" \
+                kubectl -- create -f deployments/k8s-yaml/data-kafka.yaml
 
             # Install PostgreSQL
             #   TODO: PostgreSQL data needs to be pruned
-            minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/data-postgres-prepopulated.yaml
+            minikube -p "${MINIKUBE_PROFILE}" \
+                kubectl -- create -f deployments/k8s-yaml/data-postgres-prepopulated.yaml
 
             # Install Redis
-            minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
+            minikube -p "${MINIKUBE_PROFILE}" \
+                kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
 
             # Install InfluxDB
             #   TODO: Installing influx from helm chart (when update)
             #     https://github.com/influxdata/helm-charts
             #     https://docs.influxdata.com/influxdb/v2.7/install/?t=Kubernetes#install-influxdb-in-a-kubernetes-cluster
             #       kubectl apply -f https://raw.githubusercontent.com/influxdata/docs-v2/master/static/downloads/influxdb-k8-minikube.yaml
-            minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/data-influx.yaml
+            minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                create -f deployments/k8s-yaml/data-influx.yaml
 
             echo "All DIA's services created with success"
         else
@@ -280,26 +320,35 @@ function main() {
                     echo "Creating and installing DIA's services (on full mode) ..."
 
                     # Install DIA's services
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/service-filtersblockservice.yaml
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/service-tradesblockservice.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" \
+                        kubectl -- create -f deployments/k8s-yaml/service-filtersblockservice.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" \
+                        kubectl -- create -f deployments/k8s-yaml/service-tradesblockservice.yaml
 
                     # Install Kafka and Zookeeper
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/data-kafka.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" \
+                        kubectl -- create -f deployments/k8s-yaml/data-kafka.yaml
 
                     # Install PostgreSQL
                     #   TODO: data needs to be pruned
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create configmap postgres-schemma --from-file=deployments/config/pginit.sql
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/data-postgres.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" \
+                        kubectl -- create configmap postgres-schemma \
+                        --from-file=deployments/config/pginit.sql
+                    minikube -p "${MINIKUBE_PROFILE}" \
+                        kubectl -- create -f deployments/k8s-yaml/data-postgres.yaml
 
                     # Install Redis
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" \
+                        kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
 
                     # Install InfluxDB
                     #   TODO: Installing influx from helm chart (when update)
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/data-influx.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" \
+                        kubectl -- create -f deployments/k8s-yaml/data-influx.yaml
 
                     # Install the preparation job
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/job-prepare.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" \
+                        kubectl -- create -f deployments/k8s-yaml/job-prepare.yaml
                     echo "All DIA's services created with success"
                 else
                     echo "Unknown command" >&2
@@ -311,20 +360,29 @@ function main() {
     uninstall)
         if [ "${#paths[@]}" -eq 1 ]; then
             echo "Removing and un-installing DIA's services ..."
-            minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/service-filtersblockservice.yaml || true
-            minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/service-tradesblockservice.yaml || true
-            minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/data-kafka.yaml || true
-            minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/data-postgres-prepopulated.yaml || true
-            minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/data-redis.yaml || true
-            minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/data-influx.yaml || true
-            minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/data-postgres.yaml || true
-            minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete configmap postgres-schemma || true
+            minikube -p "${MINIKUBE_PROFILE}" kubectl \
+                -- delete -f deployments/k8s-yaml/service-filtersblockservice.yaml || true
+            minikube -p "${MINIKUBE_PROFILE}" kubectl \
+                -- delete -f deployments/k8s-yaml/service-tradesblockservice.yaml || true
+            minikube -p "${MINIKUBE_PROFILE}" kubectl \
+                -- delete -f deployments/k8s-yaml/data-kafka.yaml || true
+            minikube -p "${MINIKUBE_PROFILE}" kubectl \
+                -- delete -f deployments/k8s-yaml/data-postgres-prepopulated.yaml || true
+            minikube -p "${MINIKUBE_PROFILE}" kubectl \
+                -- delete -f deployments/k8s-yaml/data-redis.yaml || true
+            minikube -p "${MINIKUBE_PROFILE}" kubectl \
+                -- delete -f deployments/k8s-yaml/data-influx.yaml || true
+            minikube -p "${MINIKUBE_PROFILE}" kubectl \
+                -- delete -f deployments/k8s-yaml/data-postgres.yaml || true
+            minikube -p "${MINIKUBE_PROFILE}" kubectl \
+                -- delete configmap postgres-schemma || true
             echo "All DIA's services removed with success"
         else
             echo "Unknown command" >&2
             exit 1
         fi
         ;;
+    # TODO: removed after the development phase
     psqlinsert)
         inputExchangeName="Custom"
         # echo "Exchange Name:"
@@ -377,7 +435,9 @@ function main() {
                     300,
                     true
                 )
-                ;" >/dev/null 2>&1 && echo "Success" || echo "Error, a exchange with the name $inputExchangeName already exists." >&2
+                ;" >/dev/null 2>&1 \
+            && echo "Success" \
+            || echo "Error, a exchange with the name $inputExchangeName already exists." >&2
         # set +e
         # psqlExitCode=$?
         # if [ $psqlExitCode -ne 0 ]; then
@@ -386,13 +446,17 @@ function main() {
         #     echo "Success"
         # fi
         ;;
+    # TODO: removed after the development phase
     psqldelete)
         # TODO: error handling when cannot delete row
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
             exec deployment/postgres -- \
             psql -U postgres -t \
-            -c "DELETE FROM exchange WHERE name = 'Custom'" >/dev/null 2>&1 && echo "Row deleted." || echo "Error, a exchange does not exists and cannot be deleted." >&2
+            -c "DELETE FROM exchange WHERE name = 'Custom'" >/dev/null 2>&1 \
+            && echo "Row deleted." \
+            || echo "Error, a exchange does not exists and cannot be deleted." >&2
         ;;
+    # TODO: removed after the development phase
     psqlfind)
         # minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
         #     exec deployment/postgres -- \
@@ -414,51 +478,74 @@ function main() {
         if [ "${#paths[@]}" -gt 1 ]; then
 
             echo "Checking if services images are present ..."
+            # TODO: removed after the development phase
             # if [[ "$(minikube -p "${MINIKUBE_PROFILE}" ssh -- "docker images -q dia.build-117.dev:latest" 2> /dev/null)" != "" ]]; then
             #     echo "YES"
             # fi
-            if [[ "$(minikube -p "${MINIKUBE_PROFILE}" ssh -- "docker images -q dia.pairdiscoveryservice.dev:latest" 2> /dev/null)" == "" ]]; then
+            docker_query="$(minikube -p "${MINIKUBE_PROFILE}" ssh -- \
+                "docker images -q dia.pairdiscoveryservice.dev:latest" 2> /dev/null)"
+            if [[ "${docker_query}" == "" ]]; then
                 eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
-                docker buildx build -f "build/Dockerfile-pairDiscoveryService-Dev" -t "dia.pairdiscoveryservice.dev:latest" .
+                docker buildx build -f "build/Dockerfile-pairDiscoveryService-Dev" \
+                    -t "dia.pairdiscoveryservice.dev:latest" .
                 eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
             fi
             echo "Service image present [1/4]"
-            if [[ "$(minikube -p "${MINIKUBE_PROFILE}" ssh -- "docker images -q dia.genericcollector.dev:latest" 2> /dev/null)" == "" ]]; then
+
+            docker_query="$(minikube -p "${MINIKUBE_PROFILE}" ssh -- \
+                "docker images -q dia.genericcollector.dev:latest" 2> /dev/null)"
+            if [[ "${docker_query}" == "" ]]; then
                 eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
-                docker buildx build -f "build/Dockerfile-genericCollector-Dev" -t "dia.genericcollector.dev:latest" .
+                docker buildx build -f "build/Dockerfile-genericCollector-Dev" \
+                    -t "dia.genericcollector.dev:latest" .
                 eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
             fi
             echo "Service image present [2/4]"
-            if [[ "$(minikube -p "${MINIKUBE_PROFILE}" ssh -- "docker images -q dia.genericforeignscraper.dev:latest" 2> /dev/null)" == "" ]]; then
+
+            docker_query="$(minikube -p "${MINIKUBE_PROFILE}" ssh -- \
+                "docker images -q dia.genericforeignscraper.dev:latest" 2> /dev/null)"
+            if [[ "${docker_query}" == "" ]]; then
                 eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
-                docker buildx build -f "build/Dockerfile-genericForeignScraper-Dev" -t "dia.genericforeignscraper.dev:latest" .
+                docker buildx build -f "build/Dockerfile-genericForeignScraper-Dev" \
+                    -t "dia.genericforeignscraper.dev:latest" .
                 eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
             fi
             echo "Service image present [3/4]"
-            if [[ "$(minikube -p "${MINIKUBE_PROFILE}" ssh -- "docker images -q dia.liquidityscraper.dev:latest" 2> /dev/null)" == "" ]]; then
+
+            docker_query="$(minikube -p "${MINIKUBE_PROFILE}" ssh -- \
+                "docker images -q dia.liquidityscraper.dev:latest" 2> /dev/null)"
+            if [[ "${docker_query}" == "" ]]; then
                 eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
-                docker buildx build -f "build/Dockerfile-liquidityScraper-Dev" -t "dia.liquidityscraper.dev:latest" .
+                docker buildx build -f "build/Dockerfile-liquidityScraper-Dev" \
+                    -t "dia.liquidityscraper.dev:latest" .
                 eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
             fi
             echo "Service image present [4/4]"
 
             case "${paths[1]}" in
             exchange)
-                minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/scraper-exchange-custom.yaml
+                minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                    create -f deployments/k8s-yaml/scraper-exchange-custom.yaml
                 ;;
             foreign)
-                minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/scraper-foreign-custom.yaml
+                minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                    create -f deployments/k8s-yaml/scraper-foreign-custom.yaml
                 ;;
             cronjob)
                 if [ "${#paths[@]}" -eq 2 ]; then
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create configmap postgres-entrypoint --from-file=deployments/config/postgres-docker-entrypoint.sh
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create configmap postgres-crondump --from-file=./scripts/dump.sh
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create secret docker-registry regcred \
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        create configmap postgres-entrypoint \
+                        --from-file=deployments/config/postgres-docker-entrypoint.sh
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        create configmap postgres-crondump --from-file=./scripts/dump.sh
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        create secret docker-registry regcred \
                         --docker-server="https://registry.hub.docker.com/v2/" \
                         --docker-username="alex1a" \
                         --docker-password="R3Uf&nq@A9&hv&" \
                         --docker-email="alex.jorge.m@gmail.com"
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f "deployments/k8s-yaml/cronjob-snapshot.yaml"
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        create -f "deployments/k8s-yaml/cronjob-snapshot.yaml"
                 else
                     echo "Unknown command" >&2
                     exit 1
@@ -469,17 +556,23 @@ function main() {
                     echo "Creating ${paths[2]} example ..."
                     case "${paths[2]}" in
                     exchange)
-                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
-                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
-                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
-                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
+                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                            create -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
+                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                            create -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
+                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                            create -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
+                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                            create -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
                         ;;
                     liquidity)
                         # TODO: Move pod to job
-                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
+                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                            create -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
                         ;;
                     foreign)
-                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
+                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                            create -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
                         ;;
                     *)
                         echo "Unknown command" >&2
@@ -489,12 +582,18 @@ function main() {
                     echo "Example ${paths[2]} created with success"
                 else
                     echo "Creating all examples ..."
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        create -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        create -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        create -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        create -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        create -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        create -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
                     echo "All examples created"
                 fi
                 ;;
@@ -512,17 +611,23 @@ function main() {
         if [ "${#paths[@]}" -gt 1 ]; then
             case "${paths[1]}" in
             exchange)
-                minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-custom.yaml
+                minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                    delete -f deployments/k8s-yaml/scraper-exchange-custom.yaml
                 ;;
             foreign)
-                minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/scraper-foreign-custom.yaml
+                minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                    delete -f deployments/k8s-yaml/scraper-foreign-custom.yaml
                 ;;
             cronjob)
                 if [ "${#paths[@]}" -eq 2 ]; then
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f "deployments/k8s-yaml/cronjob-snapshot.yaml" || true
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete secret regcred || true
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete configmap postgres-entrypoint || true
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete configmap postgres-crondump || true
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        delete -f "deployments/k8s-yaml/cronjob-snapshot.yaml" || true
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        delete secret regcred || true
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        delete configmap postgres-entrypoint || true
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        delete configmap postgres-crondump || true
                 else
                     echo "Unknown command" >&2
                     exit 1
@@ -533,16 +638,22 @@ function main() {
                     echo "Removing ${paths[2]} example ..."
                     case "${paths[2]}" in
                     exchange)
-                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
-                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
-                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
-                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
+                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                            delete -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
+                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                            delete -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
+                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                            delete -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
+                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                            delete -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
                         ;;
                     liquidity)
-                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
+                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                            delete -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
                         ;;
                     foreign)
-                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
+                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                            delete -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
                         ;;
                     *)
                         echo "Unknown command" >&2
@@ -552,12 +663,18 @@ function main() {
                     echo "Example ${paths[2]} removed with success"
                 else
                     echo "Removing all examples ..."
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
-                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                            delete -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        delete -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        delete -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        delete -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        delete -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        delete -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
                     echo "All examples removed"
                 fi
                 ;;
@@ -647,16 +764,18 @@ function main() {
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- create namespace logging
 
         # Install grafana dashboards
+        #   TODO: provisioning datasources and dashboards
         helm repo add grafana https://grafana.github.io/helm-charts
         helm repo update
         helm install grafana grafana/grafana 
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
             expose service grafana --type=NodePort --target-port=3000 --name=grafana-np
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-            get secret --namespace default grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+            get secret --namespace default grafana \
+            -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
         minikube -p "${MINIKUBE_PROFILE}" service grafana-np --url
 
-        # Installing Loki daemon
+        # TODO: Installing Loki daemon
         helm repo add grafana https://grafana.github.io/helm-charts
         helm repo update
         helm upgrade --namespace=logging --install loki grafana/loki
@@ -700,15 +819,18 @@ function main() {
             echo "Resetting InfluxDB data ..."
             minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                 exec deployment/data-influx -- \
-                influx -host 'localhost' -port '8086' -database 'dia' -execute 'DROP MEASUREMENT foreignquotation'
+                influx -host 'localhost' -port '8086' -database 'dia' \
+                -execute 'DROP MEASUREMENT foreignquotation'
             echo " foreignquotation dropped"
             minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                 exec deployment/data-influx -- \
-                influx -host 'localhost' -port '8086' -database 'dia' -execute 'DROP MEASUREMENT tradesTmp'
+                influx -host 'localhost' -port '8086' -database 'dia' \
+                -execute 'DROP MEASUREMENT tradesTmp'
             echo " tradesTmp dropped"
         fi
         ;;
     data-list)
+        # TODO: SELECT * | wc of Influx data is very slow, maybe use COUNT
         if [ "${#paths[@]}" -gt 1 ]; then
             case "${paths[1]}" in
             liquidity)
@@ -737,11 +859,13 @@ function main() {
                 echo "InfluxDB Data:"
                 num_foreignquotation=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                     exec deployment/data-influx -- \
-                    influx -host 'localhost' -port '8086' -database 'dia' -execute "SELECT * FROM foreignquotation WHERE source = '$inputExchangeName'" | wc -l)
+                    influx -host 'localhost' -port '8086' -database 'dia' \
+                    -execute "SELECT * FROM foreignquotation WHERE source = '$inputExchangeName'" | wc -l)
                 echo "  Num. of foreign quotations: $num_foreignquotation"
                 minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                     exec deployment/data-influx -- \
-                    influx -host 'localhost' -port '8086' -database 'dia' -execute "SELECT * FROM foreignquotation WHERE source = '$inputExchangeName' ORDER BY time DESC LIMIT 10"
+                    influx -host 'localhost' -port '8086' -database 'dia' \
+                    -execute "SELECT * FROM foreignquotation WHERE source = '$inputExchangeName' ORDER BY time DESC LIMIT 10"
                 ;;
             exchange)
                 echo "Exchange:"
@@ -749,7 +873,8 @@ function main() {
                 echo "InfluxDB Data:"
                 num_trades=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                     exec deployment/data-influx -- \
-                    influx -host 'localhost' -port '8086' -database 'dia' -execute "SELECT * FROM tradesTmp WHERE exchange = '$inputExchangeName'" | wc -l)
+                    influx -host 'localhost' -port '8086' -database 'dia' \
+                    -execute "SELECT * FROM tradesTmp WHERE exchange = '$inputExchangeName'" | wc -l)
                 echo "  Num. of trades: $num_trades"
                 echo "PostgreSQL Data:"
                 echo "  Name: $inputExchangeName"
@@ -847,25 +972,27 @@ function main() {
                 ;;
             esac
         else
-            # TODO: SELECT * of Influx data is very slow, maybe use COUNT
             echo "InfluxDB Data:"
             num_tradestmp=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                 exec deployment/data-influx -- \
-                influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM tradesTmp' | wc -l)
+                influx -host 'localhost' -port '8086' -database 'dia' \
+                -execute 'SELECT * FROM tradesTmp' | wc -l)
             echo "  Num. of tradesTmp: $num_tradestmp"
             num_filters=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                 exec deployment/data-influx -- \
-                influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM filters' | wc -l)
+                influx -host 'localhost' -port '8086' -database 'dia' \
+                -execute 'SELECT * FROM filters' | wc -l)
             echo "  Num. of filters: $num_filters"
             num_quotations=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                 exec deployment/data-influx -- \
-                influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM assetQuotations' | wc -l)
+                influx -host 'localhost' -port '8086' -database 'dia' \
+                -execute 'SELECT * FROM assetQuotations' | wc -l)
             echo "  Num. of quotations: $num_quotations"
             num_foreignquotation=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                 exec deployment/data-influx -- \
-                influx -host 'localhost' -port '8086' -database 'dia' -execute 'SELECT * FROM foreignquotation' | wc -l)
+                influx -host 'localhost' -port '8086' -database 'dia' \
+                -execute 'SELECT * FROM foreignquotation' | wc -l)
             echo "  Num. of foreign quotations: $num_foreignquotation"
-            # TODO: not working, getting stuck
             echo "PostgreSQL Data:"
             num_exchanges=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                 exec deployment/data-postgres -- \
