@@ -78,7 +78,7 @@ function main() {
         --full | -f)
             full=true
             shift ;;
-        # TODO: this serve as example
+        # TODO: remove until serve as example
         --parameter | -p)
             parameter="$2"
             if [ "$parameter" = "" ]; then
@@ -148,7 +148,7 @@ function main() {
                 --mount-string="$(pwd):/mnt/diadata:rw" \
                 --mount=true
 
-            # Installing DIA Helm chart
+            # TODO: Installing DIA Helm chart
             kubectl create namespace "dia"
             helm repo update
             helm upgrade "dia-release" --namespace "dia-system" --create-namespace --install \
@@ -160,37 +160,17 @@ function main() {
                 #   see https://github.com/kubernetes/minikube/issues/16576
                 if [[ "$MINIKUBE_DRIVER" == "docker" ]]; then
                     eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
-
-                    # TODO: Use a dev specific image for development, instead of normal build image
-                    # source ./baseimage.sh --notpush
-                    # docker buildx build -f "build/Dockerfile-filtersBlockService" -t "diadata.filtersblockservice:latest" .
-
                     echo "Building base images ..."
-                    # docker buildx build -f "build/build/Dockerfile-DiadataBuild-114-Dev" -t "dia.build-114.dev:latest" .
-                    # echo "Base image build successfully [1/3]"
                     docker buildx build -f "build/build/Dockerfile-DiadataBuild-117-Dev" \
                         -t "dia.build-117.dev:latest" .
                     echo "Base image build successfully [1/1]"
+                    # docker buildx build -f "build/build/Dockerfile-DiadataBuild-114-Dev" \
+                    #     -t "dia.build-114.dev:latest" .
+                    # echo "Base image build successfully [X/Y]"
                     # docker buildx build -f "build/build/Dockerfile-DiadataBuild-119-Dev" \
                     #     -t "dia.build-119.dev:latest" .
-                    # echo "Base image build successfully [3/3]"
-                    
-                    echo "Building service images ..."
-                    docker buildx build -f "build/Dockerfile-filtersBlockService-Dev" \
-                        -t "dia.filtersblockservice.dev:latest" .
-                    echo "Service image build successfully [1/4]"
-                    docker buildx build -f "build/Dockerfile-tradesBlockService-Dev" \
-                        -t "dia.tradesblockservice.dev:latest" .
-                    echo "Service image build successfully [2/4]"
-                    docker buildx build -f "build/Dockerfile-blockchainservice-Dev" \
-                        -t "dia.blockchainservice.dev:latest" .
-                    echo "Service image build successfully [3/4]"
-                    docker buildx build -f "build/Dockerfile-assetCollectionService-Dev" \
-                        -t "dia.assetcollectionservice.dev:latest" .
-                    echo "Service image build successfully [4/4]"
-                    
+                    # echo "Base image build successfully [X/Y]"
                     echo "All DIA's images build successfully"
-
                     eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
                 else
                     minikube -p "${MINIKUBE_PROFILE}" \
@@ -282,9 +262,28 @@ function main() {
         ;;
     install)
         if [ "${#paths[@]}" -eq 1 ]; then
-            # TODO: Check if all images are built
-            # TODO: Check if installation depends on a pre-built image or not
+            
             echo "Creating and installing DIA's services ..."
+
+            docker_query="$(minikube -p "${MINIKUBE_PROFILE}" ssh -- \
+                "docker images -q dia.filtersblockservice.dev:latest" 2> /dev/null)"
+            if [[ "${docker_query}" == "" ]]; then
+                eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
+                docker buildx build -f "build/Dockerfile-filtersBlockService-Dev" \
+                    -t "dia.filtersblockservice.dev:latest" .
+                eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
+            fi
+            echo "Service image present [1/2]"
+
+            docker_query="$(minikube -p "${MINIKUBE_PROFILE}" ssh -- \
+                "docker images -q dia.tradesblockservice.dev:latest" 2> /dev/null)"
+            if [[ "${docker_query}" == "" ]]; then
+                eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
+                docker buildx build -f "build/Dockerfile-tradesBlockService-Dev" \
+                    -t "dia.tradesblockservice.dev:latest" .
+                eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
+            fi
+            echo "Service image present [2/2]"
 
             # Install DIA's services
             minikube -p "${MINIKUBE_PROFILE}" \
@@ -297,7 +296,6 @@ function main() {
                 kubectl -- create -f deployments/k8s-yaml/data-kafka.yaml
 
             # Install PostgreSQL
-            #   TODO: PostgreSQL data needs to be pruned
             minikube -p "${MINIKUBE_PROFILE}" \
                 kubectl -- create -f deployments/k8s-yaml/data-postgres-prepopulated.yaml
 
@@ -306,10 +304,6 @@ function main() {
                 kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
 
             # Install InfluxDB
-            #   TODO: Installing influx from helm chart (when update)
-            #     https://github.com/influxdata/helm-charts
-            #     https://docs.influxdata.com/influxdb/v2.7/install/?t=Kubernetes#install-influxdb-in-a-kubernetes-cluster
-            #       kubectl apply -f https://raw.githubusercontent.com/influxdata/docs-v2/master/static/downloads/influxdb-k8-minikube.yaml
             minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                 create -f deployments/k8s-yaml/data-influx.yaml
 
@@ -318,6 +312,46 @@ function main() {
             if [ -n "${paths[1]:-}" ]; then
                 if [ "${paths[1]}" == "full" ]; then
                     echo "Creating and installing DIA's services (on full mode) ..."
+
+                    docker_query="$(minikube -p "${MINIKUBE_PROFILE}" ssh -- \
+                        "docker images -q dia.filtersblockservice.dev:latest" 2> /dev/null)"
+                    if [[ "${docker_query}" == "" ]]; then
+                        eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
+                        docker buildx build -f "build/Dockerfile-filtersBlockService-Dev" \
+                            -t "dia.filtersblockservice.dev:latest" .
+                        eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
+                    fi
+                    echo "Service image present [1/4]"
+
+                    docker_query="$(minikube -p "${MINIKUBE_PROFILE}" ssh -- \
+                        "docker images -q dia.tradesblockservice.dev:latest" 2> /dev/null)"
+                    if [[ "${docker_query}" == "" ]]; then
+                        eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
+                        docker buildx build -f "build/Dockerfile-tradesBlockService-Dev" \
+                            -t "dia.tradesblockservice.dev:latest" .
+                        eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
+                    fi
+                    echo "Service image present [2/4]"
+
+                    docker_query="$(minikube -p "${MINIKUBE_PROFILE}" ssh -- \
+                        "docker images -q dia.blockchainservice.dev:latest" 2> /dev/null)"
+                    if [[ "${docker_query}" == "" ]]; then
+                        eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
+                        docker buildx build -f "build/Dockerfile-blockchainservice-Dev" \
+                            -t "dia.blockchainservice.dev:latest" .
+                        eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
+                    fi
+                    echo "Service image present [3/4]"
+
+                    docker_query="$(minikube -p "${MINIKUBE_PROFILE}" ssh -- \
+                        "docker images -q dia.assetcollectionservice.dev:latest" 2> /dev/null)"
+                    if [[ "${docker_query}" == "" ]]; then
+                        eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
+                        docker buildx build -f "build/Dockerfile-assetCollectionService-Dev" \
+                            -t "dia.assetcollectionservice.dev:latest" .
+                        eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
+                    fi
+                    echo "Service image present [3/4]"
 
                     # Install DIA's services
                     minikube -p "${MINIKUBE_PROFILE}" \
@@ -330,7 +364,6 @@ function main() {
                         kubectl -- create -f deployments/k8s-yaml/data-kafka.yaml
 
                     # Install PostgreSQL
-                    #   TODO: data needs to be pruned
                     minikube -p "${MINIKUBE_PROFILE}" \
                         kubectl -- create configmap postgres-schemma \
                         --from-file=deployments/config/pginit.sql
@@ -342,7 +375,6 @@ function main() {
                         kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
 
                     # Install InfluxDB
-                    #   TODO: Installing influx from helm chart (when update)
                     minikube -p "${MINIKUBE_PROFILE}" \
                         kubectl -- create -f deployments/k8s-yaml/data-influx.yaml
 
@@ -382,9 +414,8 @@ function main() {
             exit 1
         fi
         ;;
-    # TODO: removed after the development phase
-    psqlinsert)
-        inputExchangeName="Custom"
+    create)
+        # inputExchangeName="Custom"
         # echo "Exchange Name:"
         # read -r inputExchangeName
         # while true; do
@@ -407,37 +438,37 @@ function main() {
         #     esac
         # done
         # echo "$inputExchangeBridge"
-        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-            exec deployment/postgres -- \
-            psql -v ON_ERROR_STOP=on -U postgres \
-            -c "INSERT INTO exchange (
-                    exchange_id,
-                    name,
-                    centralized,
-                    bridge,
-                    contract,
-                    blockchain,
-                    rest_api,
-                    ws_api,
-                    pairs_api,
-                    watchdog_delay,
-                    scraper_active
-                ) VALUES(
-                    gen_random_uuid(),
-                    'Custom',
-                    true,
-                    false,
-                    '',
-                    '',
-                    '',
-                    'wss://ws-feed.pro.coinbase.com',
-                    'https://api.pro.coinbase.com/products',
-                    300,
-                    true
-                )
-                ;" >/dev/null 2>&1 \
-            && echo "Success" \
-            || echo "Error, a exchange with the name $inputExchangeName already exists." >&2
+        # minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+        #     exec deployment/postgres -- \
+        #     psql -v ON_ERROR_STOP=on -U postgres \
+        #     -c "INSERT INTO exchange (
+        #             exchange_id,
+        #             name,
+        #             centralized,
+        #             bridge,
+        #             contract,
+        #             blockchain,
+        #             rest_api,
+        #             ws_api,
+        #             pairs_api,
+        #             watchdog_delay,
+        #             scraper_active
+        #         ) VALUES(
+        #             gen_random_uuid(),
+        #             'Custom',
+        #             true,
+        #             false,
+        #             '',
+        #             '',
+        #             '',
+        #             'wss://ws-feed.pro.coinbase.com',
+        #             'https://api.pro.coinbase.com/products',
+        #             300,
+        #             true
+        #         )
+        #         ;" >/dev/null 2>&1 \
+        #     && echo "Success" \
+        #     || echo "Error, a exchange with the name $inputExchangeName already exists." >&2
         # set +e
         # psqlExitCode=$?
         # if [ $psqlExitCode -ne 0 ]; then
@@ -445,43 +476,9 @@ function main() {
         # else
         #     echo "Success"
         # fi
-        ;;
-    # TODO: removed after the development phase
-    psqldelete)
-        # TODO: error handling when cannot delete row
-        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-            exec deployment/postgres -- \
-            psql -U postgres -t \
-            -c "DELETE FROM exchange WHERE name = 'Custom'" >/dev/null 2>&1 \
-            && echo "Row deleted." \
-            || echo "Error, a exchange does not exists and cannot be deleted." >&2
-        ;;
-    # TODO: removed after the development phase
-    psqlfind)
-        # minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-        #     exec deployment/postgres -- \
-        #     psql -U postgres -t \
-        #     -c "SELECT exchange_id FROM exchange WHERE name = 'Custom'" \
-        #     -c "SELECT exchange_id FROM exchange WHERE name = 'Custom'"
-        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-            exec deployment/postgres -- \
-            psql -U postgres -t \
-            -c "SELECT exchange_id FROM exchange WHERE name = 'Custom'" | if [[ $(wc -l) -ge 2 ]]; then echo "Found"; else echo "Not Found"; fi
-        # -c "SELECT exchange_id FROM exchange WHERE name = 'Custom';
-        #     IF NOT FOUND THEN RAISE EXCEPTION 'User not found'"
-        # "select coalesce(
-        #     (select name from exchange where name = 'CustomA'), '(none)'
-        # )"
-        # echo $?
-        ;;
-    create)
         if [ "${#paths[@]}" -gt 1 ]; then
-
             echo "Checking if services images are present ..."
-            # TODO: removed after the development phase
-            # if [[ "$(minikube -p "${MINIKUBE_PROFILE}" ssh -- "docker images -q dia.build-117.dev:latest" 2> /dev/null)" != "" ]]; then
-            #     echo "YES"
-            # fi
+
             docker_query="$(minikube -p "${MINIKUBE_PROFILE}" ssh -- \
                 "docker images -q dia.pairdiscoveryservice.dev:latest" 2> /dev/null)"
             if [[ "${docker_query}" == "" ]]; then
@@ -566,7 +563,7 @@ function main() {
                             create -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
                         ;;
                     liquidity)
-                        # TODO: Move pod to job
+                        # TODO: Move all liquidity scraper from pod to job manifest type
                         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                             create -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
                         ;;
@@ -688,18 +685,6 @@ function main() {
             exit 1
         fi
         ;;
-    code-lint)
-        echo "Linting ..."
-        golangci-lint run --config=./.golangci.yml --out-format=tab
-        ;;
-    code-test)
-        echo "Testing ..."
-        gotestsum --format pkgname
-        ;;
-    code-build)
-        echo "Building ..."
-        go build -v ./...
-        ;;
     info)
         minikube addons list
         minikube profile list
@@ -726,10 +711,6 @@ function main() {
         fi
         ;;
     ping)
-        # TODO: Use job manifest instead kubectl run ??
-        # minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-        #     run x --image=influxdb:1.8 --restart=Never --command -- \
-        #     influx -host 'data-influx.default.svc.cluster.local' -port '8086' -execute 'SHOW DATABASES'
         echo "Ping tests:"
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
             delete -f deployments/k8s-yaml/job-ping-redis.yaml >/dev/null 2>&1 || true
@@ -760,18 +741,31 @@ function main() {
             wait --timeout=30s --for=condition=complete job/ping-kafka >/dev/null 2>&1 \
             && echo "  Kafka OK" || echo "  Kafka FAILED" >&2
         ;;
+    code-lint)
+        echo "Linting ..."
+        golangci-lint run --config=./.golangci.yml --out-format=tab
+        ;;
+    code-test)
+        echo "Testing ..."
+        gotestsum --format pkgname
+        ;;
+    code-build)
+        echo "Building ..."
+        go build -v ./...
+        ;;
     monitor-start)
+        minikube -p "${MINIKUBE_PROFILE}" kubectl -- create namespace dia-monitoring
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- create namespace logging
 
         # Install grafana dashboards
         #   TODO: provisioning datasources and dashboards
         helm repo add grafana https://grafana.github.io/helm-charts
         helm repo update
-        helm install grafana grafana/grafana 
+        helm upgrade --namespace=dia-monitoring --install grafana grafana/grafana 
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-            expose service grafana --type=NodePort --target-port=3000 --name=grafana-np
+            expose --namespace=dia-monitoring service grafana --type=NodePort --target-port=3000 --name=grafana-np
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-            get secret --namespace default grafana \
+            get secret --namespace=dia-monitoring grafana \
             -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
         minikube -p "${MINIKUBE_PROFILE}" service grafana-np --url
 
@@ -783,18 +777,20 @@ function main() {
         ;;
     monitor-stop)
         # Stop and un-install grafana
-        minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete svc grafana-np
-        helm uninstall grafana
+        minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete svc --namespace=dia-monitoring grafana-np || true
+        helm delete grafana || true
         
         # Stop and un-install Loki
-        helm uninstall loki
+        minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete svc --namespace=dia-monitoring loki || true
+        helm delete loki || true
 
         # Clean Helm repos
-        helm repo remove grafana
+        helm repo remove grafana || true
         helm repo update
 
         # Delete remaining resources
-        minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete namespace logging
+        minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete namespace dia-monitoring || true
+        minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete namespace logging || true
         ;;
     data-reset)
         if [ "${#paths[@]}" -gt 1 ]; then
@@ -827,6 +823,14 @@ function main() {
                 influx -host 'localhost' -port '8086' -database 'dia' \
                 -execute 'DROP MEASUREMENT tradesTmp'
             echo " tradesTmp dropped"
+            echo "Resetting PostgreSQL data ..."
+            # TODO: error handling when cannot delete row
+            # minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+            #     exec deployment/data-postgres -- \
+            #     psql -U postgres -t \
+            #     -c "DELETE FROM exchange WHERE name = 'Custom'" >/dev/null 2>&1 \
+            #     && echo "Row deleted." \
+            #     || echo "Error, a exchange does not exists and cannot be deleted." >&2
         fi
         ;;
     data-list)
@@ -870,6 +874,11 @@ function main() {
             exchange)
                 echo "Exchange:"
                 read -r inputExchangeName
+                minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                    exec deployment/data-postgres -- \
+                    psql -U postgres -t \
+                    -c "SELECT exchange_id FROM exchange WHERE name = '$inputExchangeName'" \
+                    | if [[ $(wc -l) -ge 2 ]]; then echo "Found"; else echo "Not Found"; exit 1; fi
                 echo "InfluxDB Data:"
                 num_trades=$(minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                     exec deployment/data-influx -- \
