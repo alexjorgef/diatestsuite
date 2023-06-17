@@ -53,15 +53,13 @@ func NewBitfinexScraper(key string, secret string, exchange dia.Exchange, scrape
 	params := websocket.NewDefaultParameters()
 	//TODO: Set to false again because now we can have holes in our data stream
 	params.AutoReconnect = true
-	params.LogTransport = false
-	loggg := logging.MustGetLogger("scrapers")
-	logggb := logging.NewLogBackend(os.Stderr, "", 0)
-	// Only errors and more severe messages should be sent to backend1
-	backend1Leveled := logging.AddModuleLevel(logggb)
-	backend1Leveled.SetLevel(logging.ERROR, "")
-	loggg.SetBackend(backend1Leveled)
-	params.Logger = loggg
 	// params.HeartbeatTimeout = 5 * time.Second // used for testing
+	// Only info messages should be sent to log backend
+	loggerBackend := logging.AddModuleLevel(logging.NewLogBackend(os.Stdout, "", 0))
+	loggerBackend.SetLevel(logging.INFO, "")
+	logger := logging.MustGetLogger("scrapers")
+	logger.SetBackend(loggerBackend)
+	params.Logger = logger
 
 	s := &BitfinexScraper{
 		wsClient:     websocket.NewWithParams(params),
@@ -215,7 +213,6 @@ func (s *BitfinexScraper) ScrapePair(pair dia.ExchangePair) (PairScraper, error)
 	pairScrapers.(pairScraperSet)[ps] = nothing{}
 	// subscribe to trading pair if we are the first scraper for this pair
 	if _, ok := s.pairSubscriptions.Load(pair.ForeignName); !ok {
-		// ctx1, ctx1cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		ctx1, ctx1cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer ctx1cancel()
 		id, err := s.wsClient.SubscribeTrades(ctx1, pair.ForeignName)
