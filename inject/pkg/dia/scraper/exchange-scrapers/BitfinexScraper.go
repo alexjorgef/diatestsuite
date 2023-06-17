@@ -57,9 +57,8 @@ func NewBitfinexScraper(key string, secret string, exchange dia.Exchange, scrape
 	// Only info messages should be sent to log backend
 	loggerBackend := logging.AddModuleLevel(logging.NewLogBackend(os.Stdout, "", 0))
 	loggerBackend.SetLevel(logging.INFO, "")
-	logger := logging.MustGetLogger("scrapers")
-	logger.SetBackend(loggerBackend)
-	params.Logger = logger
+	params.Logger = logging.MustGetLogger("scrapers")
+	params.Logger.SetBackend(loggerBackend)
 
 	s := &BitfinexScraper{
 		wsClient:     websocket.NewWithParams(params),

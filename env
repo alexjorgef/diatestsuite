@@ -10,17 +10,24 @@ SCRIPT_FOLDER="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
 unset SOURCE
 
 function usage() {
-    echo "Usage: env [OPTIONS] COMMAND [ARGS]..."
+    echo "The DIA enviorment manager"
+    echo
+    echo "Environment variables:"
+    echo
+    echo "| Name                    | Description                 |"
+    echo "|-------------------------|-----------------------------|"
+    echo "| MINIKUBE_HW_DISK_SIZE   | Minikube hardware disk size |"
+    echo
+    echo "Usage:"
+    echo "  env [OPTIONS] COMMAND [ARGS]..."
     echo
     echo "Options:"
-    echo
     echo "  -h --help             Print help"
     echo
-    echo "Commands:"
-    echo
-    echo "  start                 Start minikube"
-    echo "  stop                  Stop minikube"
-    echo "  delete                Delete minikube"
+    echo "Available commands:"
+    echo "  start                 Start cluster"
+    echo "  stop                  Stop the cluster"
+    echo "  delete                Delete all cluster resources"
     echo "  build                 Build DIA images"
     echo "  install [full]        Install DIA platform"
     echo "  uninstall             Un-install DIA platform"
@@ -32,7 +39,6 @@ function usage() {
     echo "  shell                 Connect to enviornment shell"
     echo "  logs                  Print logs"
     echo "  ping                  Make ping tests"
-    echo ""
     echo "  data-list             List data"
     echo "  data-reset            Reset data"
     echo
@@ -137,46 +143,10 @@ function main() {
                 --mount-string="$(pwd):/mnt/diadata:rw" \
                 --mount=true
 
-            # TODO: Installing dia-system chart
-            # kubectl create namespace "dia-system-node"
-            # helm repo update
-            # helm upgrade "dia-release" --namespace "dia-system" --create-namespace --install --set "exchangescrapers.namespaces={default,dia-system-node}" "./deployments/helm/dia"
-
-            # TODO: Installing Loki with Helm
-            # helm repo add grafana https://grafana.github.io/helm-charts
-            # helm repo update
-            # kubectl create namespace logging
-            # helm upgrade --install loki --namespace=logging grafana/loki-stack
-
-            # TODO: Installing Prometheus operator chart
-            # minikube addons disable metrics-server
-            # kubectl apply --server-side -f manifests/setup
-            # kubectl wait \
-            #     --for condition=Established \
-            #     --all CustomResourceDefinition \
-            #     --namespace=monitoring
-            # kubectl apply -f manifests/
-
-            # TODO: Installing influxdb
-            # kubectl apply -f https://raw.githubusercontent.com/influxdata/docs-v2/master/static/downloads/influxdb-k8-minikube.yaml
-
-            # TODO: Jaeger Operator logging
-            # Installing Cert Manager
-            # Installing Cert Manager CRDs with kubectl
-            # kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.crds.yaml
-            # Installing Cert Manager with Helm
-            # helm repo add jetstack https://charts.jetstack.io
-            # helm repo update
-            # kubectl create namespace cert-manager
-            # helm upgrade \
-            #     --namespace cert-manager \
-            #     --version 1.11.0 \
-            #     --install cert-manager jetstack/cert-manager
-            # Creating Self-Signed Cert Issuer
-            # kubectl apply -f https://gist.githubusercontent.com/t83714/51440e2ed212991655959f45d8d037cc/raw/7b16949f95e2dd61e522e247749d77bc697fd63c/selfsigned-issuer.yaml
-            # Installing Jaeger Operator chart in observability namespace
-            # kubectl create namespace observability
-            # kubectl create -f https://github.com/jaegertracing/jaeger-operator/releases/download/v1.43.0/jaeger-operator.yaml -n observability
+            # Installing DIA Helm chart
+            kubectl create namespace "dia"
+            helm repo update
+            helm upgrade "dia-release" --namespace "dia-system" --create-namespace --install --set "exchangescrapers.namespaces={default,dia}" "./deployments/helm/dia"
 
             # Build and tag dev images
             time (
@@ -278,29 +248,57 @@ function main() {
         ;;
     install)
         if [ "${#paths[@]}" -eq 1 ]; then
-            echo "Creating and installing DIA's services ..."
             # TODO: Check if all images are built
             # TODO: Check if installation depends on a pre-built image or not
+            echo "Creating and installing DIA's services ..."
+
+            # Install DIA's services
             minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/service-filtersblockservice.yaml
             minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/service-tradesblockservice.yaml
+
+            # Install Kafka and Zookeeper
             minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/data-kafka.yaml
-            # TODO: PostgreSQL data needs to be pruned
+
+            # Install PostgreSQL
+            #   TODO: PostgreSQL data needs to be pruned
             minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/data-postgres-prepopulated.yaml
+
+            # Install Redis
             minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
+
+            # Install InfluxDB
+            #   TODO: Installing influx from helm chart (when update)
+            #     https://github.com/influxdata/helm-charts
+            #     https://docs.influxdata.com/influxdb/v2.7/install/?t=Kubernetes#install-influxdb-in-a-kubernetes-cluster
+            #       kubectl apply -f https://raw.githubusercontent.com/influxdata/docs-v2/master/static/downloads/influxdb-k8-minikube.yaml
             minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/data-influx.yaml
+
             echo "All DIA's services created with success"
         else
             if [ -n "${paths[1]:-}" ]; then
                 if [ "${paths[1]}" == "full" ]; then
                     echo "Creating and installing DIA's services (on full mode) ..."
+
+                    # Install DIA's services
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/service-filtersblockservice.yaml
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/service-tradesblockservice.yaml
+
+                    # Install Kafka and Zookeeper
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/data-kafka.yaml
+
+                    # Install PostgreSQL
+                    #   TODO: data needs to be pruned
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- create configmap postgres-schemma --from-file=deployments/config/pginit.sql
-                    # TODO: PostgreSQL data needs to be pruned
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/data-postgres.yaml
+
+                    # Install Redis
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
+
+                    # Install InfluxDB
+                    #   TODO: Installing influx from helm chart (when update)
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/data-influx.yaml
+
+                    # Install the preparation job
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- create -f deployments/k8s-yaml/job-prepare.yaml
                     echo "All DIA's services created with success"
                 else
@@ -586,6 +584,7 @@ function main() {
         go build -v ./...
         ;;
     info)
+        minikube addons list
         minikube profile list
         echo "PWD: $PWD"
         echo "SCRIPT_FOLDER: $SCRIPT_FOLDER"
@@ -620,25 +619,63 @@ function main() {
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
             create -f deployments/k8s-yaml/job-ping-redis.yaml >/dev/null 2>&1
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-            wait --timeout=30s --for=condition=complete job/ping-redis >/dev/null 2>&1 && echo "  Redis OK" || echo "  Redis FAILED" >&2
+            wait --timeout=30s --for=condition=complete job/ping-redis >/dev/null 2>&1 \
+            && echo "  Redis OK" || echo "  Redis FAILED" >&2
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
             delete -f deployments/k8s-yaml/job-ping-influx.yaml >/dev/null 2>&1 || true
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
             create -f deployments/k8s-yaml/job-ping-influx.yaml >/dev/null 2>&1
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-            wait --timeout=30s --for=condition=complete job/ping-influx >/dev/null 2>&1 && echo "  InfluxDB OK" || echo "  InfluxDB FAILED" >&2
+            wait --timeout=30s --for=condition=complete job/ping-influx >/dev/null 2>&1 \
+            && echo "  InfluxDB OK" || echo "  InfluxDB FAILED" >&2
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
             delete -f deployments/k8s-yaml/job-ping-postgres.yaml >/dev/null 2>&1 || true
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
             create -f deployments/k8s-yaml/job-ping-postgres.yaml >/dev/null 2>&1
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-            wait --timeout=30s --for=condition=complete job/ping-postgres >/dev/null 2>&1 && echo "  PostgreSQL OK" || echo "  PostgreSQL FAILED" >&2
+            wait --timeout=30s --for=condition=complete job/ping-postgres >/dev/null 2>&1 \
+            && echo "  PostgreSQL OK" || echo "  PostgreSQL FAILED" >&2
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
             delete -f deployments/k8s-yaml/job-ping-kafka.yaml >/dev/null 2>&1 || true
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
             create -f deployments/k8s-yaml/job-ping-kafka.yaml >/dev/null 2>&1
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-            wait --timeout=30s --for=condition=complete job/ping-kafka >/dev/null 2>&1 && echo "  Kafka OK" || echo "  Kafka FAILED" >&2
+            wait --timeout=30s --for=condition=complete job/ping-kafka >/dev/null 2>&1 \
+            && echo "  Kafka OK" || echo "  Kafka FAILED" >&2
+        ;;
+    monitor-start)
+        minikube -p "${MINIKUBE_PROFILE}" kubectl -- create namespace logging
+
+        # Install grafana dashboards
+        helm repo add grafana https://grafana.github.io/helm-charts
+        helm repo update
+        helm install grafana grafana/grafana 
+        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+            expose service grafana --type=NodePort --target-port=3000 --name=grafana-np
+        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+            get secret --namespace default grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+        minikube -p "${MINIKUBE_PROFILE}" service grafana-np --url
+
+        # Installing Loki daemon
+        helm repo add grafana https://grafana.github.io/helm-charts
+        helm repo update
+        helm upgrade --namespace=logging --install loki grafana/loki
+        # --values ./deployments/k8s-yaml/external-loki-values.yaml
+        ;;
+    monitor-stop)
+        # Stop and un-install grafana
+        minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete svc grafana-np
+        helm uninstall grafana
+        
+        # Stop and un-install Loki
+        helm uninstall loki
+
+        # Clean Helm repos
+        helm repo remove grafana
+        helm repo update
+
+        # Delete remaining resources
+        minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete namespace logging
         ;;
     data-reset)
         if [ "${#paths[@]}" -gt 1 ]; then
