@@ -15,7 +15,7 @@ The followding systems are covered:
 
 Software dependencies needed:
 
-* *bash*, *git*, *yq*
+* *bash*, *git*, *jq*, ~~*yq*~~
 * *minikube*, and *docker* as main driver
 
 ## Prepare this repository

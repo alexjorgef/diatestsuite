@@ -99,10 +99,13 @@ function main() {
     paths=("$@")
 
     if ! hash git 2> /dev/null; then echo "Git not found" >&2; return 1; fi
-    if ! hash yq 2> /dev/null; then echo "yq not found" >&2; return 1; fi
+    if ! hash jq 2> /dev/null; then echo "jq not found" >&2; return 1; fi
+    # TODO: Uncomment when needed
+    # if ! hash yq 2> /dev/null; then echo "yq not found" >&2; return 1; fi
     if ! hash docker 2> /dev/null; then echo "Docker not found" >&2; return 1; fi
     if ! hash minikube 2> /dev/null; then echo "Minikube not found" >&2; return 1; fi
-    if ! hash golangci-lint 2> /dev/null; then echo "golangci-lint not found" >&2; return 1; fi
+    # TODO: Uncomment when needed
+    # if ! hash golangci-lint 2> /dev/null; then echo "golangci-lint not found" >&2; return 1; fi
 
     # echo "${#paths[@]}"
     # echo "${paths[@]}"
