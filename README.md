@@ -54,6 +54,13 @@ Run the script to manage the enviornment 🚀:
 ./env --help
 ```
 
+Renovate files:
+
+```sh
+cp -Rf ./inject/* "./.testenv"
+cp -Rf ./inject/.[^.]* "./.testenv"
+```
+
 ## Performance
 
 > Tests done with 1.4.270 version
