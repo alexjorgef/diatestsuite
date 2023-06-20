@@ -57,8 +57,11 @@ Run the script to manage the enviornment 🚀:
 Renovate files:
 
 ```sh
-cp -Rf ./inject/* "./.testenv"
-cp -Rf ./inject/.[^.]* "./.testenv"
+(
+    cd ..
+    cp -Rf ./inject/* "./.testenv"
+    cp -Rf ./inject/.[^.]* "./.testenv"
+)
 ```
 
 ## Performance
