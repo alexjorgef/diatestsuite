@@ -66,8 +66,15 @@ Renovate files:
 
 ## Performance
 
-> Tests done with 1.4.270 version
+> Tests done with 1.4.288 version
 
-Best start time:
+Best start time: 5 mins 30 secs (Minikube w/ Docker)
 
-* All container images: 4 minutes 4 seconds (Docker)
+* start: 3 mins 32 secs
+* install full: 1 mins 58 secs
+
+## To do
+
+* [ ] Single container mode
+* [ ] Providers to have reproducible tests over scrapers
+* [ ] All image builds are depedent to a task

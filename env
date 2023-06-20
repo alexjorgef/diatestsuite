@@ -102,6 +102,7 @@ function main() {
     if ! hash jq 2> /dev/null; then echo "jq not found" >&2; return 1; fi
     # TODO: Uncomment when needed
     # if ! hash yq 2> /dev/null; then echo "yq not found" >&2; return 1; fi
+    # if ! hash helm 2> /dev/null; then echo "Helm not found" >&2; return 1; fi
     if ! hash docker 2> /dev/null; then echo "Docker not found" >&2; return 1; fi
     if ! hash minikube 2> /dev/null; then echo "Minikube not found" >&2; return 1; fi
     # TODO: Uncomment when needed
@@ -143,31 +144,36 @@ function main() {
     start)
         if [ "${#paths[@]}" -eq 1 ]; then
             echo "DIA Version: $version_detected"
-            cluster_name=$(minikube profile list --output json | jq -r -c '.valid | .[] | .Name')
-            cluster_status=$(minikube profile list --output json | jq -r -c '.valid | .[] | .Status')
-            if [[ "$cluster_name" != "dia" || "$cluster_status" != "Running" ]]; then
-                echo "Starting minikube cluster..."
-                # Start minikube cluster
-                minikube -p "${MINIKUBE_PROFILE}" start \
-                    --kubernetes-version ${MINIKUBE_K8S_VERSION} \
-                    --driver ${MINIKUBE_DRIVER} \
-                    --memory ${MINIKUBE_HW_RAM} \
-                    --cpus ${MINIKUBE_HW_CPUS} \
-                    --disk-size ${MINIKUBE_HW_DISK_SIZE} \
-                    --mount-string="$(pwd):/mnt/diadata:rw" \
-                    --mount=true
-            else
-                echo "Minikube cluster already running"
-            fi
-
-            # TODO: Installing DIA Helm chart
-            minikube -p "${MINIKUBE_PROFILE}" kubectl get namespace | grep -q "^dia " || kubectl create namespace "dia"
-            helm repo update
-            helm upgrade "dia-release" --namespace "dia-system" --create-namespace --install \
-                --set "exchangescrapers.namespaces={default,dia}" "./deployments/helm/dia"
-
-            # Build and tag dev images
+            echo "Num. CPUs: ${MINIKUBE_HW_CPUS}"
+            echo "Disk size: ${MINIKUBE_HW_DISK_SIZE}"
+            echo "Memory: ${MINIKUBE_HW_RAM}"
+            echo "K8s version: ${MINIKUBE_K8S_VERSION}"
+            echo "Minikube driver: ${MINIKUBE_DRIVER}"
+            echo "Minikube profile: ${MINIKUBE_PROFILE}"
+            echo "Starting Minikube cluster ..."
             time (
+                cluster_name=$(minikube profile list --output json | jq -r -c '.valid | .[] | .Name')
+                cluster_status=$(minikube profile list --output json | jq -r -c '.valid | .[] | .Status')
+                if [[ "$cluster_name" != "dia" || "$cluster_status" != "Running" ]]; then
+                    # Start minikube cluster
+                    minikube -p "${MINIKUBE_PROFILE}" start \
+                        --kubernetes-version ${MINIKUBE_K8S_VERSION} \
+                        --driver ${MINIKUBE_DRIVER} \
+                        --memory ${MINIKUBE_HW_RAM} \
+                        --cpus ${MINIKUBE_HW_CPUS} \
+                        --disk-size ${MINIKUBE_HW_DISK_SIZE} \
+                        --mount-string="$(pwd):/mnt/diadata:rw" \
+                        --mount=true
+                else
+                    echo "Minikube cluster already running"
+                fi
+
+                # TODO: Installing DIA Helm chart
+                minikube -p "${MINIKUBE_PROFILE}" kubectl get namespace | grep -q "^dia " || kubectl create namespace "dia"
+                # helm repo update
+                # helm upgrade "dia-release" --namespace "dia-system" --create-namespace --install \
+                #     --set "exchangescrapers.namespaces={default,dia}" "./deployments/helm/dia"
+
                 # TODO: this is only needed because minikube image build font return error exit code
                 #   see https://github.com/kubernetes/minikube/issues/16576
                 if [[ "$MINIKUBE_DRIVER" == "docker" ]]; then
@@ -324,75 +330,76 @@ function main() {
             if [ -n "${paths[1]:-}" ]; then
                 if [ "${paths[1]}" == "full" ]; then
                     echo "Creating and installing DIA's services (on full mode) ..."
+                    time (
+                        docker_query="$(minikube -p "${MINIKUBE_PROFILE}" ssh -- \
+                            "docker images -q dia.filtersblockservice.dev:latest" 2> /dev/null)"
+                        if [[ "${docker_query}" == "" ]]; then
+                            eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
+                            docker buildx build -f "build/Dockerfile-filtersBlockService-Dev" \
+                                -t "dia.filtersblockservice.dev:latest" .
+                            eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
+                        fi
+                        echo "Service image present [1/4]"
 
-                    docker_query="$(minikube -p "${MINIKUBE_PROFILE}" ssh -- \
-                        "docker images -q dia.filtersblockservice.dev:latest" 2> /dev/null)"
-                    if [[ "${docker_query}" == "" ]]; then
-                        eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
-                        docker buildx build -f "build/Dockerfile-filtersBlockService-Dev" \
-                            -t "dia.filtersblockservice.dev:latest" .
-                        eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
-                    fi
-                    echo "Service image present [1/4]"
+                        docker_query="$(minikube -p "${MINIKUBE_PROFILE}" ssh -- \
+                            "docker images -q dia.tradesblockservice.dev:latest" 2> /dev/null)"
+                        if [[ "${docker_query}" == "" ]]; then
+                            eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
+                            docker buildx build -f "build/Dockerfile-tradesBlockService-Dev" \
+                                -t "dia.tradesblockservice.dev:latest" .
+                            eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
+                        fi
+                        echo "Service image present [2/4]"
 
-                    docker_query="$(minikube -p "${MINIKUBE_PROFILE}" ssh -- \
-                        "docker images -q dia.tradesblockservice.dev:latest" 2> /dev/null)"
-                    if [[ "${docker_query}" == "" ]]; then
-                        eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
-                        docker buildx build -f "build/Dockerfile-tradesBlockService-Dev" \
-                            -t "dia.tradesblockservice.dev:latest" .
-                        eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
-                    fi
-                    echo "Service image present [2/4]"
+                        docker_query="$(minikube -p "${MINIKUBE_PROFILE}" ssh -- \
+                            "docker images -q dia.blockchainservice.dev:latest" 2> /dev/null)"
+                        if [[ "${docker_query}" == "" ]]; then
+                            eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
+                            docker buildx build -f "build/Dockerfile-blockchainservice-Dev" \
+                                -t "dia.blockchainservice.dev:latest" .
+                            eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
+                        fi
+                        echo "Service image present [3/4]"
 
-                    docker_query="$(minikube -p "${MINIKUBE_PROFILE}" ssh -- \
-                        "docker images -q dia.blockchainservice.dev:latest" 2> /dev/null)"
-                    if [[ "${docker_query}" == "" ]]; then
-                        eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
-                        docker buildx build -f "build/Dockerfile-blockchainservice-Dev" \
-                            -t "dia.blockchainservice.dev:latest" .
-                        eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
-                    fi
-                    echo "Service image present [3/4]"
+                        docker_query="$(minikube -p "${MINIKUBE_PROFILE}" ssh -- \
+                            "docker images -q dia.assetcollectionservice.dev:latest" 2> /dev/null)"
+                        if [[ "${docker_query}" == "" ]]; then
+                            eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
+                            docker buildx build -f "build/Dockerfile-assetCollectionService-Dev" \
+                                -t "dia.assetcollectionservice.dev:latest" .
+                            eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
+                        fi
+                        echo "Service image present [3/4]"
 
-                    docker_query="$(minikube -p "${MINIKUBE_PROFILE}" ssh -- \
-                        "docker images -q dia.assetcollectionservice.dev:latest" 2> /dev/null)"
-                    if [[ "${docker_query}" == "" ]]; then
-                        eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
-                        docker buildx build -f "build/Dockerfile-assetCollectionService-Dev" \
-                            -t "dia.assetcollectionservice.dev:latest" .
-                        eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env --unset)"
-                    fi
-                    echo "Service image present [3/4]"
+                        # Install DIA's services
+                        minikube -p "${MINIKUBE_PROFILE}" \
+                            kubectl -- create -f deployments/k8s-yaml/service-filtersblockservice.yaml
+                        minikube -p "${MINIKUBE_PROFILE}" \
+                            kubectl -- create -f deployments/k8s-yaml/service-tradesblockservice.yaml
 
-                    # Install DIA's services
-                    minikube -p "${MINIKUBE_PROFILE}" \
-                        kubectl -- create -f deployments/k8s-yaml/service-filtersblockservice.yaml
-                    minikube -p "${MINIKUBE_PROFILE}" \
-                        kubectl -- create -f deployments/k8s-yaml/service-tradesblockservice.yaml
+                        # Install Kafka and Zookeeper
+                        minikube -p "${MINIKUBE_PROFILE}" \
+                            kubectl -- create -f deployments/k8s-yaml/data-kafka.yaml
 
-                    # Install Kafka and Zookeeper
-                    minikube -p "${MINIKUBE_PROFILE}" \
-                        kubectl -- create -f deployments/k8s-yaml/data-kafka.yaml
+                        # Install PostgreSQL
+                        minikube -p "${MINIKUBE_PROFILE}" \
+                            kubectl -- create configmap postgres-schemma \
+                            --from-file=deployments/config/pginit.sql
+                        minikube -p "${MINIKUBE_PROFILE}" \
+                            kubectl -- create -f deployments/k8s-yaml/data-postgres.yaml
 
-                    # Install PostgreSQL
-                    minikube -p "${MINIKUBE_PROFILE}" \
-                        kubectl -- create configmap postgres-schemma \
-                        --from-file=deployments/config/pginit.sql
-                    minikube -p "${MINIKUBE_PROFILE}" \
-                        kubectl -- create -f deployments/k8s-yaml/data-postgres.yaml
+                        # Install Redis
+                        minikube -p "${MINIKUBE_PROFILE}" \
+                            kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
 
-                    # Install Redis
-                    minikube -p "${MINIKUBE_PROFILE}" \
-                        kubectl -- create -f deployments/k8s-yaml/data-redis.yaml
+                        # Install InfluxDB
+                        minikube -p "${MINIKUBE_PROFILE}" \
+                            kubectl -- create -f deployments/k8s-yaml/data-influx.yaml
 
-                    # Install InfluxDB
-                    minikube -p "${MINIKUBE_PROFILE}" \
-                        kubectl -- create -f deployments/k8s-yaml/data-influx.yaml
-
-                    # Install the preparation job
-                    minikube -p "${MINIKUBE_PROFILE}" \
-                        kubectl -- create -f deployments/k8s-yaml/job-prepare.yaml
+                        # Install the preparation job
+                        minikube -p "${MINIKUBE_PROFILE}" \
+                            kubectl -- create -f deployments/k8s-yaml/job-prepare.yaml
+                    )
                     echo "All DIA's services created with success"
                 else
                     echo "Unknown command" >&2
@@ -773,7 +780,7 @@ function main() {
         echo "Building ..."
         go build -v ./...
         ;;
-    monitor-start)
+    monitor-start) # TODO: this is not working
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- create namespace dia-monitoring
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- create namespace logging
 
@@ -795,7 +802,7 @@ function main() {
         helm upgrade --namespace=logging --install loki grafana/loki
         # --values ./deployments/k8s-yaml/external-loki-values.yaml
         ;;
-    monitor-stop)
+    monitor-stop) # TODO: this is not working
         # Stop and un-install grafana
         minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete svc --namespace=dia-monitoring grafana-np || true
         helm delete grafana || true
