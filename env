@@ -22,7 +22,11 @@ function usage() {
     echo
     echo "| Name                    | Description                 |"
     echo "|-------------------------|-----------------------------|"
-    echo "| MINIKUBE_HW_DISK_SIZE   | Minikube hardware disk size |"
+    echo "| MINIKUBE_PROFILE        | Minikube profile name       |"
+    echo "| MINIKUBE_HW_DISK_SIZE   | Minikube disk size          |"
+    echo "| MINIKUBE_HW_CPUS        | Minikube number of CPUs     |"
+    echo "| MINIKUBE_HW_RAM         | Minikube memory limit       |"
+    echo "| MINIKUBE_K8S_VERSION    | K8s version                 |"
     echo
     echo "Usage:"
     echo "  env [OPTIONS] COMMAND [ARGS]..."
@@ -130,9 +134,9 @@ function main() {
     MINIKUBE_HW_RAM=8g
     MINIKUBE_DRIVER=docker
     # TODO: Cert manager will work with this
-    MINIKUBE_CERT_MOUNT=~/.minikube
+    # MINIKUBE_CERT_MOUNT=~/.minikube
     # TODO: This will be needed when managing multiple clusters
-    KUBECONFIG=~/.kube/config
+    # KUBECONFIG=~/.kube/config
 
     if [ -f "./.env.local" ]; then source ./.env.local; fi
 

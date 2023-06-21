@@ -71,11 +71,11 @@ Renovate files:
 
 > Tests done with 1.4.288 version
 
-Best start time: 5 mins 30 secs (Minikube w/ Docker)
+Best start time: 9m18 (Minikube w/ Docker)
 
-* start: 3 mins 32 secs
-* install full: 1 mins 58 secs
-* create: 1mins 32 secs
+* start: 3m44
+* install full: 1m52
+* create: 3m35
 
 ## To do
 
