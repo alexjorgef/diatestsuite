@@ -51,6 +51,9 @@ Run the script to manage the enviornment 🚀:
 ```sh
 ./env start
 ./env install full
+./env create example exchange
+./env create example liquidity
+./env create example foreign
 ./env --help
 ```
 
@@ -72,6 +75,7 @@ Best start time: 5 mins 30 secs (Minikube w/ Docker)
 
 * start: 3 mins 32 secs
 * install full: 1 mins 58 secs
+* create: 1mins 32 secs
 
 ## To do
 
