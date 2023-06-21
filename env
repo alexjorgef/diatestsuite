@@ -133,12 +133,16 @@ function main() {
     MINIKUBE_HW_CPUS=4
     MINIKUBE_HW_RAM=8g
     MINIKUBE_DRIVER=docker
+    SNAPSHOT_DOCKER_REGISTRY=https://registry.hub.docker.com/v2/
+    SNAPSHOT_DOCKER_USERNAME=dia_contributor
+    SNAPSHOT_DOCKER_PASSWORD=dia_contributor_pw
+    SNAPSHOT_DOCKER_EMAIL=dia_contributor@example.com
     # TODO: Cert manager will work with this
     # MINIKUBE_CERT_MOUNT=~/.minikube
     # TODO: This will be needed when managing multiple clusters
     # KUBECONFIG=~/.kube/config
 
-    if [ -f "./.env.local" ]; then source ./.env.local; fi
+    if [ -f "./.env.local" ]; then echo "Sourcing local config file ..."; source ./.env.local; fi
 
     if [ ! -n "${paths[0]:-}" ]; then
         echo "No command specified" >&2
@@ -154,11 +158,13 @@ function main() {
             echo "K8s version: ${MINIKUBE_K8S_VERSION}"
             echo "Minikube driver: ${MINIKUBE_DRIVER}"
             echo "Minikube profile: ${MINIKUBE_PROFILE}"
+            minikube version
+            
             echo "Starting Minikube cluster ..."
             time (
                 cluster_name=$(minikube profile list --output json | jq -r -c '.valid | .[] | .Name')
                 cluster_status=$(minikube profile list --output json | jq -r -c '.valid | .[] | .Status')
-                if [[ "$cluster_name" != "dia" || "$cluster_status" != "Running" ]]; then
+                if [[ "$cluster_name" != "${MINIKUBE_PROFILE}" || "$cluster_status" != "Running" ]]; then
                     # Start minikube cluster
                     minikube -p "${MINIKUBE_PROFILE}" start \
                         --kubernetes-version ${MINIKUBE_K8S_VERSION} \
@@ -173,7 +179,7 @@ function main() {
                 fi
 
                 # TODO: Installing DIA Helm chart
-                minikube -p "${MINIKUBE_PROFILE}" kubectl get namespace | grep -q "^dia " || kubectl create namespace "dia"
+                # minikube -p "${MINIKUBE_PROFILE}" kubectl get namespace | grep -q "^dia " || kubectl create namespace "dia"
                 # helm repo update
                 # helm upgrade "dia-release" --namespace "dia-system" --create-namespace --install \
                 #     --set "exchangescrapers.namespaces={default,dia}" "./deployments/helm/dia"
@@ -182,7 +188,7 @@ function main() {
                 #   see https://github.com/kubernetes/minikube/issues/16576
                 if [[ "$MINIKUBE_DRIVER" == "docker" ]]; then
                     eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
-                    echo "Building base images ..."
+                    echo "Building base images w/ Docker v$(docker version --format '{{.Client.Version}}') ..."
                     docker buildx build -f "build/build/Dockerfile-DiadataBuild-117-Dev" \
                         -t "dia.build-117.dev:latest" .
                     echo "Base image build successfully [1/1]"
@@ -561,10 +567,10 @@ function main() {
                         create configmap postgres-crondump --from-file=./scripts/dump.sh
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                         create secret docker-registry regcred \
-                        --docker-server="https://registry.hub.docker.com/v2/" \
-                        --docker-username="alex1a" \
-                        --docker-password="R3Uf&nq@A9&hv&" \
-                        --docker-email="alex.jorge.m@gmail.com"
+                        --docker-server="${SNAPSHOT_DOCKER_REGISTRY}" \
+                        --docker-username="${SNAPSHOT_DOCKER_USERNAME}" \
+                        --docker-password="${SNAPSHOT_DOCKER_PASSWORD}" \
+                        --docker-email="${SNAPSHOT_DOCKER_EMAIL}"
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                         create -f "deployments/k8s-yaml/cronjob-snapshot.yaml"
                 else

@@ -4,14 +4,14 @@ Cover the development of a test-space environment with DIA's platform. [Wiki](ht
 
 Minimum hardware recommended:
 
-* 50Gb-100Gb disk space available
+* 50Gb disk space available
 * 8Gb memory available
 * 4 CPU
 
 The followding systems are covered:
 
 * Architectures: x86_64
-* OSs: Arch Linux v6.3.6
+* Systems: Linux v6.3.8
 
 Software dependencies needed:
 
@@ -69,16 +69,13 @@ Renovate files:
 
 ## Performance
 
-> Tests done with 1.4.288 version
+Best start time (DIA v1.4.288 on Minikube+Docker):
 
-Best start time: 9m18 (Minikube w/ Docker)
-
-* start: 3m44
-* install full: 1m52
-* create: 3m35
+* Cluster start: 3m56
+* Full installation: 1m57
+* Create resouce: 3m38
 
 ## To do
 
-* [ ] Single container mode
 * [ ] Providers to have reproducible tests over scrapers
-* [ ] All image builds are depedent to a task
+* [ ] Single container mode only w/ Docker
