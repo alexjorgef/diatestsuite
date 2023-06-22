@@ -1,15 +1,14 @@
 apiVersion: "v1"
 kind: Pod
 metadata:
-  name: scraper-liquidity-platypus
+  name: scraper-exchange-bitmart
 spec:
-  restartPolicy: Never
   containers:
-    - name: scraper-liquidity-platypus
-      image: dia.liquidityscraper.dev:latest
+    - name: scraper-exchange-bitmart
+      image: dia.genericcollector.dev:latest
       imagePullPolicy: Never
-      command: ["liquidityScraper"]
-      args: ["-exchange=PlatypusFinance"]
+      command: ["collector"]
+      args: ["-exchange=BitMart", "-mode=current", "-pairsfile=true"]
       env:
         - name: USE_ENV
           value: "true"
@@ -76,24 +75,32 @@ spec:
           value: "data-kafka.default.svc.cluster.local:9094"
       command:
         ["sh", "-c", "until kafkacat -b $KAFKA_BROKER_URL -L; do sleep 1; done"]
-    - name: scraper-liquidity-platypus-assetcollectionservice
-      image: dia.assetcollectionservice.dev:latest
+    - name: scraper-exchange-bitmart-pairdiscovery
+      image: dia.pairdiscoveryservice.dev:latest
       imagePullPolicy: Never
-      command: ["assetCollectionService"]
-      args: ["-source=PlatypusFinance"]
+      command: ["pairDiscoveryService"]
+      args: ["-exchange=BitMart", "-mode=verification"]
       env:
         - name: USE_ENV
           value: "true"
-        - name: POSTGRES_HOST
-          value: "data-postgres.default.svc.cluster.local"
         - name: POSTGRES_USER
           value: "postgres"
         - name: POSTGRES_PASSWORD
           value: "password"
         - name: POSTGRES_DB
           value: "postgres"
+        - name: POSTGRES_HOST
+          value: "data-postgres.default.svc.cluster.local"
+        - name: INFLUXURL
+          value: "http://data-influx.default.svc.cluster.local:8086"
+        - name: INFLUXUSER
+          value: "test"
+        - name: INFLUXPASSWORD
+          value: "testtest"
         - name: REDISURL
           value: "data-redis.default.svc.cluster.local:6379"
+        - name: KAFKAURL
+          value: "data-kafka.default.svc.cluster.local:9094"
   volumes:
     - name: env-context
       hostPath:

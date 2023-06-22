@@ -21,24 +21,24 @@ spec:
             - name: influx-server
               containerPort: 8086
           env:
-          - name: INFLUXDB_HTTP_MAX_BODY_SIZE
-            value: "0"
-          - name: INFLUXDB_DATA_CACHE_MAX_MEMORY_SIZE
-            value: "4g"
-          - name: INFLUXDB_DATA_MAX_INDEX_LOG_FILE_SIZE
-            value: "8m"
-          - name: DOCKER_INFLUXDB_INIT_MODE
-            value: "setup"
-          - name: DOCKER_INFLUXDB_INIT_USERNAME
-            value: "test"
-          - name: DOCKER_INFLUXDB_INIT_PASSWORD
-            value: "testtest"
-          - name: DOCKER_INFLUXDB_INIT_ORG
-            value: "test_org"
-          - name: DOCKER_INFLUXDB_INIT_BUCKET
-            value: "test_bucket"
-          - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
-            value: "test_token"
+            - name: INFLUXDB_HTTP_MAX_BODY_SIZE
+              value: "0"
+            - name: INFLUXDB_DATA_CACHE_MAX_MEMORY_SIZE
+              value: "4g"
+            - name: INFLUXDB_DATA_MAX_INDEX_LOG_FILE_SIZE
+              value: "8m"
+            - name: DOCKER_INFLUXDB_INIT_MODE
+              value: "setup"
+            - name: DOCKER_INFLUXDB_INIT_USERNAME
+              value: "test"
+            - name: DOCKER_INFLUXDB_INIT_PASSWORD
+              value: "testtest"
+            - name: DOCKER_INFLUXDB_INIT_ORG
+              value: "test_org"
+            - name: DOCKER_INFLUXDB_INIT_BUCKET
+              value: "test_bucket"
+            - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
+              value: "test_token"
 ---
 apiVersion: v1
 kind: Service

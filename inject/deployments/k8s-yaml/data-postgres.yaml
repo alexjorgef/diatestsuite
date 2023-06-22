@@ -33,9 +33,9 @@ spec:
               subPath: pginit.sql
               readOnly: true
       volumes:
-      - name: postgres-schemma-volume
-        configMap:
-          name: postgres-schemma
+        - name: postgres-schemma-volume
+          configMap:
+            name: postgres-schemma
 ---
 apiVersion: v1
 kind: Service

@@ -6,41 +6,41 @@ metadata:
     app: diadata-clusterdev-db-influx-migration2
 spec:
   containers:
-  - name: clusterdev-db-influx-migration2
-    image: public.ecr.aws/docker/library/influxdb:2.6
-    imagePullPolicy: IfNotPresent
-    ports:
-      - containerPort: 8086
-      - containerPort: 8088
-    command: ["influxd"]
-    env:
-      - name: INFLUXDB_HTTP_MAX_BODY_SIZE
-        value: "0"
-      - name: INFLUXDB_DATA_CACHE_MAX_MEMORY_SIZE
-        value: "4g"
-      - name: INFLUXDB_DATA_MAX_INDEX_LOG_FILE_SIZE
-        value: "8m"
-      - name: DOCKER_INFLUXDB_INIT_MODE
-        value: "setup"
-      - name: DOCKER_INFLUXDB_INIT_USERNAME
-        value: "diadata_user"
-      - name: DOCKER_INFLUXDB_INIT_PASSWORD
-        value: "diadata_pw"
-      - name: DOCKER_INFLUXDB_INIT_ORG
-        value: "diadata"
-      - name: DOCKER_INFLUXDB_INIT_BUCKET
-        value: "diadata_b"
-      - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
-        value: "diadata_token"
-    volumeMounts:
-    - name: influx-migration2-config
-      mountPath: /etc/influxdb/influxdb.conf
-      subPath: influxdb2.conf
-      readOnly: true
+    - name: clusterdev-db-influx-migration2
+      image: public.ecr.aws/docker/library/influxdb:2.6
+      imagePullPolicy: IfNotPresent
+      ports:
+        - containerPort: 8086
+        - containerPort: 8088
+      command: ["influxd"]
+      env:
+        - name: INFLUXDB_HTTP_MAX_BODY_SIZE
+          value: "0"
+        - name: INFLUXDB_DATA_CACHE_MAX_MEMORY_SIZE
+          value: "4g"
+        - name: INFLUXDB_DATA_MAX_INDEX_LOG_FILE_SIZE
+          value: "8m"
+        - name: DOCKER_INFLUXDB_INIT_MODE
+          value: "setup"
+        - name: DOCKER_INFLUXDB_INIT_USERNAME
+          value: "diadata_user"
+        - name: DOCKER_INFLUXDB_INIT_PASSWORD
+          value: "diadata_pw"
+        - name: DOCKER_INFLUXDB_INIT_ORG
+          value: "diadata"
+        - name: DOCKER_INFLUXDB_INIT_BUCKET
+          value: "diadata_b"
+        - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
+          value: "diadata_token"
+      volumeMounts:
+        - name: influx-migration2-config
+          mountPath: /etc/influxdb/influxdb.conf
+          subPath: influxdb2.conf
+          readOnly: true
   volumes:
-  - name: influx-migration2-config
-    configMap:
-      name: influx-migration2-configmap
+    - name: influx-migration2-config
+      configMap:
+        name: influx-migration2-configmap
 ---
 apiVersion: v1
 kind: Service

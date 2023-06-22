@@ -4,68 +4,76 @@ metadata:
   name: "diadata-clusterdev-http-restserver"
 spec:
   containers:
-  - name: clusterdev-http-restserver
-    image: dia-http-restserver:latest
-    command: ["restServer"]
-    env:
-    - name: USE_ENV
-      value: "true"
-    - name: POSTGRES_USER
-      value: "diadata_psql_user"
-    - name: POSTGRES_PASSWORD
-      value: "diadata_psql_pass"
-    - name: POSTGRES_DB
-      value: "diadata_psql_db"
-    - name: POSTGRES_HOST
-      value: "clusterdev-db-postgres-service.default.svc.cluster.local"
-    - name: INFLUXURL
-      value: "http://clusterdev-db-influx-service.default.svc.cluster.local:8086"
-    - name: INFLUXUSER
-      value: "diadata_user"
-    - name: INFLUXPASSWORD
-      value: "diadata_pw"
-    - name: REDISURL
-      value: "clusterdev-db-redis-service.default.svc.cluster.local:6379"
-    - name: KAFKAURL
-      value: "clusterdev-db-kafka-service.default.svc.cluster.local:9094"
-    - name: HTTP_BASIC_AUTH_USER
-      value: "user"
-    - name: HTTP_BASIC_AUTH_PASSWD
-      value: "password"
-    - name: DIADATA_API_KEY
-      value: ""
-    - name: DIADATA_SECRET_KEY
-      value: ""
+    - name: clusterdev-http-restserver
+      image: dia-http-restserver:latest
+      command: ["restServer"]
+      env:
+        - name: USE_ENV
+          value: "true"
+        - name: POSTGRES_USER
+          value: "diadata_psql_user"
+        - name: POSTGRES_PASSWORD
+          value: "diadata_psql_pass"
+        - name: POSTGRES_DB
+          value: "diadata_psql_db"
+        - name: POSTGRES_HOST
+          value: "clusterdev-db-postgres-service.default.svc.cluster.local"
+        - name: INFLUXURL
+          value: "http://clusterdev-db-influx-service.default.svc.cluster.local:8086"
+        - name: INFLUXUSER
+          value: "diadata_user"
+        - name: INFLUXPASSWORD
+          value: "diadata_pw"
+        - name: REDISURL
+          value: "clusterdev-db-redis-service.default.svc.cluster.local:6379"
+        - name: KAFKAURL
+          value: "clusterdev-db-kafka-service.default.svc.cluster.local:9094"
+        - name: HTTP_BASIC_AUTH_USER
+          value: "user"
+        - name: HTTP_BASIC_AUTH_PASSWD
+          value: "password"
+        - name: DIADATA_API_KEY
+          value: ""
+        - name: DIADATA_SECRET_KEY
+          value: ""
   initContainers:
-  - name: check-postgres-connection
-    image: public.ecr.aws/docker/library/postgres:latest
-    env:
-    - name: PGHOST
-      value: "clusterdev-db-postgres-service.default.svc.cluster.local"
-    - name: PGUSER
-      value: "diadata_psql_user"
-    - name: PGPASSWORD
-      value: "diadata_psql_pass"
-    command: ["sh", "-c", "until pg_isready -h $PGHOST -U $PGUSER; do sleep 1; done"]
-  - name: check-redis-connection
-    image: public.ecr.aws/docker/library/redis:latest
-    env:
-    - name: REDISCLI_URL
-      value: "redis://clusterdev-db-redis-service.default.svc.cluster.local:6379/0"
-    command: ["sh", "-c", "until redis-cli -u $REDISCLI_URL ping; do sleep 1; done"]
-  - name: check-influxdb-connection
-    image: public.ecr.aws/docker/library/influxdb:1.8
-    env:
-    - name: INFLUXDB_URL
-      value: "clusterdev-db-influx-service.default.svc.cluster.local"
-    - name: INFLUXDB_USERNAME
-      value: "diadata_user"
-    - name: INFLUXDB_PASSWORD
-      value: "diadata_pw"
-    command: ["sh", "-c", "until influx -host $INFLUXDB_URL -username $INFLUXDB_USERNAME -password $INFLUXDB_PASSWORD -execute 'SHOW DATABASES'; do sleep 1; done"]
-  - name: check-kafka-connection
-    image: confluentinc/cp-kafkacat:6.2.1
-    env:
-    - name: KAFKA_BROKER_URL
-      value: "clusterdev-db-kafka-service.default.svc.cluster.local:9094"
-    command: ["sh", "-c", "until kafkacat -b $KAFKA_BROKER_URL -L; do sleep 1; done"]
+    - name: check-postgres-connection
+      image: public.ecr.aws/docker/library/postgres:latest
+      env:
+        - name: PGHOST
+          value: "clusterdev-db-postgres-service.default.svc.cluster.local"
+        - name: PGUSER
+          value: "diadata_psql_user"
+        - name: PGPASSWORD
+          value: "diadata_psql_pass"
+      command:
+        ["sh", "-c", "until pg_isready -h $PGHOST -U $PGUSER; do sleep 1; done"]
+    - name: check-redis-connection
+      image: public.ecr.aws/docker/library/redis:latest
+      env:
+        - name: REDISCLI_URL
+          value: "redis://clusterdev-db-redis-service.default.svc.cluster.local:6379/0"
+      command:
+        ["sh", "-c", "until redis-cli -u $REDISCLI_URL ping; do sleep 1; done"]
+    - name: check-influxdb-connection
+      image: public.ecr.aws/docker/library/influxdb:1.8
+      env:
+        - name: INFLUXDB_URL
+          value: "clusterdev-db-influx-service.default.svc.cluster.local"
+        - name: INFLUXDB_USERNAME
+          value: "diadata_user"
+        - name: INFLUXDB_PASSWORD
+          value: "diadata_pw"
+      command:
+        [
+          "sh",
+          "-c",
+          "until influx -host $INFLUXDB_URL -username $INFLUXDB_USERNAME -password $INFLUXDB_PASSWORD -execute 'SHOW DATABASES'; do sleep 1; done",
+        ]
+    - name: check-kafka-connection
+      image: confluentinc/cp-kafkacat:6.2.1
+      env:
+        - name: KAFKA_BROKER_URL
+          value: "clusterdev-db-kafka-service.default.svc.cluster.local:9094"
+      command:
+        ["sh", "-c", "until kafkacat -b $KAFKA_BROKER_URL -L; do sleep 1; done"]
