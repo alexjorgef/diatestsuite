@@ -62,7 +62,6 @@ Running:
 ./env create example exchange
 ./env create example liquidity
 ./env create example foreign
-./env --help
 ```
 
 Took 9m13s

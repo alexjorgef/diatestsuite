@@ -592,6 +592,12 @@ function main() {
                             create -f deployments/k8s-yaml/scraper-exchange-coinbase.yaml
                         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                             create -f deployments/k8s-yaml/scraper-exchange-mexc.yaml
+                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                            create -f deployments/k8s-yaml/scraper-exchange-bitmart.yaml
+                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                            create -f deployments/k8s-yaml/scraper-exchange-orca.yaml
+                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                            create -f deployments/k8s-yaml/scraper-exchange-platypus.yaml
                         ;;
                     liquidity)
                         # TODO: Move all liquidity scraper from pod to job manifest type
@@ -620,6 +626,12 @@ function main() {
                         create -f deployments/k8s-yaml/scraper-exchange-coinbase.yaml
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                         create -f deployments/k8s-yaml/scraper-exchange-mexc.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        create -f deployments/k8s-yaml/scraper-exchange-bitmart.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        create -f deployments/k8s-yaml/scraper-exchange-orca.yaml
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        create -f deployments/k8s-yaml/scraper-exchange-platypus.yaml
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                         create -f deployments/k8s-yaml/scraper-liquidity-platypus.yaml
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
@@ -678,6 +690,12 @@ function main() {
                             delete -f deployments/k8s-yaml/scraper-exchange-coinbase.yaml || true
                         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                             delete -f deployments/k8s-yaml/scraper-exchange-mexc.yaml || true
+                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                            delete -f deployments/k8s-yaml/scraper-exchange-bitmart.yaml || true
+                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                            delete -f deployments/k8s-yaml/scraper-exchange-orca.yaml || true
+                        minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                            delete -f deployments/k8s-yaml/scraper-exchange-platypus.yaml || true
                         ;;
                     liquidity)
                         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
@@ -705,6 +723,12 @@ function main() {
                         delete -f deployments/k8s-yaml/scraper-exchange-coinbase.yaml || true
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                         delete -f deployments/k8s-yaml/scraper-exchange-mexc.yaml || true
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        delete -f deployments/k8s-yaml/scraper-exchange-bitmart.yaml || true
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        delete -f deployments/k8s-yaml/scraper-exchange-orca.yaml || true
+                    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                        delete -f deployments/k8s-yaml/scraper-exchange-platypus.yaml || true
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                         delete -f deployments/k8s-yaml/scraper-liquidity-platypus.yaml || true
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
