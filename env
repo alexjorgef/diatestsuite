@@ -156,6 +156,7 @@ function main() {
             echo "Disk size: ${MINIKUBE_HW_DISK_SIZE}"
             echo "Memory: ${MINIKUBE_HW_RAM}"
             echo "K8s version: ${MINIKUBE_K8S_VERSION}"
+            echo "Docker version: v$(docker version --format '{{.Client.Version}}')"
             echo "Minikube driver: ${MINIKUBE_DRIVER}"
             echo "Minikube profile: ${MINIKUBE_PROFILE}"
             minikube version
@@ -188,7 +189,7 @@ function main() {
                 #   see https://github.com/kubernetes/minikube/issues/16576
                 if [[ "$MINIKUBE_DRIVER" == "docker" ]]; then
                     eval "$(minikube -p "${MINIKUBE_PROFILE}" docker-env)"
-                    echo "Building base images w/ Docker v$(docker version --format '{{.Client.Version}}') ..."
+                    echo "Building base images ..."
                     docker buildx build -f "build/build/Dockerfile-DiadataBuild-117-Dev" \
                         -t "dia.build-117.dev:latest" .
                     echo "Base image build successfully [1/1]"
@@ -552,11 +553,11 @@ function main() {
             case "${paths[1]}" in
             exchange)
                 minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                    create -f deployments/k8s-yaml/scraper-exchange-custom.yaml
+                    create -f deployments/k8s-yaml/scraper-exchange.yaml
                 ;;
             foreign)
                 minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                    create -f deployments/k8s-yaml/scraper-foreign-custom.yaml
+                    create -f deployments/k8s-yaml/scraper-foreign.yaml
                 ;;
             cronjob)
                 if [ "${#paths[@]}" -eq 2 ]; then
@@ -584,24 +585,24 @@ function main() {
                     case "${paths[2]}" in
                     exchange)
                         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                            create -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
+                            create -f deployments/k8s-yaml/scraper-exchange-bitfinex.yaml
                         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                            create -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
+                            create -f deployments/k8s-yaml/scraper-exchange-bittrex.yaml
                         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                            create -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
+                            create -f deployments/k8s-yaml/scraper-exchange-coinbase.yaml
                         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                            create -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
+                            create -f deployments/k8s-yaml/scraper-exchange-mexc.yaml
                         ;;
                     liquidity)
                         # TODO: Move all liquidity scraper from pod to job manifest type
                         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                            create -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
+                            create -f deployments/k8s-yaml/scraper-liquidity-platypus.yaml
                         ;;
                     foreign)
                         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                            create -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
+                            create -f deployments/k8s-yaml/scraper-foreign-yahoofinance.yaml
                         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                            create -f deployments/k8s-yaml/scraper-foreign-example-googlefinance.yaml
+                            create -f deployments/k8s-yaml/scraper-foreign-googlefinance.yaml
                         ;;
                     *)
                         echo "Unknown command" >&2
@@ -612,19 +613,19 @@ function main() {
                 else
                     echo "Creating all examples ..."
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        create -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml
+                        create -f deployments/k8s-yaml/scraper-exchange-bitfinex.yaml
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        create -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml
+                        create -f deployments/k8s-yaml/scraper-exchange-bittrex.yaml
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        create -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml
+                        create -f deployments/k8s-yaml/scraper-exchange-coinbase.yaml
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        create -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml
+                        create -f deployments/k8s-yaml/scraper-exchange-mexc.yaml
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        create -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml
+                        create -f deployments/k8s-yaml/scraper-liquidity-platypus.yaml
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        create -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml
+                        create -f deployments/k8s-yaml/scraper-foreign-yahoofinance.yaml
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        create -f deployments/k8s-yaml/scraper-foreign-example-googlefinance.yaml
+                        create -f deployments/k8s-yaml/scraper-foreign-googlefinance.yaml
                     echo "All examples created"
                 fi
                 ;;
@@ -643,11 +644,11 @@ function main() {
             case "${paths[1]}" in
             exchange)
                 minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                    delete -f deployments/k8s-yaml/scraper-exchange-custom.yaml || true
+                    delete -f deployments/k8s-yaml/scraper-exchange.yaml || true
                 ;;
             foreign)
                 minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                    delete -f deployments/k8s-yaml/scraper-foreign-custom.yaml || true
+                    delete -f deployments/k8s-yaml/scraper-foreign.yaml || true
                 ;;
             cronjob)
                 if [ "${#paths[@]}" -eq 2 ]; then
@@ -670,23 +671,23 @@ function main() {
                     case "${paths[2]}" in
                     exchange)
                         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                            delete -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml || true
+                            delete -f deployments/k8s-yaml/scraper-exchange-bitfinex.yaml || true
                         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                            delete -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml || true
+                            delete -f deployments/k8s-yaml/scraper-exchange-bittrex.yaml || true
                         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                            delete -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml || true
+                            delete -f deployments/k8s-yaml/scraper-exchange-coinbase.yaml || true
                         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                            delete -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml || true
+                            delete -f deployments/k8s-yaml/scraper-exchange-mexc.yaml || true
                         ;;
                     liquidity)
                         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                            delete -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml || true
+                            delete -f deployments/k8s-yaml/scraper-liquidity-platypus.yaml || true
                         ;;
                     foreign)
                         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                            delete -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml || true
+                            delete -f deployments/k8s-yaml/scraper-foreign-yahoofinance.yaml || true
                         minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                            delete -f deployments/k8s-yaml/scraper-foreign-example-googlefinance.yaml || true
+                            delete -f deployments/k8s-yaml/scraper-foreign-googlefinance.yaml || true
                         ;;
                     *)
                         echo "Unknown command" >&2
@@ -697,19 +698,19 @@ function main() {
                 else
                     echo "Removing all examples ..."
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        delete -f deployments/k8s-yaml/scraper-exchange-example-bitfinex.yaml || true
+                        delete -f deployments/k8s-yaml/scraper-exchange-bitfinex.yaml || true
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        delete -f deployments/k8s-yaml/scraper-exchange-example-bittrex.yaml || true
+                        delete -f deployments/k8s-yaml/scraper-exchange-bittrex.yaml || true
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        delete -f deployments/k8s-yaml/scraper-exchange-example-coinbase.yaml || true
+                        delete -f deployments/k8s-yaml/scraper-exchange-coinbase.yaml || true
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        delete -f deployments/k8s-yaml/scraper-exchange-example-mexc.yaml || true
+                        delete -f deployments/k8s-yaml/scraper-exchange-mexc.yaml || true
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        delete -f deployments/k8s-yaml/scraper-liquidity-example-platypus.yaml || true
+                        delete -f deployments/k8s-yaml/scraper-liquidity-platypus.yaml || true
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        delete -f deployments/k8s-yaml/scraper-foreign-example-yahoofinance.yaml || true
+                        delete -f deployments/k8s-yaml/scraper-foreign-yahoofinance.yaml || true
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
-                        delete -f deployments/k8s-yaml/scraper-foreign-example-googlefinance.yaml || true
+                        delete -f deployments/k8s-yaml/scraper-foreign-googlefinance.yaml || true
                     echo "All examples removed"
                 fi
                 ;;

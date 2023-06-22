@@ -1,14 +1,12 @@
 apiVersion: "v1"
 kind: Pod
 metadata:
-  name: scraper-foreign-example-googlefinance
+  name: scraper-foreign
 spec:
   containers:
-  - name: scraper-foreign-example-googlefinance
+  - name: scraper-foreign
     image: dia.genericforeignscraper.dev:latest
     imagePullPolicy: Never
-    # command: ["foreignscraper"]
-    # args: ["-foreignType=GoogleFinance"]
     command: ["tail"]
     args: [ "-f", "/dev/null" ]
     env:
@@ -32,14 +30,6 @@ spec:
       value: "data-redis.default.svc.cluster.local:6379"
     - name: KAFKAURL
       value: "data-kafka.default.svc.cluster.local:9094"
-    - name: GOOGLEFIN_UPDATE_FREQ
-      value: "60"
-    - name: GOOGLEFIN_UPDATE_RANGE
-      value: "1d"
-    - name: GOOGLEFIN_UPDATE_INTERVAL
-      value: "1h"
-    - name: GOOGLEFIN_CURRENCIES_MAP
-      value: "EURTZS=X:EUR-TZS,EURTRY=X:EUR-TRY,USDTZS=X:USD-TZS,USDTRY=X:USD-TRY,USDNGN=X:USD-NGN,USDBRL=X:USD-BRL,USDAED=X:USD-AED,USDTWD=X:USD-TWD,USDARS=X:USD-ARS"
     volumeMounts:
     - name: env-context
       mountPath: /mnt/env-context

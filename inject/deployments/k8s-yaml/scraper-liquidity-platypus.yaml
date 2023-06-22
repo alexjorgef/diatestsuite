@@ -1,16 +1,15 @@
 apiVersion: "v1"
 kind: Pod
 metadata:
-  name: scraper-foreign-custom
+  name: scraper-liquidity-platypus
 spec:
+  restartPolicy: Never
   containers:
-  - name: scraper-foreign-custom
-    image: dia.genericforeignscraper.dev:latest
+  - name: scraper-liquidity-platypus
+    image: dia.liquidityscraper.dev:latest
     imagePullPolicy: Never
-    # command: ["foreignscraper"]
-    # args: ["-foreignType=Custom"]
-    command: ["tail"]
-    args: [ "-f", "/dev/null" ]
+    command: ["liquidityScraper"]
+    args: ["-exchange=PlatypusFinance"]
     env:
     - name: USE_ENV
       value: "true"
@@ -32,9 +31,6 @@ spec:
       value: "data-redis.default.svc.cluster.local:6379"
     - name: KAFKAURL
       value: "data-kafka.default.svc.cluster.local:9094"
-    # From yahoo, remove asap, or use for dummy example
-    - name: CURRENCIES_LIST_YAHOO
-      value: "EURGBP=X:EUR-GBP, CNY=X:USD-CNY"
     volumeMounts:
     - name: env-context
       mountPath: /mnt/env-context
@@ -72,6 +68,24 @@ spec:
     - name: KAFKA_BROKER_URL
       value: "data-kafka.default.svc.cluster.local:9094"
     command: ["sh", "-c", "until kafkacat -b $KAFKA_BROKER_URL -L; do sleep 1; done"]
+  - name: scraper-liquidity-platypus-assetcollectionservice
+    image: dia.assetcollectionservice.dev:latest
+    imagePullPolicy: Never
+    command: ["assetCollectionService"]
+    args: ["-source=PlatypusFinance"]
+    env:
+      - name: USE_ENV
+        value: "true"
+      - name: POSTGRES_HOST
+        value: "data-postgres.default.svc.cluster.local"
+      - name: POSTGRES_USER
+        value: "postgres"
+      - name: POSTGRES_PASSWORD
+        value: "password"
+      - name: POSTGRES_DB
+        value: "postgres"
+      - name: REDISURL
+        value: "data-redis.default.svc.cluster.local:6379"
   volumes:
   - name: env-context
     hostPath:
