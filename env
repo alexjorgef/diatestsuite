@@ -554,6 +554,10 @@ function main() {
                 minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                     create -f deployments/k8s-yaml/scraper-foreign.yaml
                 ;;
+            liquidity)
+                minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                    create -f deployments/k8s-yaml/scraper-liquidity.yaml
+                ;;
             cronjob)
                 if [ "${#paths[@]}" -eq 2 ]; then
                     minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
