@@ -34,6 +34,32 @@ spec:
         - name: env-context
           mountPath: /mnt/env-context
           readOnly: true
+    - name: scraper-exchange-cex-pairdiscovery
+      image: dia.pairdiscoveryservice.dev:latest
+      imagePullPolicy: Never
+      command: ["tail"]
+      args: ["-f", "/dev/null"]
+      env:
+        - name: USE_ENV
+          value: "true"
+        - name: POSTGRES_USER
+          value: "postgres"
+        - name: POSTGRES_PASSWORD
+          value: "password"
+        - name: POSTGRES_DB
+          value: "postgres"
+        - name: POSTGRES_HOST
+          value: "data-postgres.default.svc.cluster.local"
+        - name: INFLUXURL
+          value: "http://data-influx.default.svc.cluster.local:8086"
+        - name: INFLUXUSER
+          value: "test"
+        - name: INFLUXPASSWORD
+          value: "testtest"
+        - name: REDISURL
+          value: "data-redis.default.svc.cluster.local:6379"
+        - name: KAFKAURL
+          value: "data-kafka.default.svc.cluster.local:9094"
   initContainers:
     - name: check-postgres-connection
       image: public.ecr.aws/docker/library/postgres:15-alpine
@@ -75,32 +101,6 @@ spec:
           value: "data-kafka.default.svc.cluster.local:9094"
       command:
         ["sh", "-c", "until kafkacat -b $KAFKA_BROKER_URL -L; do sleep 1; done"]
-    - name: scraper-exchange-cex-pairdiscovery
-      image: dia.pairdiscoveryservice.dev:latest
-      imagePullPolicy: Never
-      command: ["pairDiscoveryService"]
-      args: ["-exchange=Custom", "-mode=verification"]
-      env:
-        - name: USE_ENV
-          value: "true"
-        - name: POSTGRES_USER
-          value: "postgres"
-        - name: POSTGRES_PASSWORD
-          value: "password"
-        - name: POSTGRES_DB
-          value: "postgres"
-        - name: POSTGRES_HOST
-          value: "data-postgres.default.svc.cluster.local"
-        - name: INFLUXURL
-          value: "http://data-influx.default.svc.cluster.local:8086"
-        - name: INFLUXUSER
-          value: "test"
-        - name: INFLUXPASSWORD
-          value: "testtest"
-        - name: REDISURL
-          value: "data-redis.default.svc.cluster.local:6379"
-        - name: KAFKAURL
-          value: "data-kafka.default.svc.cluster.local:9094"
   volumes:
     - name: env-context
       hostPath:
