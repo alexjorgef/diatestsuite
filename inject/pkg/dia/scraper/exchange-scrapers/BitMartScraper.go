@@ -273,6 +273,7 @@ func (s *BitMartScraper) mainLoop() {
 	defer func() {
 		log.Printf("Shutting down main loop...\n")
 	}()
+	log.Infof("Starting main loop...")
 	for i := 0; i < bitMartMaxConnections; i++ {
 		go func(idx int) {
 			defer func() {
@@ -392,6 +393,7 @@ func (s *BitMartScraper) mainLoop() {
 					continue
 				} else {
 					t.IdentifyDuplicateTagset(tmDuplicateTrades, duplicateTradesMemory)
+					log.Infof("New trade: %v", t)
 					s.chanTrades <- t
 				}
 			}
