@@ -1,12 +1,11 @@
 FROM dia.build-117.dev:latest as build
 
-COPY --link . /diadata
+COPY . /diadata
 
 WORKDIR $GOPATH/src/
 COPY ./cmd/services/blockchainservice ./
 
 RUN go mod edit -replace github.com/diadata-org/diadata=/diadata
 RUN go mod tidy && go install
-RUN go mod edit -replace github.com/diadata-org/diadata=/mnt/env-context
 
 CMD ["blockchainservice"]

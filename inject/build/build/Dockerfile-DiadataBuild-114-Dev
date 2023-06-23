@@ -3,7 +3,6 @@ FROM public.ecr.aws/docker/library/golang:1.14 as build
 RUN apt update && apt upgrade -y
 
 COPY ./config/ /config/
-COPY --link . /diadata
 
 WORKDIR $GOPATH/src/
 COPY ./go.mod ./
