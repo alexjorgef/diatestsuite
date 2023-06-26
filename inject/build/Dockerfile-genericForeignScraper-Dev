@@ -1,11 +1,8 @@
 FROM dia.build-117.dev:latest as build
 
-COPY . /diadata
-
 WORKDIR $GOPATH/src/
 COPY ./cmd/foreignscraper ./
 
-RUN go mod edit -replace github.com/diadata-org/diadata=/diadata
 RUN go mod tidy -go=1.16 && go mod tidy -go=1.17 && go install
 
 CMD ["foreignscraper"]
