@@ -11,7 +11,7 @@ Minimum hardware recommended:
 The followding systems are covered:
 
 * Architectures: x86_64
-* Systems: Linux v6.3.8
+* Systems: Linux v6.3.9
 
 Software dependencies needed:
 
@@ -36,12 +36,12 @@ Then:
 * Change to temporary directory
 
 ```sh
-if [ -d "./.testenv" ]; then rm -Rf "./.testenv"; fi
+rm -rf "./.testenv"
 # git clone git@github.com:diadata-org/diadata.git -b v1.4.288 "./.testenv"
 git clone git@github.com:diadata-org/diadata.git "./.testenv"
 cp -Rf ./inject/* "./.testenv"
 cp -Rf ./inject/.[^.]* "./.testenv"
-ln -s "$PWD/env" "./.testenv/env"
+# ln -s "$PWD/env" "./.testenv/env"
 cd "./.testenv/"
 ```
 

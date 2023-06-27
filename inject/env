@@ -164,6 +164,7 @@ function main() {
             echo "Starting Minikube cluster ..."
             cluster_name=$(minikube profile list --output json | jq -r -c '.valid | .[] | .Name')
             cluster_status=$(minikube profile list --output json | jq -r -c '.valid | .[] | .Status')
+            cluster_main_mount=$(pwd)
             if [[ "$cluster_name" != "${MINIKUBE_PROFILE}" || "$cluster_status" != "Running" ]]; then
                 # Start minikube cluster
                 minikube -p "${MINIKUBE_PROFILE}" start \
@@ -172,7 +173,7 @@ function main() {
                     --memory ${MINIKUBE_HW_RAM} \
                     --cpus ${MINIKUBE_HW_CPUS} \
                     --disk-size ${MINIKUBE_HW_DISK_SIZE} \
-                    --mount-string="$(pwd):/mnt/diadata:rw" \
+                    --mount-string="${cluster_main_mount}:/mnt/diadata:rw" \
                     --mount=true
             else
                 echo "Minikube cluster already running"
@@ -542,11 +543,9 @@ function main() {
             echo "Service image present [4/4]"
 
             case "${paths[1]}" in
-            exchange-cex)
+            exchange)
                 minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                     create -f deployments/k8s-yaml/scraper-cex.yaml
-                ;;
-            exchange-dex)
                 minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                     create -f deployments/k8s-yaml/scraper-dex.yaml
                 ;;
@@ -660,13 +659,15 @@ function main() {
     remove)
         if [ "${#paths[@]}" -gt 1 ]; then
             case "${paths[1]}" in
-            exchange-cex)
+            exchange)
                 minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                     delete -f deployments/k8s-yaml/scraper-cex.yaml || true
-                ;;
-            exchange-dex)
                 minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
                     delete -f deployments/k8s-yaml/scraper-dex.yaml || true
+                ;;
+            liquidity)
+                minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+                    delete -f deployments/k8s-yaml/scraper-liquidity.yaml || true
                 ;;
             foreign)
                 minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
