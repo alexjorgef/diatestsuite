@@ -164,7 +164,6 @@ function main() {
             echo "Starting Minikube cluster ..."
             cluster_name=$(minikube profile list --output json | jq -r -c '.valid | .[] | .Name')
             cluster_status=$(minikube profile list --output json | jq -r -c '.valid | .[] | .Status')
-            cluster_main_mount=$(pwd)
             if [[ "$cluster_name" != "${MINIKUBE_PROFILE}" || "$cluster_status" != "Running" ]]; then
                 # Start minikube cluster
                 minikube -p "${MINIKUBE_PROFILE}" start \
@@ -173,8 +172,8 @@ function main() {
                     --memory ${MINIKUBE_HW_RAM} \
                     --cpus ${MINIKUBE_HW_CPUS} \
                     --disk-size ${MINIKUBE_HW_DISK_SIZE} \
-                    --mount-string="${cluster_main_mount}:/mnt/diadata:rw" \
-                    --mount=true
+                    --mount-string="$(pwd):/mnt/diadata" \
+                    --mount
             else
                 echo "Minikube cluster already running"
             fi

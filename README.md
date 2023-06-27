@@ -53,13 +53,18 @@ Run the script to manage the enviornment 🚀:
 ./env --help
 ```
 
-## Demo
+## Test
 
 Running:
 
 ```sh
 time (./env start)
 time (./env install full)
+```
+
+Demos:
+
+```sh
 time (./env create example exchange)
 time (./env create example liquidity)
 time (./env create example foreign)
