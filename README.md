@@ -15,8 +15,7 @@ The followding systems are covered:
 
 Software dependencies needed:
 
-* *bash*, *git*, *jq*, ~~*yq*~~
-* *minikube*, and *docker* as main driver
+* *bash*, *git*, *jq*, ~~*yq*~~, *minikube*, *docker*, and *docker-buildx*
 
 ## Prepare this repository
 
@@ -37,7 +36,7 @@ Then:
 
 ```sh
 rm -rf "./.testenv"
-# git clone git@github.com:diadata-org/diadata.git -b v1.4.288 "./.testenv"
+# git clone git@github.com:diadata-org/diadata.git -b v1.4.289 "./.testenv"
 git clone git@github.com:diadata-org/diadata.git "./.testenv"
 cp -Rf ./inject/* "./.testenv"
 cp -Rf ./inject/.[^.]* "./.testenv"
@@ -65,10 +64,10 @@ time (./env install full)
 Demos:
 
 ```sh
-time (./env create example exchange)
-time (./env create example liquidity)
-time (./env create example foreign)
 time (./env create exchange)
-time (./env create liquidity)
+time (./env create exchange example)
 time (./env create foreign)
+time (./env create foreign example)
+time (./env create liquidity)
+time (./env create liquidity example)
 ```
