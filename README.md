@@ -15,7 +15,7 @@ The followding systems are covered:
 
 Software dependencies needed:
 
-* *bash*, *git*, *jq*, ~~*yq*~~, *minikube*, *docker*, and *docker-buildx*
+* *bash*, *git*, *docker*, *docker-buildx*, *minikube*, *kubectl*, *jq*, *yq*
 
 ## Prepare this repository
 
