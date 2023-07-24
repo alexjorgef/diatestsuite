@@ -1,1 +1,0 @@
-\COPY exchangepair FROM '/tmp/dump-exchangepair.csv' WITH (FORMAT csv, DELIMITER ';');

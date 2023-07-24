@@ -52,22 +52,88 @@ Run the script to manage the enviornment 🚀:
 ./env --help
 ```
 
-## Test
+## Tests
 
-Running:
+1. Start platform and install resources:
 
-```sh
-time (./env start)
-time (./env install full)
+```shell
+./env start
+./env --full install
 ```
 
-Demos:
+2. Create demo scrapers:
 
-```sh
-time (./env create exchange)
-time (./env create exchange example)
-time (./env create foreign)
-time (./env create foreign example)
-time (./env create liquidity)
-time (./env create liquidity example)
+```shell
+./env create demos-scraper
+```
+
+3. Remove demo scrapers:
+
+```shell
+./env remove demos-scraper
+```
+
+4. Create one-by-one:
+
+```shell
+./env create scraper-cex coinbase
+./env create scraper-dex platypus
+./env create scraper-liquidity platypus
+./env create scraper-foreign yahoofinance
+```
+
+5. Remove existing scrapers:
+
+```shell
+./env remove scraper-cex coinbase
+./env remove scraper-dex platypus
+./env remove scraper-liquidity platypus
+./env remove scraper-foreign yahoofinance
+```
+
+6. Create dev scrapers:
+
+```shell
+./env create scraper-cex
+./env create scraper-dex
+./env create scraper-foreign
+./env create scraper-liquidity
+```
+
+5. Remove existing dev scrapers:
+
+```shell
+./env remove scraper-cex
+./env remove scraper-dex
+./env remove scraper-foreign
+./env remove scraper-liquidity
+```
+
+6. Uninstall
+
+```shell
+./env --full uninstall
+```
+
+6. Delete
+
+```shell
+./env delete
+```
+
+## Lists
+
+```shell
+./env data-list
+./env data-list exchange
+./env data-list blockchain
+./env create scraper-dex testwrong
+```
+
+## Performance
+
+Measure time of image building proccess:
+
+```shell
+time (./env --full install)
 ```

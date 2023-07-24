@@ -1,1 +1,0 @@
-\COPY poolasset FROM '/tmp/dump-poolasset.csv' WITH (FORMAT csv, DELIMITER ';');

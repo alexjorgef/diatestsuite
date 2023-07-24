@@ -1,1 +1,0 @@
-\COPY blockchain FROM '/tmp/dump-blockchain.csv' WITH (FORMAT csv, DELIMITER ';');

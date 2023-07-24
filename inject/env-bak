@@ -1,0 +1,207 @@
+#!/usr/bin/env bash
+
+function prompt_create_exchange_db() {
+    # inputExchangeName="Custom"
+    # echo "Exchange Name:"
+    # read -r inputExchangeName
+    # while true; do
+    #     echo "The exchange is decentralized in a blockchain?"
+    #     read -r inputExchangeCentralized
+    #     case $inputExchangeCentralized in
+    #         [Yy]* ) echo "You choose yes."; break;;
+    #         [Nn]* ) echo "You choose no.";;
+    #         * ) echo "Please answer yes or no.";;
+    #     esac
+    # done
+    # echo "$inputExchangeCentralized"
+    # while true; do
+    #     echo "The exchange is a bridge?"
+    #     read -r inputExchangeBridge
+    #     case $inputExchangeBridge in
+    #         [Yy]* ) echo "You choose yes."; break;;
+    #         [Nn]* ) echo "You choose no.";;
+    #         * ) echo "Please answer yes or no.";;
+    #     esac
+    # done
+    # echo "$inputExchangeBridge"
+    # minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+    #     exec deployment/postgres -- \
+    #     psql -v ON_ERROR_STOP=on -U postgres \
+    #     -c "INSERT INTO exchange (
+    #             exchange_id,
+    #             name,
+    #             centralized,
+    #             bridge,
+    #             contract,
+    #             blockchain,
+    #             rest_api,
+    #             ws_api,
+    #             pairs_api,
+    #             watchdog_delay,
+    #             scraper_active
+    #         ) VALUES(
+    #             gen_random_uuid(),
+    #             'Custom',
+    #             true,
+    #             false,
+    #             '',
+    #             '',
+    #             '',
+    #             'wss://ws-feed.pro.coinbase.com',
+    #             'https://api.pro.coinbase.com/products',
+    #             300,
+    #             true
+    #         )
+    #         ;" >/dev/null 2>&1 \
+    #     && echo "Success" \
+    #     || echo "Error, a exchange with the name $inputExchangeName already exists." >&2
+    # set +e
+    # psqlExitCode=$?
+    # if [ $psqlExitCode -ne 0 ]; then
+    #     echo "Error, a exchange with the name $inputExchangeName already exists."
+    # else
+    #     echo "Success"
+    # fi
+    echo wip
+}
+
+function start() {
+    # TODO: Installing DIA Helm chart
+    minikube -p "${MINIKUBE_PROFILE}" kubectl get namespace | grep -q "^dia " || kubectl create namespace "dia"
+    helm repo update
+    helm upgrade "dia-release" --namespace "dia-system" --create-namespace --install \
+        --set "exchangescrapers.namespaces={default,dia}" "./deployments/helm/dia"
+}
+
+function monitor-start() {
+    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create namespace dia-monitoring
+    minikube -p "${MINIKUBE_PROFILE}" kubectl -- create namespace logging
+
+    # Install grafana dashboards
+    #   TODO: provisioning datasources and dashboards
+    helm repo add grafana https://grafana.github.io/helm-charts
+    helm repo update
+    helm upgrade --namespace=dia-monitoring --install grafana grafana/grafana 
+    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+        expose --namespace=dia-monitoring service grafana --type=NodePort --target-port=3000 --name=grafana-np
+    minikube -p "${MINIKUBE_PROFILE}" kubectl -- \
+        get secret --namespace=dia-monitoring grafana \
+        -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+    minikube -p "${MINIKUBE_PROFILE}" service grafana-np --url
+
+    # TODO: Installing Loki daemon
+    helm repo add grafana https://grafana.github.io/helm-charts
+    helm repo update
+    helm upgrade --namespace=logging --install loki grafana/loki
+}
+function monitor-stop() {
+    # Stop and un-install grafana
+    minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete svc --namespace=dia-monitoring grafana-np || true
+    helm delete grafana || true
+    
+    # Stop and un-install Loki
+    minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete svc --namespace=dia-monitoring loki || true
+    helm delete loki || true
+
+    # Clean Helm repos
+    helm repo remove grafana || true
+    helm repo update
+
+    # Delete remaining resources
+    minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete namespace dia-monitoring || true
+    minikube -p "${MINIKUBE_PROFILE}" kubectl -- delete namespace logging || true
+}
+function usage() {
+    echo "HELP"
+}
+
+function main() {
+    local full_mode=false
+    local single_mode=false
+    local verbose_mode=false
+
+    local paths=()
+    local args=
+    args=$(
+        getopt -o hnsvp: \
+            --long parameter:,disk-space:,nodetached,full,single,verbose,help \
+            -n 'env' -- "$@"
+    )
+    local version_detected=$(git describe --tags --abbrev=0)
+
+    # shellcheck disable=SC2181
+    if [ $? != 0 ]; then
+        usage 1>&2
+        return 1
+    fi
+
+    set -euo pipefail
+
+    eval set -- "$args"
+
+    while true; do
+        case "$1" in
+            --verbose | -v)
+                verbose_mode=true
+                shift ;;
+            --single)
+                single_mode=true
+                shift ;;
+            --full | -f)
+                full_mode=true
+                shift ;;
+            --help | -h     ) usage; return 0 ;;
+            --              ) shift; break    ;;
+            *               )        break    ;;
+        esac
+    done
+
+    # expand paths after parsing
+    paths=("$@")
+
+    echo "${#paths[@]}"
+    echo "${paths[@]}"
+    echo "${paths:-.}"
+    echo "${paths[0]}"
+    echo "${paths[1]}"
+
+    if ! hash helm 2> /dev/null; then echo "Helm not found" >&2; return 1; fi
+    if ! hash jq 2> /dev/null; then echo "jq not found" >&2; return 1; fi
+    if ! hash yq 2> /dev/null; then echo "yq not found" >&2; return 1; fi
+    if ! hash golangci-lint 2> /dev/null; then echo "golangci-lint not found" >&2; return 1; fi
+
+    MINIKUBE_CERT_MOUNT=~/.minikube
+    KUBECONFIG=~/.kube/config
+
+
+    #     code-lint)
+    #     if [ "${#paths[@]}" -eq 1 ]; then
+    #         if ! hash golangci-lint 2> /dev/null; then echo "golangci-lint not found" >&2; return 1; fi
+    #         echo "Running linter ..."
+    #         golangci-lint run --config=./.golangci.yml --out-format=tab
+    #     else
+    #         echo "Unknown command" >&2
+    #         exit 1
+    #     fi
+    #     ;;
+    # code-test)
+    #     if [ "${#paths[@]}" -eq 1 ]; then
+    #         echo "Running tests ..."
+    #         gotestsum --format pkgname
+    #     else
+    #         echo "Unknown command" >&2
+    #         exit 1
+    #     fi
+    #     ;;
+    # code-build)
+    #     if [ "${#paths[@]}" -eq 1 ]; then
+    #         echo "Building codebase ..."
+    #         go build -v ./...
+    #     else
+    #         echo "Unknown command" >&2
+    #         exit 1
+    #     fi
+    #     ;;
+}
+
+main @
