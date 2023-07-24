@@ -65,6 +65,15 @@ function prompt_create_exchange_db() {
     echo wip
 }
 
+function install(){
+    # docker login "${data_docker_registry}" --username="${data_docker_username}" --password="${data_docker_password}"
+    # minikube -p "${minikube_profile}" kubectl -- \
+    #     create secret generic regcred-read \
+    #     --from-file=.dockerconfigjson="${HOME}/.docker/config.json" \
+    #     --type=kubernetes.io/dockerconfigjson
+    echo WIP
+}
+
 function start() {
     # TODO: Installing DIA Helm chart
     minikube -p "${MINIKUBE_PROFILE}" kubectl get namespace | grep -q "^dia " || kubectl create namespace "dia"
@@ -202,6 +211,8 @@ function main() {
     #         exit 1
     #     fi
     #     ;;
+
+
 }
 
 main @
