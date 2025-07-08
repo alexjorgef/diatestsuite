@@ -24,3 +24,37 @@ Run the script to manage the enviornment 🚀:
 ```sh
 ./env --help
 ```
+
+## Diagrams
+
+Structure:
+
+```plantuml
+@startuml
+start
+
+if (is Genesis?) then (yes)
+  :Genesis Build;
+  ->//dump-init//;
+else (no)
+  :Wait Cronjob;
+  :Dump Cronjob;
+  ->//dump//;
+endif
+:Postgres Build;
+:Postgres Tag;
+:Postgres Push;
+:Docker Registry;
+group Instance Domain
+  if (is Genesis?) then (yes)
+    :<color:blue>Start Cluster;
+    :Postgres Instance;
+  else (no)
+    :<color:blue>Rollout Cluster;
+    :New-Postgres Instance;
+  endif
+end group
+
+stop
+@enduml
+```
