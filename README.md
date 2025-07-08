@@ -29,6 +29,8 @@ Run the script to manage the enviornment 🚀:
 
 Structure:
 
+![DIA Test Suite Structure](docs/assets/structure.png)
+
 ```plantuml
 @startuml
 start
